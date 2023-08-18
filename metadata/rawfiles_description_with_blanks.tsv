@@ -1351,6 +1351,8 @@ EH4776	blank	Ct+Tryp	run1
 EH4777	70	Ct+Tryp	run1
 EH4778	70	Ct+Tryp	run1
 EH4779	70	Ct+Tryp	run1
+EH4780	blank	Ct+Tryp	run1
+EH4781	blank	Ct+Tryp	run1
 EH4855_211022133232	1	Tryp	run2
 EH4856	1	Tryp	run2
 EH4857	1	Tryp	run2
@@ -3392,6 +3394,9 @@ EH8268	70	Ct	run3
 EH8269	70	Ct	run3
 EH8270	70	Ct	run3
 EH8271	blank	Ct	run3
+EH7160	blank	AspN	run3
+EH7161	blank	AspN	run3
+EH7162	blank	AspN	run3
 EH7163	1	AspN	run3
 EH7164	1	AspN	run3
 EH7165	1	AspN	run3

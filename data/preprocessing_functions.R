@@ -36,12 +36,13 @@ align_to_ab_sequences <- function(df, cdr3) {
   
 
 add_metainfo <- function(df) {
+  merge_rawfiles_description()
   generate_sample_info()
   sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
   rawfiles_info <- read_tsv(file.path(metadata_path, "rawfiles_description_with_blanks.tsv"), guess_max = 5e3)
   
   rawfiles_info$sample_id <- paste(rawfiles_info$Rawfilenumber, rawfiles_info$Protease, rawfiles_info$run, sep="_")
-  df <- merge(df, rawfiles_info[, c("Rawfilenumber", "Sample", "replicate", "sample_id")], by="Rawfilenumber", all.x = T) 
+  df <- merge(df, rawfiles_info[, c("Rawfilenumber", "Sample", "sample_id")], by="Rawfilenumber", all.x = T) 
   df <- merge(df, sample_info, by="Sample", all.x = T)
   return(df)
 }
