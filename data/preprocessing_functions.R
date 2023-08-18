@@ -40,13 +40,9 @@ add_metainfo <- function(df) {
   sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
   rawfiles_info <- read_tsv(file.path(metadata_path, "rawfiles_description_with_blanks.tsv"), guess_max = 5e3)
   
-  rawfiles_info$sample_id <- paste(rawfiles_info$Rawfilenumber, rawfiles_info$enzyme, rawfiles_info$run, sep="_")
-  print(nrow(df))
+  rawfiles_info$sample_id <- paste(rawfiles_info$Rawfilenumber, rawfiles_info$Protease, rawfiles_info$run, sep="_")
   df <- merge(df, rawfiles_info[, c("Rawfilenumber", "Sample", "replicate", "sample_id")], by="Rawfilenumber", all.x = T) 
-  print(nrow(df))
   df <- merge(df, sample_info, by="Sample", all.x = T)
-  print(nrow(df))
-  print("====")
   return(df)
 }
 
