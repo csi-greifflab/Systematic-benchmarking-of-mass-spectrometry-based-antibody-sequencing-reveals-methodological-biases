@@ -1,0 +1,27 @@
+---
+title: "Untitled"
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+source("/storage/mariiac/MSMS_paper_figures/my_config.R")
+```
+
+
+```{r}
+df_casanovo <- read_tsv(file.path(data_path, "casanovo_ab_annotated.tsv"), guess_max = 1e4)
+df_casanovo$tool <- "Casanovo"
+df_msf <- read_tsv(file.path(data_path, "msf_ab_annotated.tsv"), guess_max = 1e4)
+df_msf$tool <- "MSFragger"
+df_mq <- read_tsv(file.path(data_path, "mq_ab_annotated.tsv"), guess_max = 1e4)
+df_mq$tool <- "MaxQuant"
+
+colnames(df_casanovo)[colnames(df_casanovo) == "search_engine_score"] <- "intensity"
+
+df <- rbind(df_mq, df_msf, df_casanovo)
+df <- df[!is.na(df$Sequence), ]
+
+write_tsv(df, file.path(data_path, "all_peptides_annotated.tsv"))
+```
+

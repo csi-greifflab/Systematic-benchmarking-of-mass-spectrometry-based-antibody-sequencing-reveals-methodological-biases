@@ -1,0 +1,113 @@
+---
+title: "Casanovo data preprocessing"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+header-includes:
+  - \usepackage{float}
+  - \floatplacement{figure}{H}
+output: 
+  bookdown::pdf_document2:
+    keep_tex: yes
+---
+
+```{r setup, include=FALSE}
+source("/storage/mariiac/MSMS_paper_figures/my_config.R")
+```
+
+
+```{r}
+# library(Rcpp)
+# library(ggplot2)
+# library(readr)
+# library(stringr)
+# library(reshape2) 
+# library(readxl)
+# library(rio)
+# library(ComplexHeatmap)
+# library(dplyr)
+# library(RColorBrewer)
+# 
+# library(forcats)
+
+```
+
+# 1. Read Casanovo output files and merge in one file 
+
+```{r, message=FALSE}
+
+# path <- file.path(data_path, "casanovo_raw")
+# 
+# read_casanovo_output <- function(fname) {
+#   df_tmp <- data.frame(read_tsv(fname, skip = 58))
+#   df_tmp <- df_tmp[, c("sequence", "search_engine_score.1.")]
+#   colnames(df_tmp) <- c("Sequence",  "search_engine_score")
+#   df_tmp$sample <- str_remove(basename(fname), ".mztab")
+#   df_tmp
+# }
+# 
+# df_res <- data.frame()
+# 
+# for (run in 1:4) {
+#   for (enzyme in c("ct", "tryp", "aspn", "ct+tryp")) {
+#     print(run)
+#     print(enzyme)
+#     casanovo_files <- list.files(file.path(path, paste0("run", run, "_", enzyme)),
+#                                  full.names = T, pattern = ".mztab")
+#     df <- lapply(casanovo_files, read_casanovo_output)
+#     df <- do.call("rbind", df)
+#     df$run <- paste0("run", run)
+#     df$enzyme <- enzyme
+#     df_res <- rbind(df, df_res)
+#   }
+# }
+# 
+# 
+# 
+# write_tsv(df_res, file.path(data_path, "casanovo_raw/casanovo_merged.tsv"))
+```
+
+# 2. Remove PTMs, merge identical pepides, filter peptides shorter than 5 AA and casanovo_engine_score smaller than 0.8
+
+```{r}
+df <- read_tsv(file.path(data_path, "casanovo_raw/casanovo_merged.tsv"))
+print(nrow(df))
+
+df <- df[!is.na(df$search_engine_score), ]
+print(nrow(df))
+
+# Remove PTMs, e.g. YLTSM+15.995ASR will be replaced with YLTSMASR
+df$Sequence <- str_replace_all(string = df$Sequence, pattern = "[0-9.+-]", replacement = "")
+
+# Filter peptides shorter than 5 AA
+df <- df[sapply(df$Sequence, nchar) > 6, ]
+print(nrow(df))
+
+# Filter peptides which casanovo_engine_score smaller than 0.8
+df <- df[df$search_engine_score > 0.8, ]
+print(nrow(df))
+
+# Merge identical peptides within every filename (EHxxxx), enzyme, and run. Keep the highest search_engine_score for merged peptides
+df <- df %>%
+    dplyr::group_by(Sequence, sample, run, enzyme) %>% # for each unique peptide in a filename, run, and enzyme
+    dplyr::arrange(-search_engine_score) %>% # sort by highest search_engine score
+    dplyr::slice(1) # take the peptide with the highest search_engine score
+print(nrow(df))
+
+colnames(df) <- c("Sequence", "search_engine_score", "Rawfilenumber", "run", "Protease")
+
+# peptides that match to the variable region but also overlap with constant
+
+df <- data.frame(df)
+cdr3 <- data.frame(read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv")))
+
+df <- align_to_ab_sequences(df, cdr3)
+df <- add_metainfo(df)
+df <- is_cdr3_related(df, cdr3, cdr3_min_overlap=3)
+
+df <- rename_enzymes(df) 
+
+write_tsv(df, file.path(data_path, "casanovo_ab_annotated.tsv"))
+```
+
+
+
+
