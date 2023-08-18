@@ -1,0 +1,110 @@
+---
+title: "Untitled"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning = F, message = F, fig.width = 6, fig.height = 6)
+```
+
+
+```{r}
+library(Rcpp)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(reshape2) 
+library(readxl)
+library(rio)
+library(ComplexHeatmap)
+library(dplyr)
+library(RColorBrewer)
+
+library(themeakbar)
+theme_set(themeakbar())
+
+library(forcats)
+
+enzyme_cols <- c("all" = "#989FA7",
+                 "aspn" = "#B4C540",
+                 "tryp" = "#E84D8A",
+                 "ct" = "#64C5EB",
+                  "ct+tryp" = "#7F58AF")
+```
+
+```{r}
+df <- read_tsv("/storage/mariiac/MSMS_paper_figures/all_peptides_filtered.tsv")
+
+#cdr3 <- data.frame(read_tsv("/storage/mariiac/MSMS_paper_figures/metadata/antibodies_cdr3_variable_full.tsv"))
+
+df <- df[df$is_not_contamination, ]
+```
+
+
+```{r}
+get_stats <- function(df) {
+   df_n_ab <- df %>% group_by(enzyme, match_ig_type) %>%
+                     dplyr::summarise(n_peptides=length(unique(Sequence))) %>% 
+                     as.data.frame()
+   df_n_ab2 <- df %>% group_by(match_ig_type) %>%
+                     dplyr::summarise(n_peptides=length(unique(Sequence))) %>% 
+                     as.data.frame()
+   df_n_ab2$enzyme <- "all"
+   df_n_ab <- rbind(df_n_ab, df_n_ab2)
+ 
+   df_n_ab$match_ig_type <- as.factor(df_n_ab$match_ig_type) 
+   df_n_ab$match_ig_type <- fct_relevel(df_n_ab$match_ig_type,  
+                                 c("h9C12-Q97A_HC", "h9C12_LC", "h9C12-WT_HC", "Bri_HC", "Bri_LC", "Ust_HC", "Ust_LC", "PGT121_HC", "PGT121_LC", "PGDM1400_HC", "PGDM1400_LC"))
+   return(df_n_ab)
+ }
+ 
+df_n_ab <- get_stats(df)
+df_n_ab$type <- "ab"
+df_n_cdr3 <- get_stats(df[df$is_cdr3_related, ])
+df_n_cdr3$type <- "cdr3"
+ 
+df_n <- rbind(df_n_ab, df_n_cdr3)
+df_n$chain <- "LC"
+df_n$chain[str_detect(df_n$match_ig_type, "_HC")] <- "HC"
+```
+
+
+```{r pressure, echo=FALSE}
+g <- ggplot(df_n[df_n$chain == "HC" & df_n$type == "ab", ], aes(x = match_ig_type,  y = n_peptides, color = enzyme, label = n_peptides)) +
+  geom_point(size=4) +
+  geom_text(hjust=1.8, size=4.5) +
+  theme_minimal() +
+  theme(panel.spacing = unit(1, "lines")) +
+  scale_colour_manual(values = enzyme_cols) +
+  ylim(0,100) +
+  theme(text = element_text(size=14), legend.position="bottom")
+
+plot(g)
+
+png("/storage/mariiac/MSMS_paper_figures/2c_counts_all.png", width = 5, height = 4, units = 'in', res = 600)
+plot(g)
+dev.off()
+```
+
+```{r pressure, echo=FALSE}
+
+# TODO fix
+
+df_n <- rbind(df_n, data.frame(enzyme="aspn", match_ig_type = "PGDM1400_HC", n_peptides = 0, type = "cdr3", chain="HC"))
+
+g <- ggplot(df_n[df_n$chain == "HC" & df_n$type == "cdr3", ], aes(x = match_ig_type,  y = n_peptides, color = enzyme, label = n_peptides)) +
+  geom_point(size=4) +
+  theme_minimal() +
+  geom_text(hjust=1.8, size=4.5) +
+  theme(panel.spacing = unit(1, "lines")) +
+  scale_colour_manual(values = enzyme_cols) +
+  ylim(0, 100) +
+  theme(text = element_text(size=14), legend.position="bottom")
+
+plot(g)
+
+png("/storage/mariiac/MSMS_paper_figures/2c_counts_cdr3.png", width = 5, height = 4, units = 'in', res = 600)
+plot(g)
+dev.off()
+
+```

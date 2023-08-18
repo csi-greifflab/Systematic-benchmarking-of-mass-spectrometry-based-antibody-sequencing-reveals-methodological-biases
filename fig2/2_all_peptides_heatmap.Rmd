@@ -1,0 +1,335 @@
+---
+title: "Fig 2B: heatmap"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+header-includes:
+  - \usepackage{float}
+  - \floatplacement{figure}{H}
+output: 
+  bookdown::pdf_document2:
+    keep_tex: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning = F, message = F, fig.width = 16, fig.height = 16)
+```
+
+
+```{r}
+library(Rcpp)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(reshape2) 
+library(readxl)
+library(rio)
+library(ComplexHeatmap)
+library(dplyr)
+library(RColorBrewer)
+
+library(themeakbar)
+theme_set(themeakbar())
+
+library(forcats)
+```
+
+```{r}
+df <- read_tsv("/storage/mariiac/MSMS_paper_figures/data/all_peptides.tsv")
+```
+
+# fig 2B
+
+```{r}
+igor_info <- read_tsv("/storage/mariiac/Casanovo/metadata/igor_info.tsv")
+```
+
+
+```{r}
+v <- c("h9C12-Q97A_HC", "h9C12_LC", "h9C12-WT_HC", "Bri_HC", "Bri_LC", "Ust_HC","Ust_LC", "PGT121_HC", "PGT121_LC", "PGDM1400_HC", "PGDM1400_LC")
+v <- paste0("n_peptides.", v)
+
+concentrations <- as.matrix(igor_info[, c(colnames(igor_info)[grepl("concentration_", colnames(igor_info), fixed = TRUE)])])
+
+rownames(concentrations) <- 1:70
+colnames(concentrations) <- c("h9C12 Q97A", "h9C12 WT", "brimab", "umab", "PGT121", "PGDM1400")
+
+n_peptides <- df %>%
+  dplyr::group_by(Sample, match_ig_type) %>%
+  dplyr::summarise(n_peptides=length(unique(Sequence))) %>% 
+  as.data.frame()
+
+n_peptides <- reshape(n_peptides, idvar="Sample", timevar="match_ig_type", direction="wide")
+
+n_peptides[setdiff(v, colnames(n_peptides))] <- NA
+
+tmp <- data.frame(Sample=1:70)
+
+n_peptides_HC <- n_peptides[, c("Sample", "n_peptides.h9C12-Q97A_HC", "n_peptides.h9C12-WT_HC", 
+                                "n_peptides.Bri_HC", "n_peptides.Ust_HC", 
+                                "n_peptides.PGT121_HC", "n_peptides.PGDM1400_HC")]
+n_peptides_HC <- merge(tmp, n_peptides_HC, all.x = T, by = "Sample")
+n_peptides_HC <- n_peptides_HC[, -1]
+
+n_peptides_LC <- n_peptides[, c("Sample", "n_peptides.h9C12_LC", 
+                                "n_peptides.Bri_LC", "n_peptides.Ust_LC", 
+                                "n_peptides.PGT121_LC", "n_peptides.PGDM1400_LC")]
+
+n_peptides_LC <- merge(tmp, n_peptides_LC, all.x = T, by = "Sample")
+n_peptides_LC <- n_peptides_LC[, -1]
+n_peptides_LC <- cbind(n_peptides_LC[, 1], n_peptides_LC)
+
+hmap = Heatmap(concentrations, 
+        cell_fun = function(j, i, x, y, width, height, fill) { 
+          if(!is.na(n_peptides_HC[i, j]) & !is.na(n_peptides_LC[i, j])) {
+            grid.text(sprintf("HC: %.f LC: %.f", n_peptides_HC[i, j], n_peptides_LC[i, j]), x, y, gp = gpar(fontsize = 10))
+          } else if (!is.na(n_peptides_HC[i, j])) {
+            grid.text(sprintf("HC: %.f", n_peptides_HC[i, j]), x, y, gp = gpar(fontsize = 10))
+          } else if (!is.na(n_peptides_LC[i, j])) {
+            grid.text(sprintf("LC: %.f", n_peptides_LC[i, j]), x, y, gp = gpar(fontsize = 10))
+          }
+        } ,
+        cluster_rows = FALSE,
+        cluster_columns = FALSE,
+        col=structure(c("white", brewer.pal(4,"Blues")), names = c("0", "1", "10", "100", "1000")), 
+        row_names_gp = grid::gpar(fontsize = 10),
+        name = "Concentration", 
+        left_annotation = rowAnnotation(
+                                        GingisKHAN = igor_info$has_GingisKHAN, 
+                                        blood = igor_info$has_blood, 
+                                        col = list(blood = c("TRUE" = "red", "FALSE" = "white"), GingisKHAN = c("TRUE" = "black", "FALSE" = "white"))))
+        
+draw(hmap, heatmap_legend_side = "bottom", annotation_legend_side = "bottom") 
+
+```
+```{r}
+
+df <- df_casanovo
+
+v <- c("h9C12-Q97A_HC", "h9C12_LC", "h9C12-WT_HC", "Bri_HC", "Bri_LC", "Ust_HC","Ust_LC", "PGT121_HC", "PGT121_LC", "PGDM1400_HC", "PGDM1400_LC")
+v <- paste0("n_peptides.", v)
+
+concentrations <- as.matrix(igor_info[, c(colnames(igor_info)[grepl("concentration_", colnames(igor_info), fixed = TRUE)])])
+
+rownames(concentrations) <- 1:70
+colnames(concentrations) <- c("h9C12 Q97A", "h9C12 WT", "brimab", "umab", "PGT121", "PGDM1400")
+
+n_peptides <- df %>%
+  dplyr::group_by(Sample, match_ig_type) %>%
+  dplyr::summarise(n_peptides=length(unique(Sequence))) %>% 
+  as.data.frame()
+
+n_peptides <- reshape(n_peptides, idvar="Sample", timevar="match_ig_type", direction="wide")
+
+n_peptides[setdiff(v, colnames(n_peptides))] <- NA
+
+tmp <- data.frame(Sample=1:70)
+
+n_peptides_HC <- n_peptides[, c("Sample", "n_peptides.h9C12-Q97A_HC", "n_peptides.h9C12-WT_HC", 
+                                "n_peptides.Bri_HC", "n_peptides.Ust_HC", 
+                                "n_peptides.PGT121_HC", "n_peptides.PGDM1400_HC")]
+n_peptides_HC <- merge(tmp, n_peptides_HC, all.x = T, by = "Sample")
+n_peptides_HC <- n_peptides_HC[, -1]
+
+n_peptides_LC <- n_peptides[, c("Sample", "n_peptides.h9C12_LC", 
+                                "n_peptides.Bri_LC", "n_peptides.Ust_LC", 
+                                "n_peptides.PGT121_LC", "n_peptides.PGDM1400_LC")]
+
+n_peptides_LC <- merge(tmp, n_peptides_LC, all.x = T, by = "Sample")
+n_peptides_LC <- n_peptides_LC[, -1]
+n_peptides_LC <- cbind(n_peptides_LC[, 1], n_peptides_LC)
+
+Heatmap(concentrations, 
+        cell_fun = function(j, i, x, y, width, height, fill) { 
+          if(!is.na(n_peptides_HC[i, j]) & !is.na(n_peptides_LC[i, j])) {
+            grid.text(sprintf("HC: %.f LC: %.f", n_peptides_HC[i, j], n_peptides_LC[i, j]), x, y, gp = gpar(fontsize = 7))
+          } else if (!is.na(n_peptides_HC[i, j])) {
+            grid.text(sprintf("HC: %.f", n_peptides_HC[i, j]), x, y, gp = gpar(fontsize = 7))
+          } else if (!is.na(n_peptides_LC[i, j])) {
+            grid.text(sprintf("LC: %.f", n_peptides_LC[i, j]), x, y, gp = gpar(fontsize = 7))
+          }
+        } ,
+        cluster_rows = FALSE,
+        cluster_columns = FALSE,
+        col=structure(c("white", brewer.pal(4,"Blues")), names = c("0", "1", "10", "100", "1000")), 
+        row_names_gp = grid::gpar(fontsize = 8),
+        name = "Concentration (ng)", 
+        left_annotation = rowAnnotation(GingisKHAN = igor_info$has_GingisKHAN, 
+                                        blood = igor_info$has_blood, 
+                                        col = list(blood = c("TRUE" = "red", "FALSE" = "white"), GingisKHAN = c("TRUE" = "black", "FALSE" = "white")))
+)
+```
+
+```{r}
+
+df <- df_mq
+
+v <- c("h9C12-Q97A_HC", "h9C12_LC", "h9C12-WT_HC", "Bri_HC", "Bri_LC", "Ust_HC","Ust_LC", "PGT121_HC", "PGT121_LC", "PGDM1400_HC", "PGDM1400_LC")
+v <- paste0("n_peptides.", v)
+
+concentrations <- as.matrix(igor_info[, c(colnames(igor_info)[grepl("concentration_", colnames(igor_info), fixed = TRUE)])])
+
+rownames(concentrations) <- 1:70
+colnames(concentrations) <- c("h9C12 Q97A", "h9C12 WT", "brimab", "umab", "PGT121", "PGDM1400")
+
+n_peptides <- df %>%
+  dplyr::group_by(Sample, match_ig_type) %>%
+  dplyr::summarise(n_peptides=length(unique(Sequence))) %>% 
+  as.data.frame()
+
+n_peptides <- reshape(n_peptides, idvar="Sample", timevar="match_ig_type", direction="wide")
+
+n_peptides[setdiff(v, colnames(n_peptides))] <- NA
+
+tmp <- data.frame(Sample=1:70)
+
+n_peptides_HC <- n_peptides[, c("Sample", "n_peptides.h9C12-Q97A_HC", "n_peptides.h9C12-WT_HC", 
+                                "n_peptides.Bri_HC", "n_peptides.Ust_HC", 
+                                "n_peptides.PGT121_HC", "n_peptides.PGDM1400_HC")]
+n_peptides_HC <- merge(tmp, n_peptides_HC, all.x = T, by = "Sample")
+n_peptides_HC <- n_peptides_HC[, -1]
+
+n_peptides_LC <- n_peptides[, c("Sample", "n_peptides.h9C12_LC", 
+                                "n_peptides.Bri_LC", "n_peptides.Ust_LC", 
+                                "n_peptides.PGT121_LC", "n_peptides.PGDM1400_LC")]
+
+n_peptides_LC <- merge(tmp, n_peptides_LC, all.x = T, by = "Sample")
+n_peptides_LC <- n_peptides_LC[, -1]
+n_peptides_LC <- cbind(n_peptides_LC[, 1], n_peptides_LC)
+
+Heatmap(concentrations, 
+        cell_fun = function(j, i, x, y, width, height, fill) { 
+          if(!is.na(n_peptides_HC[i, j]) & !is.na(n_peptides_LC[i, j])) {
+            grid.text(sprintf("HC: %.f LC: %.f", n_peptides_HC[i, j], n_peptides_LC[i, j]), x, y, gp = gpar(fontsize = 7))
+          } else if (!is.na(n_peptides_HC[i, j])) {
+            grid.text(sprintf("HC: %.f", n_peptides_HC[i, j]), x, y, gp = gpar(fontsize = 7))
+          } else if (!is.na(n_peptides_LC[i, j])) {
+            grid.text(sprintf("LC: %.f", n_peptides_LC[i, j]), x, y, gp = gpar(fontsize = 7))
+          }
+        } ,
+        cluster_rows = FALSE,
+        cluster_columns = FALSE,
+        col=structure(c("white", brewer.pal(4,"Blues")), names = c("0", "1", "10", "100", "1000")), 
+        row_names_gp = grid::gpar(fontsize = 8),
+        name = "Concentration (ng)", 
+        left_annotation = rowAnnotation(GingisKHAN = igor_info$has_GingisKHAN, 
+                                        blood = igor_info$has_blood, 
+                                        col = list(blood = c("TRUE" = "red", "FALSE" = "white"), GingisKHAN = c("TRUE" = "black", "FALSE" = "white")))
+)
+```
+
+
+```{r}
+
+df <- df_msf
+
+v <- c("h9C12-Q97A_HC", "h9C12_LC", "h9C12-WT_HC", "Bri_HC", "Bri_LC", "Ust_HC","Ust_LC", "PGT121_HC", "PGT121_LC", "PGDM1400_HC", "PGDM1400_LC")
+v <- paste0("n_peptides.", v)
+
+concentrations <- as.matrix(igor_info[, c(colnames(igor_info)[grepl("concentration_", colnames(igor_info), fixed = TRUE)])])
+
+rownames(concentrations) <- 1:70
+colnames(concentrations) <- c("h9C12 Q97A", "h9C12 WT", "brimab", "umab", "PGT121", "PGDM1400")
+
+n_peptides <- df %>%
+  dplyr::group_by(Sample, match_ig_type) %>%
+  dplyr::summarise(n_peptides=length(unique(Sequence))) %>% 
+  as.data.frame()
+
+n_peptides <- reshape(n_peptides, idvar="Sample", timevar="match_ig_type", direction="wide")
+
+n_peptides[setdiff(v, colnames(n_peptides))] <- NA
+
+tmp <- data.frame(Sample=1:70)
+
+n_peptides_HC <- n_peptides[, c("Sample", "n_peptides.h9C12-Q97A_HC", "n_peptides.h9C12-WT_HC", 
+                                "n_peptides.Bri_HC", "n_peptides.Ust_HC", 
+                                "n_peptides.PGT121_HC", "n_peptides.PGDM1400_HC")]
+n_peptides_HC <- merge(tmp, n_peptides_HC, all.x = T, by = "Sample")
+n_peptides_HC <- n_peptides_HC[, -1]
+
+n_peptides_LC <- n_peptides[, c("Sample", "n_peptides.h9C12_LC", 
+                                "n_peptides.Bri_LC", "n_peptides.Ust_LC", 
+                                "n_peptides.PGT121_LC", "n_peptides.PGDM1400_LC")]
+
+n_peptides_LC <- merge(tmp, n_peptides_LC, all.x = T, by = "Sample")
+n_peptides_LC <- n_peptides_LC[, -1]
+n_peptides_LC <- cbind(n_peptides_LC[, 1], n_peptides_LC)
+
+Heatmap(concentrations, 
+        cell_fun = function(j, i, x, y, width, height, fill) { 
+          if(!is.na(n_peptides_HC[i, j]) & !is.na(n_peptides_LC[i, j])) {
+            grid.text(sprintf("HC: %.f LC: %.f", n_peptides_HC[i, j], n_peptides_LC[i, j]), x, y, gp = gpar(fontsize = 7))
+          } else if (!is.na(n_peptides_HC[i, j])) {
+            grid.text(sprintf("HC: %.f", n_peptides_HC[i, j]), x, y, gp = gpar(fontsize = 7))
+          } else if (!is.na(n_peptides_LC[i, j])) {
+            grid.text(sprintf("LC: %.f", n_peptides_LC[i, j]), x, y, gp = gpar(fontsize = 7))
+          }
+        } ,
+        cluster_rows = FALSE,
+        cluster_columns = FALSE,
+        col=structure(c("white", brewer.pal(4,"Blues")), names = c("0", "1", "10", "100", "1000")), 
+        row_names_gp = grid::gpar(fontsize = 8),
+        name = "Concentration (ng)", 
+        left_annotation = rowAnnotation(GingisKHAN = igor_info$has_GingisKHAN, 
+                                        blood = igor_info$has_blood, 
+                                        col = list(blood = c("TRUE" = "red", "FALSE" = "white"), GingisKHAN = c("TRUE" = "black", "FALSE" = "white")))
+)
+```
+
+```{r}
+df_casanovo <- read_tsv("/storage/mariiac/MSMS_paper_figures/data/casanovo_ab_annotated.tsv")
+df_casanovo$tool <- "casanovo"
+df_msf <- read_tsv("/storage/mariiac/MSMS_paper_figures/data/msf_ab_annotated.tsv")
+df_msf$tool <- "msf"
+df_mq <- read_tsv("/storage/mariiac/MSMS_paper_figures/data/mq_ab_annotated.tsv")
+df_mq$tool <- "mq"
+
+df <- rbind(df_mq[, colnames(df_mq) != "Intensity"], 
+            df_msf[, colnames(df_msf) != "Intensity"], 
+            df_casanovo[, colnames(df_casanovo) != "search_engine_score"])
+
+
+```
+
+```{r}
+# if sample contains blood IgG, remove peptides aligned to the v genes beginning
+
+df$is_not_contamination <- F
+
+row_idx <- (df$match_ig_type == "Bri_HC") | (df$match_ig_type == "Bri_LC")
+df[row_idx, "is_not_contamination"] <- df[row_idx, "Brimab"]  
+
+row_idx <- (df$match_ig_type == "PGT121_HC") | (df$match_ig_type == "PGT121_LC")
+df[row_idx, "is_not_contamination"] <- df[row_idx, "PGT121"]  
+
+
+row_idx <- (df$match_ig_type == "Ust_HC") | (df$match_ig_type == "Ust_LC")
+df[row_idx, "is_not_contamination"] <- df[row_idx, "Umab"] 
+
+row_idx <- (df$match_ig_type == "PGDM1400_HC") | (df$match_ig_type == "PGDM1400_LC")
+df[row_idx, "is_not_contamination"] <- df[row_idx, "PGDM1400"] 
+
+row_idx <- (df$match_ig_type == "h9C12_LC") | (df$match_ig_type == "h9C12-Q97A_HC") | (df$match_ig_type == "h9C12-WT_HC")
+df[row_idx, "is_not_contamination"] <- df[row_idx, "h9C12_WT"] | df[row_idx, "h9C12_Q97A"] 
+  
+
+
+```
+
+
+```{r}
+df_v <- df[df$has_blood & !df$is_not_contamination, ]
+contam_peptides <- unique(df_v$Sequence)
+
+
+```
+
+```{r}
+get_ig_matches <- function(peptide, refs)
+  
+  
+# remove v/j genes
+# remove uniprot
+# remove shared peptides and their substring
+```
+
+

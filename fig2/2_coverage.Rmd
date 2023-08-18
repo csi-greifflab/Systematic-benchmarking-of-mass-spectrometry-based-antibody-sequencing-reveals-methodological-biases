@@ -1,0 +1,193 @@
+---
+title: "Fig 2d: coverage heatmaps"
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning = F, message = F, fig.width = 6, fig.height = 6)
+```
+
+
+```{r}
+library(Rcpp)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(reshape2) 
+library(readxl)
+library(rio)
+library(ComplexHeatmap)
+library(dplyr)
+library(RColorBrewer)
+
+library(themeakbar)
+theme_set(themeakbar())
+
+library(forcats)
+
+library(DescTools)
+
+library(circlize)
+
+enzyme_cols <- c("all" = "#989FA7",
+                 "aspn" = "#B4C540",
+                 "tryp" = "#E84D8A",
+                 "ct" = "#64C5EB",
+                  "ct+tryp" = "#7F58AF")
+```
+
+```{r}
+df <- read_tsv("/storage/mariiac/MSMS_paper_figures/all_peptides_filtered.tsv")
+
+cdr3 <- data.frame(read_tsv("/storage/mariiac/MSMS_paper_figures/metadata/antibodies_cdr3_variable_full.tsv"))
+
+df <- df[df$is_not_contamination, ]
+```
+
+```{r}
+# s_vector <- unlist(unique(df[df$match_ig_type == "h9C12_LC" & df$enzyme == "aspn", "Sequence"]))
+#match_ig_type = "h9C12_LC"
+
+get_coverage_percent <- function(s_vector, match_ig_type) {
+  ref <- cdr3[cdr3$match_ig_type == match_ig_type, "aa_full_without_constant"]
+  alignment_pos <- as.data.frame(do.call(rbind,(str_locate_all(string = ref, pattern = s_vector))))
+  counts <- replicate(nchar(ref), 0)
+  if (nrow(alignment_pos) == 0)
+    return(0)
+  for (i in 1:nrow(alignment_pos)) {
+    counts[1:length(counts) %in% c(alignment_pos[i, ]$start : alignment_pos[i, ]$end)] <- counts[alignment_pos[i, ]$start : alignment_pos[i, ]$end] + 1
+  }
+  return(sum(counts > 0) / nchar(ref) * 100)
+}
+
+```
+
+
+```{r}
+
+coverage <- CombPairs(c("ct", "tryp", "aspn", "ct+tryp", "all"), cdr3$match_ig_type)
+colnames(coverage) <- c("enzyme", "match_ig_type")
+coverage$coverage <- NA
+
+for (i in 1:nrow(coverage)){
+  if (coverage$enzyme[i] == "all") {
+    seqs <- unlist(unique(df[df$match_ig_type == coverage$match_ig_type[i], "Sequence"]))
+  } else {
+    seqs <- unlist(unique(df[df$enzyme == coverage$enzyme[i] & df$match_ig_type == coverage$match_ig_type[i], "Sequence"]))
+  }
+  coverage$coverage[i]  <- get_coverage_percent(seqs, coverage$match_ig_type[i])
+}
+
+coverage <- reshape(coverage, idvar = "enzyme", timevar = "match_ig_type", direction = "wide")
+
+
+```
+
+```{r}
+rownames(coverage) <- coverage[, 1]
+coverage <- coverage[c("aspn", "ct", "tryp", "ct+tryp", "all"), ]
+m <- coverage[, -1]
+colnames(m) <- str_remove(colnames(m), "coverage.")
+
+
+hmap <- Heatmap(m, 
+        cell_fun = function(j, i, x, y, width, height, fill) {grid.text(sprintf("%.2f", m[i, j]), x, y, gp = gpar(fontsize = 9))}, 
+        cluster_rows = FALSE,
+        cluster_columns = FALSE,
+        rect_gp = gpar(col = "white", lwd = 4), 
+        heatmap_legend_param = list(direction = "horizontal"),
+        col = colorRamp2(c(0, 70, 100), c("#6EB5FF", "white", "#FFABAB")), 
+        right_annotation = rowAnnotation(enzyme = c("aspn", "ct", "tryp", "ct+tryp", "all"), col = list(enzyme = enzyme_cols)),
+        column_order = c("h9C12-Q97A_HC", "h9C12_LC", "h9C12-WT_HC", "Bri_HC", "Bri_LC", "Ust_HC","Ust_LC", "PGT121_HC", "PGT121_LC", "PGDM1400_HC", "PGDM1400_LC"))
+
+draw(hmap, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
+
+png("/storage/mariiac/MSMS_paper_figures/2d_coverafe_all.png", width = 6, height = 6, units = 'in', res = 600)
+draw(hmap, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
+dev.off()
+```
+
+# CDR3
+
+
+```{r}
+s_vector <- unlist(unique(df[df$match_ig_type == "PGDM1400_HC" & df$enzyme == "aspn", "Sequence"]))
+match_ig_type = "PGDM1400_HC"
+
+get_cdr3_coverage_percent <- function(s_vector, match_ig_type) {
+  #print(s_vector)
+  #print(match_ig_type)
+  if (identical(s_vector, character(0))) {
+    return(0)
+  }
+  ref <- cdr3[cdr3$match_ig_type == match_ig_type, "aa_full_without_constant"]
+  alignment_pos <- as.data.frame(do.call(rbind,(str_locate_all(string = ref, pattern = s_vector))))
+  counts <- replicate(nchar(ref), 0)
+  for (i in 1:nrow(alignment_pos)) {
+    counts[1:length(counts) %in% c(alignment_pos[i, ]$start : alignment_pos[i, ]$end)] <- counts[alignment_pos[i, ]$start : alignment_pos[i, ]$end] + 1
+  }
+  
+  res_cdr <- str_locate(ref, as.character(cdr3[cdr3$match_ig_type == match_ig_type, ]$aa_cdr3))
+  
+  return(sum(counts[1:length(counts) %in% c(res_cdr[1] : res_cdr[2])] > 0) / (res_cdr[2] - res_cdr[1] + 1) * 100)
+}
+
+```
+
+
+```{r}
+
+df <- read_tsv("/storage/mariiac/MSMS_paper_figures/data/all_peptides.tsv")
+df <- df[df$is_cdr3_related, ]
+cdr3 <- data.frame(read_tsv("/storage/mariiac/MSMS_paper_figures/metadata/antibodies_cdr3_variable_full.tsv"))
+
+coverage <- CombPairs(c("ct", "tryp", "aspn", "ct+tryp", "all"), cdr3$match_ig_type)
+colnames(coverage) <- c("enzyme", "match_ig_type")
+coverage$coverage <- NA
+
+for (i in 1:nrow(coverage)){
+
+  if (coverage$enzyme[i] == "all") {
+    seqs <- unlist(unique(df[df$match_ig_type == coverage$match_ig_type[i], "Sequence"]))
+  } else {
+    seqs <- unlist(unique(df[df$enzyme == coverage$enzyme[i] & df$match_ig_type == coverage$match_ig_type[i], "Sequence"]))
+  }
+  coverage$coverage[i]  <- get_cdr3_coverage_percent(seqs, coverage$match_ig_type[i])
+}
+
+coverage <- reshape(coverage, idvar = "enzyme", timevar = "match_ig_type", direction = "wide")
+
+
+```
+
+
+```{r}
+rownames(coverage) <- coverage[, 1]
+coverage <- coverage[c("aspn", "ct", "tryp", "ct+tryp", "all"), ]
+m <- t(coverage[, -1])
+rownames(m) <- str_remove(rownames(m), "coverage.")
+
+
+hmap <- Heatmap(m, 
+        cell_fun = function(j, i, x, y, width, height, fill) {grid.text(sprintf("%.2f", m[i, j]), x, y, gp = gpar(fontsize = 11))}, 
+        cluster_rows = FALSE,
+        cluster_columns = FALSE,
+        rect_gp = gpar(col = "white", lwd = 4), 
+        heatmap_legend_param = list(direction = "horizontal"),
+        col = colorRamp2(c(0, 70, 100), c("#6EB5FF", "white", "#FFABAB")),  
+        top_annotation = columnAnnotation(enzyme = c("aspn", "ct", "tryp", "ct+tryp", "all"), col = list(enzyme = enzyme_cols)))
+        #column_order = c("h9C12-Q97A_HC", "h9C12_LC", "h9C12-WT_HC", "Bri_HC", "Bri_LC", "Ust_HC","Ust_LC", "PGT121_HC", "PGT121_LC", "PGDM1400_HC", "PGDM1400_LC"))
+
+draw(hmap, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
+
+png("/storage/mariiac/MSMS_paper_figures/2d_coverafe_cdr3.png", width = 5, height = 6, units = 'in', res = 600)
+draw(hmap, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
+dev.off()
+
+```
+
+```{r}
+
+```
+
