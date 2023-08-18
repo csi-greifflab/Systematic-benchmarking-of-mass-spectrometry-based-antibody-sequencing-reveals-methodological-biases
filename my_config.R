@@ -14,10 +14,10 @@ library(forcats)
 library(circlize)
 #library(googledrive)
 
-project_path <- "/storage/mariiac/msms_figures/"
+project_path <- "/storage/mariiac/msms_figures"
 
 source(file.path(project_path, "data/preprocessing_functions.R"))
-source(file.path(project_path, "msms_paper/plots.R"))
+source(file.path(project_path, "plots.R"))
 
 enzyme_cols <- c("All" = "#575A6C",
                  "AspN" = "#B4C540",

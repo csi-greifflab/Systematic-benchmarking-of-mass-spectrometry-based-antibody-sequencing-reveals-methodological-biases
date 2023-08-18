@@ -4,7 +4,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-source("/storage/mariiac/MSMS_paper_figures/my_config.R")
+source("/storage/mariiac/msms_figures/my_config.R")
 ```
 
 # Download the peptides.txt files for each run and enzyme from google drive
