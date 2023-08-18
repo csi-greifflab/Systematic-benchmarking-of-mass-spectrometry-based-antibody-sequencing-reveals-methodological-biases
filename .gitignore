@@ -53,3 +53,7 @@ data/*.tsv
 data/casanovo_raw/
 data/MQ_raw/
 data/MSF_raw/
+
+# dotfiles
+.*
+!.gitignore
