@@ -50,3 +50,6 @@ rsconnect/
 
 # Large data files
 data/*.tsv
+data/casanovo_raw/
+data/MQ_raw/
+data/MSF_raw/
