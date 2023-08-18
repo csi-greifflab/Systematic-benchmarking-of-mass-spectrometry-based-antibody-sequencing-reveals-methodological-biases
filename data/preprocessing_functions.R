@@ -42,7 +42,7 @@ add_metainfo <- function(df) {
   rawfiles_info <- read_tsv(file.path(metadata_path, "rawfiles_description_with_blanks.tsv"), guess_max = 5e3)
   
   rawfiles_info$sample_id <- paste(rawfiles_info$Rawfilenumber, rawfiles_info$Protease, rawfiles_info$run, sep="_")
-  df <- merge(df, rawfiles_info[, c("Rawfilenumber", "Sample", "sample_id")], by="Rawfilenumber", all.x = T) 
+  df <- merge(df, rawfiles_info[, c("Rawfilenumber", "Sample", "sample_id")], by="Rawfilenumber") 
   df <- merge(df, sample_info, by="Sample", all.x = T)
   return(df)
 }
@@ -130,15 +130,13 @@ annotate_contaminations <- function(df) {
       df[row_idx, "is_not_contamination"] <- df[row_idx, ab]  
     }
   }
-  print(table(df$is_not_contamination))
   df$is_contamination <- !(df$is_not_contamination)  
-  print(table(df$is_contamination))
   return(df)
 }
 
 
 get_imgt_genes <- function() {
-  imgt <- list.files(file.path(metadata_path, "search_dbs"), full.names = T)
+  imgt <- list.files(file.path(metadata_path, "search_dbs"), pattern = "imgt*", full.names = T)
   imgt_genes <- vector()
   for (i in 1:length(imgt)) {
     tmp <- unlist(read.fasta(imgt[i], as.string = T))
