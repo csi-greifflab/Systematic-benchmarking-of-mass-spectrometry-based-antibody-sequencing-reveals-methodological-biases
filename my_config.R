@@ -14,7 +14,7 @@ library(forcats)
 library(circlize)
 #library(googledrive)
 
-project_path <- "/storage/mariiac/msms_figures"
+project_path <- "/Users/khangl/UiO Dropbox/Khang Le Quy/CSI/datasets/csi_datasets/ms_benchmarking/msms_figures"
 
 source(file.path(project_path, "data/preprocessing_functions.R"))
 source(file.path(project_path, "plots.R"))
