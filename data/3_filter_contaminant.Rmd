@@ -96,6 +96,8 @@ for(i in 1:length(file_names_splitted)) {
 
 make_heatmap(df[rows_to_remove, ], "Cleaned from the blanks")
 df <- df[-rows_to_remove, ]
+
+write_tsv(df, file.path(data_path, "all_peptides_preprocessed.tsv"))
 ```
 
 

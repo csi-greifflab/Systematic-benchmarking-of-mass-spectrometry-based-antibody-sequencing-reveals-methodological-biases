@@ -1,0 +1,9 @@
+---
+title: "Fig 3"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+source("/storage/mariiac/msms_figures/my_config.R")
+```
+
