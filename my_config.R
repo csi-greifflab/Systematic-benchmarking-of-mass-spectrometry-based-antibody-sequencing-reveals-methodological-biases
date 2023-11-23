@@ -14,18 +14,23 @@ library(forcats)
 library(circlize)
 #library(googledrive)
 
+project_path <- "/storage/mariiac/msms_figures"
 
-source("/storage/mariiac/MSMS_paper_figures/data/preprocessing_functions.R")
-source("/storage/mariiac/MSMS_paper_figures/plots.R")
+source(file.path(project_path, "data/preprocessing_functions.R"))
+source(file.path(project_path, "plots.R"))
+source(file.path(project_path, "utils.R"))
 
-enzyme_cols <- c("all" = "#575A6C",
-                 "aspn" = "#B4C540",
-                 "tryp" = "#E84D8A",
-                 "ct" = "#64C5EB",
-                 "ct+tryp" = "#7F58AF")
+enzyme_cols <- c("All" = "#575A6C",
+                 "AspN" = "#B4C540",
+                 "Tryp" = "#E84D8A",
+                 "Ct" = "#64C5EB",
+                 "Ct+Tryp" = "#7F58AF")
 
-metadata_path <- "/storage/mariiac/MSMS_paper_figures/metadata"
-data_path <- "/storage/mariiac/MSMS_paper_figures/data"
 
-fig2_path <- "/storage/mariiac/MSMS_paper_figures/fig2"
-fig5_path <- "/storage/mariiac/MSMS_paper_figures/fig5"
+
+metadata_path <- file.path(project_path, "metadata")
+data_path <- file.path(project_path, "data")
+
+fig2_path <- file.path(project_path, "fig2")
+fig3_path <- file.path(project_path, "fig2")
+fig5_path <- file.path(project_path, "fig5")

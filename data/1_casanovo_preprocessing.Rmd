@@ -10,24 +10,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-source("/storage/mariiac/MSMS_paper_figures/my_config.R")
-```
-
-
-```{r}
-# library(Rcpp)
-# library(ggplot2)
-# library(readr)
-# library(stringr)
-# library(reshape2) 
-# library(readxl)
-# library(rio)
-# library(ComplexHeatmap)
-# library(dplyr)
-# library(RColorBrewer)
-# 
-# library(forcats)
-
+source("/storage/mariiac/msms_figures/my_config.R")
 ```
 
 # 1. Read Casanovo output files and merge in one file 
@@ -37,7 +20,7 @@ source("/storage/mariiac/MSMS_paper_figures/my_config.R")
 # path <- file.path(data_path, "casanovo_raw")
 # 
 # read_casanovo_output <- function(fname) {
-#   df_tmp <- data.frame(read_tsv(fname, skip = 58))
+#   df_tmp <- data.frame(read_tsv(fname, skip = 58)) # 57?
 #   df_tmp <- df_tmp[, c("sequence", "search_engine_score.1.")]
 #   colnames(df_tmp) <- c("Sequence",  "search_engine_score")
 #   df_tmp$sample <- str_remove(basename(fname), ".mztab")

@@ -4,53 +4,60 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-source("/storage/mariiac/MSMS_paper_figures/my_config.R")
+source("/storage/mariiac/msms_figures/my_config.R")
 ```
 
 
 ```{r}
-filter_false_contaminations <- function(input_fname, output_fname) {
-  df <- data.frame(read_tsv(file.path(data_path, input_fname)), check.names = F)
-  
+  df <- read_tsv(file.path(data_path, "all_peptides_annotated.tsv"), guess_max = 1e5)
   blanks <- df[df$Sample == "blank", ]
-  blanks <- blanks[!is.na(blanks$Sequence), ]
-  
   df <- df[df$Sample != "blank", ]
   df <- annotate_contaminations(df)
-  
+```
+
+```{r, fig.width=7, fig.height=10}
   # 1. Remove imgt peptides from blood samples
   imgt_genes <- get_imgt_genes()
   blood_contam_peptides <- unique(df[df$has_blood & df$is_contamination, "Sequence"])
-  blood_alignment <- align_to_ref(reference = imgt_genes, peptides = blood_contam_peptides)
-  
-  print("Removed blood IgG peptides:")
-  print(blood_alignment)
+  blood_alignment <- align_to_ref(reference = imgt_genes, peptides = unlist(blood_contam_peptides))
   
   rows_to_remove <- df$has_blood & df$is_contamination & (df$Sequence %in% blood_alignment$sequence)
+  make_heatmap(df[rows_to_remove, ], "Peptides removed from the blood samples")
   df <- df[!rows_to_remove, ]
-  
-  # 2. Remove shared peptides
-  shared_peptides <- read_tsv(file.path(metadata_path, "shared_peptides.tsv"))
-  for (i in 1:nrow(shared_peptides)) {
-    ab1 <- shared_peptides$Ab1[i]
-    ab2 <- shared_peptides$Ab2[i]
-    peptide_candidates <- unique(df[df$match_ig_type == ab1 & df[, ab2] & !df[, ab1], "Sequence"])
-    ref <- unlist(str_split(shared_peptides$sequence[i], ";"))
-    names(ref) <- ref
-    aligned_peptides <- align_to_ref(reference = ref, peptides = peptide_candidates)
-    if (nrow(aligned_peptides) > 0) {
-      rows_to_remove <- df$match_ig_type == ab1 & df[, ab2] & !df[, ab1] & (df$Sequence %in% aligned_peptides$sequence)
-      df <- df[!rows_to_remove, ]  
-    }
-    
+```
+
+```{r, fig.width=7, fig.height=10}
+# 2. Remove shared peptides
+
+shared_peptides <- read_tsv(file.path(metadata_path, "shared_peptides.tsv"))
+
+rows_to_remove <- c()
+for (i in 1:nrow(shared_peptides)) {
+  ab1 <- shared_peptides$Ab1[i]
+  ab2 <- shared_peptides$Ab2[i]
+  peptide_candidates <- unique(df[df$match_ig_type == ab1 & df[, ab2] & !df[, ab1], "Sequence"])
+  ref <- unlist(str_split(shared_peptides$sequence[i], ";"))
+  names(ref) <- ref
+  aligned_peptides <- align_to_ref(reference = ref, peptides = unlist(peptide_candidates))
+  if (nrow(aligned_peptides) > 0) {
+    to_remove <- which(df$match_ig_type == ab1 & df[, ab2] & !df[, ab1] & (df$Sequence %in% aligned_peptides$sequence))
+    rows_to_remove <- c(rows_to_remove, to_remove)
   }
+}
+
+
+make_heatmap(df[rows_to_remove, ], "Removed shared peptides")
+df <- df[-rows_to_remove, ]
+```
+
+```{r, fig.width=7, fig.height=10}
+# 3. Clean blank files
+
+file_names <- data.frame(read_tsv(file.path(metadata_path, "rawfiles_description_with_blanks.tsv")))
+file_names_splitted <- split(file_names, list(file_names$run, file_names$Protease))
   
-  # 3. Clean blank files
-  
-  file_names <- data.frame(read_tsv(file.path(metadata_path, "rawfiles_description_with_blanks.tsv")))
-  file_names_splitted <- split(file_names, list(file_names$run, file_names$enzyme))
-  
-  for(i in 1:length(file_names_splitted)) {
+rows_to_remove <- c()
+for(i in 1:length(file_names_splitted)) {
     fnames <- file_names_splitted[[i]]
     group_id = 0
     fnames$group <- NA
@@ -74,32 +81,36 @@ filter_false_contaminations <- function(input_fname, output_fname) {
       sample_ids <- fnames_group[fnames_group$Sample != "blank", ]$Rawfilenumber
         
       if (nrow(blanks[blanks$Rawfilenumber %in% blank_ids, ]) > 0 & nrow(df[df$Rawfilenumber %in% sample_ids & df$is_contamination, ]) > 0) {
-        #print(k)
-        #print(unique(df[df$Rawfilenumber %in% sample_ids & df$is_contamination, ]$Sequence))
-        #print(unique(blanks[blanks$Rawfilenumber %in% blank_ids, ]$Sequence))
         ref <-  unique(blanks[blanks$Rawfilenumber %in% blank_ids, ]$Sequence)
         names(ref) <- ref
         aligned_peptides <- align_to_ref(reference = ref, 
                                        peptides = unique(df[df$Rawfilenumber %in% sample_ids & df$is_contamination, ]$Sequence))
-        rows_to_remove <- (df$run == df$run[1]) & (df$Rawfilenumber %in% sample_ids) & (df$Sequence %in% aligned_peptides$sequence) & (df$is_contamination)
-        print(df[rows_to_remove, ])
-        df <- df[!rows_to_remove, ]  
+        to_remove <- which((df$run == df$run[1]) & 
+                             (df$Rawfilenumber %in% sample_ids) & 
+                             (df$Sequence %in% aligned_peptides$sequence) & 
+                             df$is_contamination)
+        rows_to_remove <- c(rows_to_remove, to_remove)
       }
     }
-  }
-  
-  make_heatmap(df)
-  
-  #write_tsv(df, file.path(data_path, output_fname))
 }
+
+make_heatmap(df[rows_to_remove, ], "Cleaned from the blanks")
+df <- df[-rows_to_remove, ]
+
+write_tsv(df, file.path(data_path, "all_peptides_preprocessed.tsv"))
 ```
 
 
-```{r}
-filter_false_contaminations("mq_ab_annotated.tsv", "mq_ab_filtered.tsv")
-filter_false_contaminations("msf_ab_annotated.tsv", "msf_ab_filtered.tsv")
-filter_false_contaminations("casanovo_ab_annotated.tsv", "casanovo_ab_filtered.tsv")
+```{r,  fig.width=7, fig.height=10}
+make_heatmap(df, "All_peptides")
 ```
+
+
+```{r,  fig.width=7, fig.height=10}
+make_heatmap(df[df$is_cdr3_related, ], "cdr3_peptides")
+
+```
+
 
 
 
