@@ -1,0 +1,9 @@
+filename	ab	ab_concentration_ng	enzyme	samples_per_day	blank
+EH671.raw	PGDM1400		tryp	100	FALSE
+EH672.raw	PGDM1400		tryp		TRUE
+EH673.raw	PGDM1400		ct	100	FALSE
+EH674.raw	PGDM1400		ct		TRUE
+EH675.raw	PGDM1400		ct+tryp	100	FALSE
+EH676.raw	PGDM1400		tryp	60	FALSE
+EH677.raw	PGDM1400		ct	60	FALSE
+EH678.raw	PGDM1400		ct+tryp	60	FALSE

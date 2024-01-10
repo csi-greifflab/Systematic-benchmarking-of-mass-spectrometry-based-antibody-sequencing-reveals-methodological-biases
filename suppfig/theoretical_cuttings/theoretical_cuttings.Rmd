@@ -1,0 +1,285 @@
+---
+title: "Theoretical cuttings: ct, tryp, ct+tryp, asp-n"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+header-includes:
+  - \usepackage{float}
+  - \floatplacement{figure}{H}
+output: 
+  bookdown::pdf_document2:
+    keep_tex: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning=F, message=F, fig.width = 14, fig.height = 8)
+```
+
+```{r libs, echo=FALSE, warning=F, message=F}
+library(readr)
+library(readxl)
+library(seqinr)
+library(ggplot2)
+#library(sjmisc)
+library(reshape2)
+library(forcats)
+library(RColorBrewer)
+library(knitr)
+library(forcats)
+library(dplyr)
+library(stringr)
+library(tidyr)
+library(kableExtra)
+#library(VennDiagram)
+library(gridExtra)
+```
+
+
+```{r}
+
+df <- data.frame(read_tsv("./antibodies_cdr3_variable_full.tsv"))
+
+seqs <- df$amino_acid_sequence_Vregion
+names(seqs) <- df$sequence_name
+
+```
+
+```{r}
+library("cleaver")
+
+make_cut <- function(n_mis) {
+  cut_tryp <- unlist(sapply(seqs, cleave, enzym="trypsin", missedCleavages = n_mis))
+cut_tryp <- data.frame(seq_name = names(cut_tryp), 
+                         subseq = cut_tryp, 
+                         enzyme = "Tryp", stringsAsFactors = F)
+
+cut_ct <- unlist(sapply(seqs, cleave, enzym="chymotrypsin-high", missedCleavages = n_mis))
+cut_ct <- data.frame(seq_name = names(cut_ct), 
+                         subseq = cut_ct, 
+                         enzyme = "Ct", stringsAsFactors = F)
+cut <- rbind(cut_tryp, cut_ct)
+cut$seq_name <- unlist(lapply(strsplit(as.character(cut$seq_name), "\\."), `[[`, 1))
+rownames(cut) <- NULL
+
+all_ct_cuts <- as.character(cut$subseq[cut$enzyme=="Ct"])
+names(all_ct_cuts) <- cut$seq_name[cut$enzyme=="Ct"]
+cut_ct_tryp <- unlist(sapply(all_ct_cuts, cleave, enzym="trypsin", missedCleavages = n_mis))
+cut_ct_tryp <- data.frame(seq_name = unlist(lapply(strsplit(names(cut_ct_tryp), "\\."), `[[`, 1)), 
+                         subseq = cut_ct_tryp, 
+                         enzyme = "Ct+Tryp", stringsAsFactors = F)
+
+cut <- rbind(cut, cut_ct_tryp)
+
+cut_aspn <- unlist(sapply(seqs, cleave, enzym="asp-n", missedCleavages = n_mis))
+cut_aspn <- data.frame(seq_name = names(cut_aspn), 
+                         subseq = cut_aspn, 
+                         enzyme = "AspN", stringsAsFactors = F)
+cut_aspn$seq_name <- unlist(lapply(strsplit(as.character(cut_aspn$seq_name), "\\."), `[[`, 1))
+
+cut <- rbind(cut, cut_aspn)
+
+cut$subseq_len <- sapply(cut$subseq, nchar)
+#cut <- cut[cut$subseq_len > 5, ]
+rownames(cut) <- NULL
+cut
+}
+
+```
+
+```{r}
+df_res <- data.frame()
+
+for (i in 0:2) {
+  df_tmp <- make_cut(i)
+  df_tmp$n_miscleavages <- i
+  df_res <- rbind(df_res, df_tmp)
+}
+
+# Filter for only peptides with length 7aa or more
+df_res <- df_res %>% filter(subseq_len >= 7)
+
+#write_tsv(df_res, "./theoretical_cuttings.tsv")
+
+enzyme_cols <- c("AspN" = "#B4C540",
+                 "Tryp" = "#E84D8A",
+                 "Ct" = "#64C5EB",
+                 "Ct+Tryp" = "#7F58AF")
+
+```
+
+# Coverage for theoretical peptides
+```{r}
+make_coverage_plot_theoret <- function(ab_name, df) {
+  
+  peptides <- df$subseq # peptides that perfectly march to an ab
+  
+  res_seq <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(peptides))
+    res_cdr <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_cdr3))
+  
+  df_cdr3 <- data.frame(Sequence = peptides,
+                        start = res_seq[, 1],
+                        end = res_seq[, 2], 
+                        enzyme = as.factor(df$enzyme),
+                        n_miscleavages = as.factor(df$n_miscleavages))
+
+  df_cdr3 <- df_cdr3[with(df_cdr3, order(start, -end)), ]
+  df_cdr3$y <- 1:nrow(df_cdr3)
+
+  df_cdr3_tmp <- melt(df_cdr3, c("Sequence", "y", "n_miscleavages", "enzyme"))
+
+  
+  p_coverage <- ggplot(df_cdr3_tmp, aes(x=value, y=y)) +
+    geom_rect(aes(xmin = res_cdr[1, 1],
+                 xmax = res_cdr[1, 2],
+                  ymin = -Inf, ymax = Inf), fill = "#FDFD96", alpha = 0.05) + #cdr3
+    geom_point(size=0.2) +
+    geom_segment(aes(x = start, y = y, xend = end, yend = y, color=enzyme, linetype=n_miscleavages), size = 1, data = df_cdr3) +
+    scale_color_manual(values = enzyme_cols) +
+    scale_linetype_manual(values = c("0" = 1, "1" = 2, "2" = 3)) +
+    #scale_x_continuous(breaks = c(seq(min(res_seq), max(res_seq), by = 20))) +
+    guides(fill = guide_legend(keywidth = 1, keyheight = 1),
+    linetype=guide_legend(keywidth = 3, keyheight = 1),
+    colour=guide_legend(keywidth = 3, keyheight = 1)) +
+    #ggtitle(str_replace(str_replace(str_replace(ab_name, "_", " "), "HC", ""),"LC", "")) +
+    theme_classic() +
+    theme(text = element_text(size = 28), legend.position = "none") +
+    labs(x = "Position in the variable region", y = "", color = "Enzyme", linetype = "Miscleavages")
+   
+  ggsave(filename = paste0("./figures/",ab_name,".pdf"), plot = p_coverage, width = 14, height = 8, dpi = 600)
+}
+```
+
+```{r fig.height=8, fig.width=14}
+df <- read_tsv("./theoretical_cuttings.tsv")
+cdr3 <- data.frame(read_tsv("./antibodies_cdr3_variable_full.tsv"))
+cdr3$cdr3_start <- str_locate(cdr3$amino_acid_sequence_Vregion, cdr3$amino_acid_sequence_cdr3)[,1]
+cdr3$cdr3_end <- str_locate(cdr3$amino_acid_sequence_Vregion, cdr3$amino_acid_sequence_cdr3)[,2]
+
+
+for (match in cdr3$sequence_name) {
+  make_coverage_plot_theoret(match, df[df$seq_name == match, ])
+  }
+```
+
+# Make one plot with legend to copy the legend
+
+```{r eval=FALSE, include=FALSE}
+make_coverage_plot_theoret2 <- function(ab_name, df) {
+  
+  peptides <- df$subseq # peptides that perfectly march to an ab
+  
+  res_seq <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(peptides))
+    res_cdr <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_cdr3))
+  
+  df_cdr3 <- data.frame(Sequence = peptides,
+                        start = res_seq[, 1],
+                        end = res_seq[, 2], 
+                        enzyme = as.factor(df$enzyme),
+                        n_miscleavages = as.factor(df$n_miscleavages))
+
+  df_cdr3 <- df_cdr3[with(df_cdr3, order(start, -end)), ]
+  df_cdr3$y <- 1:nrow(df_cdr3)
+
+  df_cdr3_tmp <- melt(df_cdr3, c("Sequence", "y", "n_miscleavages", "enzyme"))
+
+  
+  p_coverage <- ggplot(df_cdr3_tmp, aes(x=value, y=y)) +
+    geom_rect(aes(xmin = res_cdr[1, 1],
+                 xmax = res_cdr[1, 2],
+                  ymin = -Inf, ymax = Inf), fill = "#FDFD96", alpha = 0.05) + #cdr3
+    geom_point(size=0.2) +
+    geom_segment(aes(x = start, y = y, xend = end, yend = y, color=enzyme, linetype=n_miscleavages), size = 1, data = df_cdr3) +
+    scale_color_manual(values = enzyme_cols) +
+    scale_linetype_manual(values = c("0" = 1, "1" = 2, "2" = 3)) +
+    #scale_x_continuous(breaks = c(seq(min(res_seq), max(res_seq), by = 20))) +
+    guides(fill = guide_legend(keywidth = 1, keyheight = 1),
+    linetype=guide_legend(keywidth = 3, keyheight = 1),
+    colour=guide_legend(keywidth = 3, keyheight = 1)) +
+    ggtitle(str_replace(str_replace(str_replace(ab_name, "_", " "), "HC", ""),"LC", "")) +
+    theme_classic() +
+    theme(text = element_text(size = 28), legend.position = "bottom") +
+    labs(x = "Position in the variable region", y = "", color = "Enzyme", linetype = "Miscleavages")
+   
+  ggsave(filename = paste0("./figures/",ab_name,"_legend.pdf"), plot = p_coverage, width = 14, height = 8, dpi = 600)
+}
+```
+
+```{r eval=FALSE, include=FALSE}
+for (match in cdr3$sequence_name) {
+  make_coverage_plot_theoret2(match, df[df$seq_name == match, ])
+  }
+```
+
+# Create an array of each position, starts with 0, take a peptide, for every position that peptide covers add 1 
+```{r}
+get_coverage_position <- function(ab_name, df) {
+  
+  peptides <- df$subseq # peptides that perfectly march to an ab
+  
+  res_seq <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(peptides))
+    res_cdr <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_cdr3))
+  
+  df_cdr3 <- data.frame(Sequence = peptides,
+                        start = res_seq[, 1],
+                        end = res_seq[, 2], 
+                        enzyme = as.factor(df$enzyme),
+                        n_miscleavages = as.factor(df$n_miscleavages))
+
+  df_cdr3 <- df_cdr3[with(df_cdr3, order(start, -end)), ]
+  df_cdr3$y <- 1:nrow(df_cdr3)
+  
+  print(df_cdr3) 
+  }
+```
+
+```{r}
+# Get the residue positions for all theoretical peptides
+coverage_position_all <- list()
+for (match in cdr3$sequence_name) {
+  coverage_position_all[[match]] <- get_coverage_position(match, df[df$seq_name == match, ])
+}
+
+#coverage_position_all
+
+# Create a df with seq_names, position, count
+coverage_position_count <- list()
+for(i in 1:length(coverage_position_all)){
+  coverage_position_count[[i]] <- tibble(seq_name = names(coverage_position_all[i]),
+                                         position = seq(1:nchar(cdr3$amino_acid_sequence_Vregion[i])),
+                                         count = 0)
+}
+names(coverage_position_count) <- names(coverage_position_all)
+
+# for each peptide, subset the rows in the count df corresponding to start and end, add 1
+  
+for(i in 1:length(coverage_position_all)){
+  for(j in 1:nrow(coverage_position_all[[i]])){
+    coverage_position_count[[i]][seq(coverage_position_all[[i]]$start[j], coverage_position_all[[i]]$end[j]),"count"] <- coverage_position_count[[i]][seq(coverage_position_all[[i]]$start[j], coverage_position_all[[i]]$end[j]),"count"] + 1
+  }
+}
+
+coverage_position_count[1]
+```
+
+```{r fig.height=2, fig.width=14}
+ggplot(data = coverage_position_count[[1]], aes(x = position, y = count)) +
+  geom_rect(aes(xmin = cdr3$cdr3_start[1], xmax = cdr3$cdr3_end[1],
+                ymin = -Inf, ymax = Inf), fill = "#FDFD96", alpha = 0.05) + #cdr3
+  geom_col() +
+  theme_classic() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+  labs(x = "", y = "frequency")
+
+p_coverage_position_count <- list()
+
+for (i in 1:length(coverage_position_count)){
+  p_coverage_position_count[[i]] <- ggplot(data = coverage_position_count[[i]], aes(x = position, y = count)) +
+  geom_rect(aes(xmin = cdr3$cdr3_start[i], xmax = cdr3$cdr3_end[i],
+                ymin = -Inf, ymax = Inf), fill = "#FDFD96", alpha = 0.05) + #cdr3
+  geom_col() +
+  theme_classic() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), text = element_text(size = 24)) +
+  labs(x = "")
+  
+  ggsave(filename = paste0("./figures/",names(coverage_position_count)[i],"_freq.pdf"), plot = p_coverage_position_count[[i]], width = 14, height = 2, dpi = 600)
+}
+```
+

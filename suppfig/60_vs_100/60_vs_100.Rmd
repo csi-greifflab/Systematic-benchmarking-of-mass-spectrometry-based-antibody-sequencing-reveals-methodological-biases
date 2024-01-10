@@ -1,0 +1,207 @@
+---
+title: "60 samples/day vs 100 samples/day"
+author: "Khang"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,message = FALSE,warning = FALSE)
+
+library(tidyverse)
+library(reshape2)
+library(seqinr)
+
+# Source the functions for preprocessing
+source("/Users/khangl/Dropbox (UiO)/CSI/datasets/csi_datasets/ms_benchmarking/MS_preprocessing.R")
+```
+
+```{r}
+# Read the files
+MQ_peptides_ct <- read_tsv("./MQ_output/Chymotrypsin/peptides.txt")
+MQ_peptides_tryp <- read_tsv("./MQ_output/Trypsin/peptides.txt")
+MQ_peptides_both <- read_tsv("./MQ_output/Both/peptides.txt")
+MQ_peptides_ct$Enzyme <- "ct"
+MQ_peptides_tryp$Enzyme <- "tryp"
+MQ_peptides_both$Enzyme <- "ct+tryp"
+
+MSF_peptides_ct <- read_tsv("./MSF_output/Chymotrypsin/combined_peptide.tsv")
+MSF_peptides_tryp <- read_tsv("./MSF_output/Trypsin/combined_peptide.tsv")
+MSF_peptides_both <- read_tsv("./MSF_output/Both/combined_peptide.tsv")
+MSF_peptides_ct$Enzyme <- "ct"
+MSF_peptides_tryp$Enzyme <- "tryp"
+MSF_peptides_both$Enzyme <- "ct+tryp"
+
+sample_description <- read_tsv("./Sample_description.tsv")
+colnames(sample_description) <- c("Rawfilenumber", "Ab", "Ab_concentration_ng",
+                                  "Enzyme", "Samples_per_day", "Blank")
+```
+
+
+
+```{r}
+# Transform the MQ output to long format
+df_MQ_ct <- MQ_peptides_ct[, c("Sequence", "Proteins", "Enzyme",
+                       colnames(MQ_peptides_ct)[grepl("Intensity ", colnames(MQ_peptides_ct), fixed = TRUE)])]
+df_MQ_ct <- melt(df_MQ_ct, id=c("Sequence", "Proteins", "Enzyme"))
+colnames(df_MQ_ct) <- c("Sequence", "Proteins", "Enzyme", "Rawfilenumber", "Intensity")
+df_MQ_ct$Rawfilenumber <- str_remove(df_MQ_ct$Rawfilenumber, "Intensity ")
+df_MQ_ct$Rawfilenumber <- paste0(df_MQ_ct$Rawfilenumber, ".raw")
+df_MQ_ct <- df_MQ_ct[df_MQ_ct$Intensity > 0, ]
+df_MQ_ct <- merge(df_MQ_ct, sample_description, by = c("Rawfilenumber","Enzyme"), all.x = T)
+
+df_MQ_tryp <- MQ_peptides_tryp[, c("Sequence", "Proteins", "Enzyme",
+                       colnames(MQ_peptides_tryp)[grepl("Intensity ", colnames(MQ_peptides_tryp), fixed = TRUE)])]
+df_MQ_tryp <- melt(df_MQ_tryp, id=c("Sequence", "Proteins", "Enzyme"))
+colnames(df_MQ_tryp) <- c("Sequence", "Proteins", "Enzyme", "Rawfilenumber", "Intensity")
+df_MQ_tryp$Rawfilenumber <- str_remove(df_MQ_tryp$Rawfilenumber, "Intensity ")
+df_MQ_tryp$Rawfilenumber <- paste0(df_MQ_tryp$Rawfilenumber, ".raw")
+df_MQ_tryp <- df_MQ_tryp[df_MQ_tryp$Intensity > 0, ]
+df_MQ_tryp <- merge(df_MQ_tryp, sample_description, by = c("Rawfilenumber","Enzyme"), all.x = T)
+
+df_MQ_both <- MQ_peptides_both[, c("Sequence", "Proteins", "Enzyme",
+                       colnames(MQ_peptides_both)[grepl("Intensity ", colnames(MQ_peptides_both), fixed = TRUE)])]
+df_MQ_both <- melt(df_MQ_both, id=c("Sequence", "Proteins", "Enzyme"))
+colnames(df_MQ_both) <- c("Sequence", "Proteins", "Enzyme", "Rawfilenumber", "Intensity")
+df_MQ_both$Rawfilenumber <- str_remove(df_MQ_both$Rawfilenumber, "Intensity ")
+df_MQ_both$Rawfilenumber <- paste0(df_MQ_both$Rawfilenumber, ".raw")
+df_MQ_both <- df_MQ_both[df_MQ_both$Intensity > 0, ]
+df_MQ_both <- merge(df_MQ_both, sample_description, by = c("Rawfilenumber","Enzyme"), all.x = T)
+
+# bind the dfs from all different enzymes together
+df_MQ <- rbind(df_MQ_tryp, df_MQ_ct, df_MQ_both)
+
+# If a peptide has any hits to a decoy (CON__) then remove, also remove all blank samples
+df_MQ <- df_MQ[-str_which(df_MQ$Proteins, "CON__"),]
+df_MQ <- df_MQ[-str_which(df_MQ$Blank, "TRUE"),]
+
+# Transform the MSF output to long format, combine all peptides by adding Protein with Mapped proteins
+df_MSF_ct <- MSF_peptides_ct[,c(1, 8, 14, 18:20, 24)]
+df_MSF_ct$Protein <- paste(df_MSF_ct$Protein, df_MSF_ct$`Mapped Proteins`, sep = ", ")
+df_MSF_ct <- df_MSF_ct[,-3]
+df_MSF_ct <- melt(df_MSF_ct, id = c("Peptide Sequence", "Protein","Enzyme"))
+colnames(df_MSF_ct) <- c("Sequence", "Proteins", "Enzyme", "Rawfilenumber", "Intensity")
+df_MSF_ct$Rawfilenumber <- paste0(str_remove(df_MSF_ct$Rawfilenumber, " Intensity"),".raw")
+df_MSF_ct <- df_MSF_ct[df_MSF_ct$Intensity > 0,]
+df_MSF_ct <- merge(df_MSF_ct, sample_description, by = c("Rawfilenumber","Enzyme"), all.x = T)
+
+df_MSF_tryp <- MSF_peptides_tryp[,c(1, 8, 14, 18:20, 24)]
+df_MSF_tryp$Protein <- paste(df_MSF_tryp$Protein, df_MSF_tryp$`Mapped Proteins`, sep = ", ")
+df_MSF_tryp <- df_MSF_tryp[,-3]
+df_MSF_tryp <- melt(df_MSF_tryp, id = c("Peptide Sequence", "Protein","Enzyme"))
+colnames(df_MSF_tryp) <- c("Sequence", "Proteins", "Enzyme", "Rawfilenumber", "Intensity")
+df_MSF_tryp$Rawfilenumber <- paste0(str_remove(df_MSF_tryp$Rawfilenumber, " Intensity"),".raw")
+df_MSF_tryp <- df_MSF_tryp[df_MSF_tryp$Intensity > 0,]
+df_MSF_tryp <- merge(df_MSF_tryp, sample_description, by = c("Rawfilenumber","Enzyme"), all.x = T)
+
+df_MSF_both <- MSF_peptides_both[,c(1, 8, 14, 17:19)]
+df_MSF_both$Protein <- paste(df_MSF_both$Protein, df_MSF_both$`Mapped Proteins`, sep = ", ")
+df_MSF_both <- df_MSF_both[,-3]
+df_MSF_both <- melt(df_MSF_both, id = c("Peptide Sequence", "Protein","Enzyme"))
+colnames(df_MSF_both) <- c("Sequence", "Proteins", "Enzyme", "Rawfilenumber", "Intensity")
+df_MSF_both$Rawfilenumber <- paste0(str_remove(df_MSF_both$Rawfilenumber, " Intensity"),".raw")
+df_MSF_both <- df_MSF_both[df_MSF_both$Intensity > 0,]
+df_MSF_both <- merge(df_MSF_both, sample_description, by = c("Rawfilenumber","Enzyme"), all.x = T)
+
+# bind the dfs from all different enzymes together
+df_MSF <- rbind(df_MSF_tryp, df_MSF_ct, df_MSF_both)
+
+# Remove all blank samples
+df_MSF <- df_MSF[-str_which(df_MSF$Blank, "TRUE"),]
+```
+
+
+
+# Align the peptide sequences to imgt, immmunesim, uniprot
+```{r}
+# Call the IMGT, immunesim, uniprot reference
+imgt_ref <- get_imgt_genes()
+immunesim_ref <- get_immunesim_genes()
+igor_ref <- get_igor_genes()
+uniprot_ref <- get_uniprot_genes()
+
+# From MQ output, count the number of rows in which imgt, immune sim, uniprot names appear in the protein id
+df_MQ <- df_MQ %>% rowwise() %>% mutate(Match_imgt = length(intersect(unlist(str_split(Proteins, ";")), names(imgt_ref))) > 0)
+df_MQ <- df_MQ %>% rowwise() %>% mutate(Match_immunesim = length(intersect(unlist(str_split(Proteins, ";")), names(immunesim_ref))) > 0)
+df_MQ <- df_MQ %>% rowwise() %>% mutate(Match_igor = length(intersect(unlist(str_split(Proteins, ";")), names(igor_ref))) > 0)
+df_MQ <- df_MQ %>% rowwise() %>% mutate(Match_uniprot = length(intersect(unlist(str_split(Proteins, ";")), str_split(names(uniprot_ref), "\\|", simplify = T)[,2])) > 0)
+
+imgt_MQ <- df_MQ %>% group_by(Rawfilenumber, Match_imgt) %>% summarize (Count = n()) %>% filter(Match_imgt == TRUE) %>% select(Rawfilenumber, Count)
+imgt_MQ$Match <- "IMGT"
+immunesim_MQ <- df_MQ %>% group_by(Rawfilenumber, Match_immunesim) %>% summarize (Count = n()) %>% filter(Match_immunesim == TRUE) %>% select(Rawfilenumber, Count)
+immunesim_MQ$Match <- "immuneSIM"
+igor_MQ <- df_MQ %>% group_by(Rawfilenumber, Match_igor) %>% summarize (Count = n()) %>% filter(Match_igor == TRUE) %>% select(Rawfilenumber, Count)
+igor_MQ$Match <- "IGoR"
+uniprot_MQ <- df_MQ %>% group_by(Rawfilenumber, Match_uniprot) %>% summarize (Count = n()) %>% filter(Match_uniprot == TRUE) %>% select(Rawfilenumber, Count)
+uniprot_MQ$Match <- "UniProt"
+
+alldb_MQ <- rbind(imgt_MQ, immunesim_MQ, igor_MQ, uniprot_MQ)
+alldb_MQ$Tool <- "MaxQuant"
+
+# Do the same for MSFragger
+df_MSF <- df_MSF %>% rowwise() %>% mutate(Match_imgt = length(intersect(unlist(str_split(Proteins, ", ")), names(imgt_ref))) > 0)
+df_MSF <- df_MSF %>% rowwise() %>% mutate(Match_immunesim = length(intersect(unlist(str_split(Proteins, ", ")), names(immunesim_ref))) > 0)
+df_MSF <- df_MSF %>% rowwise() %>% mutate(Match_igor = length(intersect(unlist(str_split(Proteins, ", ")), names(igor_ref))) > 0)
+df_MSF<- df_MSF %>% rowwise() %>% mutate(Match_uniprot = length(intersect(unlist(str_split(Proteins, ", ")), names(uniprot_ref))) > 0)
+
+imgt_MSF <- df_MSF %>% group_by(Rawfilenumber, Match_imgt) %>% summarize (Count = n()) %>% filter(Match_imgt == TRUE) %>% select(Rawfilenumber, Count)
+imgt_MSF$Match <- "IMGT"
+immunesim_MSF <- df_MSF %>% group_by(Rawfilenumber, Match_immunesim) %>% summarize (Count = n()) %>% filter(Match_immunesim == TRUE) %>% select(Rawfilenumber, Count)
+immunesim_MSF$Match <- "immuneSIM"
+igor_MSF <- df_MSF %>% group_by(Rawfilenumber, Match_igor) %>% summarize (Count = n()) %>% filter(Match_igor == TRUE) %>% select(Rawfilenumber, Count)
+igor_MSF$Match <- "IGoR"
+uniprot_MSF <- df_MSF %>% group_by(Rawfilenumber, Match_uniprot) %>% summarize (Count = n()) %>% filter(Match_uniprot == TRUE) %>% select(Rawfilenumber, Count)
+uniprot_MSF$Match <- "UniProt"
+
+alldb_MSF <- rbind(imgt_MSF, immunesim_MSF, igor_MSF, uniprot_MSF)
+alldb_MSF$Tool <- "MSFragger"
+
+alldb_both <- rbind(alldb_MQ, alldb_MSF)
+```
+# Align the peptide sequences to Mab references
+```{r}
+cdr3 <- data.frame(read_tsv("/Users/khangl/Dropbox (UiO)/CSI/datasets/csi_datasets/ms_benchmarking/antibodies_cdr3_variable_full.tsv"))
+
+df_res_MQ <- preprocess(df_MQ, cdr3, cdr3_min_overlap=2)
+df_res_MSF <- preprocess(df_MSF, cdr3, cdr3_min_overlap=2)
+df_res_MQ$Tool <- "MaxQuant"
+df_res_MSF$Tool <- "MSFragger"
+df_res <- rbind(df_res_MQ, df_res_MSF)
+
+# Select for only peptides that map to PGDM1400
+df_res <- df_res[str_which(df_res$match_ig_type, "^PGDM1400"),]
+df_res$chain <- str_split(df_res$match_ig_type, "_", simplify = T)[,2]
+
+df_count <- df_res %>% group_by(match_ig_type, Rawfilenumber, Tool) %>% summarize(Count = n())
+
+df_count <- df_count[,c(2,4,1,3)]
+colnames(df_count) <- c("Rawfilenumber", "Count", "Match", "Tool")
+
+df_count <- rbind(df_count, alldb_both)
+
+df_count <- merge(df_count, sample_description, by = c("Rawfilenumber"))
+
+df_count$Samples_per_day <- factor(df_count$Samples_per_day, levels = c("60", "100"))
+df_count$Enzyme <- str_replace_all(df_count$Enzyme, "ct", "Ct")
+df_count$Enzyme <- str_replace_all(df_count$Enzyme, "tryp", "Tryp")
+df_count$Enzyme <- str_replace_all(df_count$Enzyme, "ct+tryp", "Ct+Tryp")
+
+df_count$Enzyme <- factor(df_count$Enzyme, levels = c("Ct", "Tryp", "Ct+Tryp"))
+
+```
+
+```{r fig.height=6, fig.width=6}
+p_count <- ggplot(df_count, aes(x = factor(Match, levels = c("PGDM1400_HC", "PGDM1400_LC", "IMGT", "immuneSIM", "IGoR", "UniProt")), y = Count)) +
+  geom_col(aes(fill = Samples_per_day), position = "dodge", color = "black") +
+  geom_text(aes(label = Count, group = Samples_per_day), position = position_dodge(width = .9), vjust = -0.3, size = 2.5) +
+  scale_fill_manual(values = c("#FDBF6F", "#FF7F00")) +
+  scale_y_log10(limits = c(1, 1500)) +
+  facet_grid(Enzyme~Tool) +
+  labs(x = "Database match", y = "Number of peptides", fill = "Throughput (samples per day)") +
+  theme_classic() +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90, hjust = 0.95, vjust = 0.2),
+        strip.text.y = element_text(angle = 270))
+
+p_count
+#ggsave("./figures/p_count_60_vs_100.pdf", p_count,  dpi = 600, height = 6, width = 6)
+```

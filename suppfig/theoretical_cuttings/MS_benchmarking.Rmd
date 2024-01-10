@@ -1,0 +1,300 @@
+---
+title: "MS_benchmarking"
+output: pdf_document
+date: '`r Sys.Date()`'
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(stringi)
+library(stringr)
+library(Biostrings)
+library(cleaver)
+library(msa)
+library(seqinr)
+```
+
+# Load the mAb sequences
+```{r}
+Mab_df <- read_tsv("./antibodies_cdr3_variable_full.tsv")
+```
+
+# Create a function to find all common substrings from a vector of strings, and retain only those that are common in at least 2 strings and have at least 6 characters
+```{r}
+find_common_substrings <- function(vec_list) {
+  # Combine all vectors into one string
+  full_string <- paste(vec_list, collapse = "")
+  
+  # Initialize a list to store common substrings
+  common_subs <- list()
+  
+  # Iterate over all possible substrings with i as the start and j as the end of the substring
+  for (i in seq_len(nchar(full_string))) {
+    for (j in seq_len(nchar(full_string) - i + 1)) {
+      substr <- substring(full_string, j, j + i - 1)
+      
+      # Check if the substring is present in more than one string and have at least 6 characters
+      if (sum(sapply(vec_list, function(x) grepl(substr, x))) >= 2 && nchar(substr) >= 6) {
+        common_subs[[length(common_subs) + 1]] <- substr
+      }
+    }
+  }
+  
+  # Remove duplicates and return the list of common substrings
+  unique(common_subs)
+}
+```
+
+```{r eval=FALSE, include=FALSE}
+find_common_substrings(c("AASFWJCXDDDEFRGHWEFRFRG","WEFRFRGHY","JCXDDDCOIJVWEFR"))
+
+Mab_common_substring <- find_common_substrings(Mab_df$aa_full_without_constant)
+
+saveRDS(Mab_common_substring, "./Mab_common_substring.RDS")
+
+
+
+
+
+
+Mab_common_substring_df <- tibble(Substring = unlist(Mab_common_substring), 
+                                  Mab = unlist(map(Mab_common_substring, function(x) paste(Mab_df$match_ig_type[(grep(x, Mab_df$aa_full_without_constant))], collapse = ";"))))
+
+Mab_common_substring_df_filtered <- Mab_common_substring_df %>% filter(!Mab == "h9C12-WT_HC;h9C12-Q97A_HC")
+
+write_tsv(Mab_common_substring_df_filtered, "./Mab_common_substring_df_filtered.tsv")
+
+
+
+test2 <- find_common_substrings(c(Mab_df$aa_full_without_constant[1], Mab_df$aa_full_without_constant[5]))
+
+test2
+
+str_locate(Mab_df$aa_full_without_constant[1], "QLVQSG")
+str_locate(Mab_df$aa_full_without_constant[1], "FWGQGT")
+
+Mab_df$aa_full_without_constant[1]
+Mab_df$aa_full_without_constant[5]
+
+test3 <- find_common_substrings(c(Mab_df$aa_full_without_constant[7], Mab_df$aa_full_without_constant[9]))
+test3
+
+Mab_df$aa_full_without_constant[7]
+Mab_df$aa_full_without_constant[9]
+
+test4 <- find_common_substrings(c("QVQLVESGGGVVQPGRSLRLSCAASGFTFSSYGMHWVRQAPGKGLEWVAFIRYDGSNKYYADSVKGRFTISRDNSKNTLYLQMNSLRAEDTAVYYCKTHGSHDNWGQGTMVTVSS",
+                                  "QVQLKQSGPGLLQPSQRLSITCTVSGFSLGRYGVHWIRQSPGKGLEWLGVIWRGGTTDYNAVFMSRLSINKDDSKSQVFFTMNSLRPDDTAIYYCARQGSNFPLAYWGQGTLVTVSS",
+                                  "QVQLVQSGPEVRKPGTSVKVSCKAPGNTLKTYDLHWVRSVPGQGLQWMGWISHEGDKKVIVERFKAKVTIDWDRSTNTAYLQLSGLTSGDTAVYYCAKGSKHRLRDYALYDDDGALNWAVDVDYLSNLEFWGQGTAVTVSS"))
+
+test4
+```
+
+```{r}
+get_all_substrings <- function(s) {
+  res <- vector()
+  for (i in 1:(nchar(s))) {
+    for (j in 1:nchar(s)) {
+      if (i <= j) {
+        res <- c(res, str_sub(s, i, j))
+      }
+    }
+  }
+  res <- res[nchar(res) > 5]
+  return(res)
+}
+```
+
+```{r}
+all_mab_substrings <- map(Mab_df$aa_full_without_constant, function(x) get_all_substrings(x))
+names(all_mab_substrings) <- Mab_df$match_ig_type
+
+paste(intersect(unlist(all_mab_substrings[1]), unlist(all_mab_substrings[5])), collapse = ";")
+
+# Crate a dataframe of all pairwise comparisons
+
+intersection_matrix <- matrix(0, nrow=length(all_mab_substrings), ncol=length(all_mab_substrings))
+
+for (i in 1:length(all_mab_substrings)){ # Perform pairwise comparison only once
+  for (j in 1:length(all_mab_substrings)){
+       pwc <- paste(intersect(unlist(all_mab_substrings[[i]]), unlist(all_mab_substrings[[j]])), collapse = ";")
+       
+       intersection_matrix[i,j] <- pwc
+      }
+}
+
+# Remove comparison with self, and remove comparisons between h9C12-WT_HC and h9C12-Q97A_HC
+diag(intersection_matrix) <- ""
+intersection_matrix[9,10] <- ""
+intersection_matrix[10,9] <- ""
+colnames(intersection_matrix) <- names(all_mab_substrings)
+rownames(intersection_matrix) <- names(all_mab_substrings)
+
+
+#saveRDS(intersection_matrix, "./Mab_common_substring_mat_filtered.RDS")
+
+#write.table(intersection_matrix, file="Mab_common_substring_mat_filtered.txt", row.names=TRUE, col.names=TRUE)
+```
+
+
+```{r}
+filter_substrings <- function(string_vec) {
+  # create an empty logical vector to store whether each string is a substring
+  is_substring <- logical(length(string_vec))
+  
+  # iterate over each string in the vector
+  for (i in seq_along(string_vec)) {
+    # check if the string is a substring of any other string in the vector
+    is_substring[i] <- any(grepl(string_vec[i], string_vec[-i], fixed = TRUE))
+  }
+  
+  # return the vector with the substrings removed
+  string_vec[!is_substring]
+}
+```
+
+```{r}
+intersection_matrix2 <- matrix(0, nrow=length(all_mab_substrings), ncol=length(all_mab_substrings))
+
+for (i in 1:length(all_mab_substrings)){ # Perform pairwise comparison only once
+  for (j in 1:length(all_mab_substrings)){
+       pwc <- paste(filter_substrings(intersect(unlist(all_mab_substrings[[i]]), unlist(all_mab_substrings[[j]]))), collapse = ";")
+       
+       intersection_matrix2[i,j] <- pwc
+      }
+}
+
+# Remove comparison with self, and remove comparisons between h9C12-WT_HC and h9C12-Q97A_HC
+diag(intersection_matrix2) <- ""
+intersection_matrix2[9,10] <- ""
+intersection_matrix2[10,9] <- ""
+colnames(intersection_matrix2) <- names(all_mab_substrings)
+rownames(intersection_matrix2) <- names(all_mab_substrings)
+
+view(intersection_matrix2)
+
+#saveRDS(intersection_matrix2, "./Mab_common_substring_mat_filtered2.RDS" )
+
+intersection_df2 <- as_tibble(intersection_matrix2)
+rownames(intersection_df2) <- names(all_mab_substrings)
+
+#write_tsv(intersection_df2, "./Mab_common_substring_df_filtered2.tsv")
+
+read_tsv("./Mab_common_substring_df_filtered2.tsv")
+```
+
+# Calculate PID between mAbs (full-length, CDR3, non-CDR3 by summing the distance before and after cdr3)
+```{r}
+# Remove the empty NA row 
+Mab_df <- Mab_df[-12,]
+
+# Create a column with regions of non-CDR3
+Mab_df$amino_acid_sequence_Vregion[1]
+Mab_df$amino_acid_sequence_cdr3[1]
+
+for (i in 1:nrow(Mab_df)){
+  Mab_df$amino_acid_sequence_noncdr3[i] <- str_remove(Mab_df$amino_acid_sequence_Vregion[i], Mab_df$amino_acid_sequence_cdr3[i])
+}
+
+str_remove(Mab_df$amino_acid_sequence_Vregion[1], Mab_df$amino_acid_sequence_cdr3[1])
+pairwiseAlignment(Mab_df$amino_acid_sequence_Vregion[1], Mab_df$amino_acid_sequence_Vregion[3])
+test <- pairwiseAlignment(Mab_df$amino_acid_sequence_cdr3[1], Mab_df$amino_acid_sequence_cdr3[3])
+
+pid(test, type = "PID1")
+# "PID1":100 * (identical positions) / (aligned positions + internal gap positions)
+
+# Create a list of pairwise alignments of all V regions
+align_Vregion <- list()
+identity_Vregion <- list()
+align_cdr3 <- list()
+identity_cdr3 <- list()
+align_noncdr3 <- list()
+identity_noncdr3 <- list()
+mab_1 <- list()
+mab_2 <- list()
+
+for (i in seq_len(nrow(Mab_df))){
+  for (j in seq_len(nrow(Mab_df))){
+    if (i < j) {
+      name1 <- Mab_df$sequence_name[i]
+      mab_1 <- c(mab_1, name1)
+      
+      name2 <- Mab_df$sequence_name[j]
+      mab_2 <- c(mab_2, name2)
+      
+      align_1 <- pairwiseAlignment(Mab_df$amino_acid_sequence_Vregion[i], Mab_df$amino_acid_sequence_Vregion[j])
+      identity_1 <- pid(align_1, type = "PID1")
+      align_Vregion <- c(align_Vregion, align_1)
+      identity_Vregion <- c(identity_Vregion, identity_1)
+      
+      align_2 <- pairwiseAlignment(Mab_df$amino_acid_sequence_cdr3[i], Mab_df$amino_acid_sequence_cdr3[j])
+      identity_2 <- pid(align_2, type = "PID1")
+      align_cdr3 <- c(align_cdr3, align_2)
+      identity_cdr3 <- c(identity_cdr3, identity_2)
+      
+      align_3 <- pairwiseAlignment(Mab_df$amino_acid_sequence_noncdr3[i], Mab_df$amino_acid_sequence_noncdr3[j])
+      identity_3 <- pid(align_3, type = "PID1")
+      align_noncdr3 <- c(align_noncdr3, align_3)
+      identity_noncdr3 <- c(identity_noncdr3, identity_3)
+      }
+    }
+  }
+
+pwc_mab <- tibble(mab_1 = unlist(mab_1), mab_2 = unlist(mab_2),
+                  identity_Vregion = unlist(identity_Vregion),
+                  identity_cdr3 = unlist(identity_cdr3),
+                  identity_noncdr3 = unlist(identity_noncdr3))
+
+#write_tsv(pwc_mab,"./pwc_mab.tsv")
+```
+
+# Cleave the Mab sequences into MS peptides by enzyme rules (allow up to 2 miscleavages)
+```{r}
+cleave(Mab_df$amino_acid_sequence_Vregion, "trypsin", missedCleavages = c(0,1,2)) %>% unlist()
+#cleave(Mab_df$amino_acid_sequence_Vregion, "trypsin", missedCleavages = 0)
+
+cleave_df_tryp <- tibble(enzyme = "Trypsin",
+                         amino_acid_sequence_Vregion = str_replace_all(names(cleave(Mab_df$amino_acid_sequence_Vregion, "trypsin", missedCleavages = c(0,1,2)) %>% unlist()), "[:digit:]", ""),
+                         peptide = cleave(Mab_df$amino_acid_sequence_Vregion, "trypsin", missedCleavages = c(0,1,2)) %>% unlist()
+                          )
+cleave_df_ct <- tibble(enzyme = "Chymotrypsin",
+                         amino_acid_sequence_Vregion = str_replace_all(names(cleave(Mab_df$amino_acid_sequence_Vregion, "chymotrypsin-high", missedCleavages = c(0,1,2)) %>% unlist()), "[:digit:]", ""),
+                         peptide = cleave(Mab_df$amino_acid_sequence_Vregion, "chymotrypsin-high", missedCleavages = c(0,1,2)) %>% unlist()
+                          )
+
+cleave_df_ct <- tibble(enzyme = "Chymotrypsin",
+                         amino_acid_sequence_Vregion = str_replace_all(names(cleave(Mab_df$amino_acid_sequence_Vregion, "chymotrypsin-high", missedCleavages = c(0,1,2)) %>% unlist()), "[:digit:]", ""),
+                         peptide = cleave(Mab_df$amino_acid_sequence_Vregion, "chymotrypsin-high", missedCleavages = c(0,1,2)) %>% unlist()
+                          )
+
+cleave_df_aspn <- tibble(enzyme = "AspN",
+                         amino_acid_sequence_Vregion = str_replace_all(names(cleave(Mab_df$amino_acid_sequence_Vregion, "asp-n", missedCleavages = c(0,1,2)) %>% unlist()), "[:digit:]", ""),
+                         peptide = cleave(Mab_df$amino_acid_sequence_Vregion, "asp-n", missedCleavages = c(0,1,2)) %>% unlist()
+                          )
+
+cleave_df_ct_tryp <- tibble(enzyme = "Chymotrypsin + Trypsin",
+                            amino_acid_sequence_Vregion = str_replace_all(names(cleave(Mab_df$amino_acid_sequence_Vregion, "chymotrypsin-high", missedCleavages = c(0,1,2)) %>% unlist() %>% cleave(., "trypsin", missedCleavages = c(0,1,2)) %>% unlist()), "[:digit:]", ""),
+                            peptide = cleave(Mab_df$amino_acid_sequence_Vregion, "chymotrypsin-high", missedCleavages = c(0,1,2)) %>% unlist() %>% cleave(., "trypsin", missedCleavages = c(0,1,2)) %>% unlist())
+
+cleave_df_all <- bind_rows(cleave_df_tryp, cleave_df_ct, cleave_df_ct_tryp, cleave_df_aspn)
+
+# Filter for peptides at least 7 aa long
+cleave_df_all <- cleave_df_all %>% filter(nchar(peptide) > 6)
+
+cleave_df_all <- left_join(cleave_df_all, Mab_df[,c("sequence_name","amino_acid_sequence_cdr3","amino_acid_sequence_Vregion")], by = "amino_acid_sequence_Vregion")
+
+# Locate the position of the peptide and the cdr3 in the V region
+cleave_df_all$peptide_start <- str_locate(cleave_df_all$amino_acid_sequence_Vregion, cleave_df_all$peptide)[,1]
+cleave_df_all$peptide_end <- str_locate(cleave_df_all$amino_acid_sequence_Vregion, cleave_df_all$peptide)[,2]
+cleave_df_all$cdr3_start <- str_locate(cleave_df_all$amino_acid_sequence_Vregion, cleave_df_all$amino_acid_sequence_cdr3)[,1]
+cleave_df_all$cdr3_end <- str_locate(cleave_df_all$amino_acid_sequence_Vregion, cleave_df_all$amino_acid_sequence_cdr3)[,2]
+
+cleave_df_all$overlap <- mapply(max, mapply(min, cleave_df_all$peptide_end, cleave_df_all$cdr3_end) - mapply(max, cleave_df_all$peptide_start, cleave_df_all$cdr3_start), 0)
+
+# Keep only peptides that overlap at least 3 aa with cdr3
+cleave_df_all <- cleave_df_all %>% filter(overlap > 2)
+
+#write_tsv(cleave_df_all, "./cleave_df_all.tsv")
+
+pairwiseAlignment(Mab_df$amino_acid_sequence_Vregion[5], Mab_df$amino_acid_sequence_Vregion[9])
+```
+

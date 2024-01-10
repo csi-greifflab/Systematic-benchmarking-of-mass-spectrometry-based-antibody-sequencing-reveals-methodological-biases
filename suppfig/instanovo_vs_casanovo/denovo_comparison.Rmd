@@ -1,0 +1,306 @@
+---
+title: 'Denovo comparison: Instanovo vs Casanovo'
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document:
+    extra_dependencies: ["float"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning=F, message=F)
+```
+
+```{r libs, message=FALSE, warning=FALSE, include=FALSE}
+library(readxl)
+library(seqinr)
+library(tidyverse)
+library(reshape2)
+library(forcats)
+library(RColorBrewer)
+library(kableExtra)
+library(gridExtra)
+```
+
+# Sample overview
+
+```{r include=FALSE}
+# Load metadata
+sample_id <- read_excel("./instanovo/Instanovo test samples.xlsx")
+cdr3 <- read_tsv("./antibodies_cdr3_variable_full.tsv")
+sample_description <- read_tsv("./detailed_sample_description.tsv")
+```
+
+```{r}
+tab_sample <- kable(sample_id[,-1], booktabs = T) %>% kableExtra::kable_styling(latex_options = "HOLD_position", "striped")
+tab_sample
+```
+
+# Comparison of coverage Instanovo vs Casanovo
+
+```{r}
+# Preprocess Instanovo ouput
+# Read the Instanovo ouput
+insta_res <- read_csv("./instanovo/instanovo_predictions.csv")
+
+# Remove empty predictions
+insta_res <- insta_res %>% select(experiment_name, preds, log_probs) %>% na.omit()
+
+#Remove modifications (e.g. (ox))
+insta_res$preds <- str_replace_all(insta_res$preds, "\\s*\\([^\\)]+\\)", "")
+
+# Calculate confidence score
+insta_res$log_probs <-  exp(insta_res$log_probs)
+
+denovo_df <- tibble(Sample = insta_res$experiment_name,
+                    Peptide = insta_res$preds,
+                    Score = insta_res$log_probs,
+                    Tool = "Instanovo")
+```
+
+```{r}
+# Read the Casanovo output (skip the first 57 lines in the mztab file)
+read_casanovo_output <- function(fname) {
+   df_tmp <- data.frame(read_tsv(fname, skip = 57))
+   df_tmp <- df_tmp[, c("sequence", "search_engine_score.1.")]
+   colnames(df_tmp) <- c("Peptide",  "Score")
+   df_tmp$Sample <- str_remove(basename(fname), ".mztab")
+   df_tmp
+}
+
+casanovo_files <- list.files("./casanovo", full.names = T, pattern = ".mztab")
+casa_res <- lapply(casanovo_files, read_casanovo_output)
+casa_res <- do.call("rbind", casa_res)
+casa_res$Tool <- "Casanovo"
+
+# Remove modifications
+casa_res$Peptide <- str_replace_all(string = casa_res$Peptide, pattern = "[0-9.+-]", replacement = "")
+```
+
+```{r}
+# Merge the results
+denovo_df <- rbind(denovo_df, casa_res)
+# Retain only peptide > 6 aa
+denovo_df <- denovo_df[sapply(denovo_df$Peptide, nchar) > 6, ]
+```
+
+```{r}
+# Function to align peptide to reference file
+align_to_ab_sequences <- function(df, cdr3) {
+  # peptides that perfectly match to the variable region
+  df_res <- data.frame()
+  for (i in 1:nrow(cdr3)) {
+    variable_positions <- str_locate(cdr3$amino_acid_sequence_full[i], cdr3$amino_acid_sequence_Vregion[i])
+    constant_match <- str_locate(cdr3$amino_acid_sequence_full[i], df$Peptide)
+    df$Overlap <- pmax(0, pmin(variable_positions[1, 2], constant_match[, 2]) -
+                         pmax(variable_positions[1, 1], constant_match[, 1]) + 1)
+    df_matched <- df[which(df$Overlap > 5), ]
+    
+    # trim peptides by the end of the variable region
+    idx <-(nchar(df_matched$Peptide) > df_matched$Overlap)
+    df_matched$Peptide[idx] <- substring(df_matched$Peptide[idx], 1, df_matched$Overlap[idx])
+    df_matched$sequence_name <- cdr3[i, "sequence_name"]
+    df_res <- rbind(df_res, df_matched)
+  }
+  return(df_res)
+}
+```
+
+```{r}
+# Align denovo peptides to referece
+denovo_align <- align_to_ab_sequences(denovo_df, cdr3)
+```
+
+```{r}
+# Add detailed description to explain the sample number
+denovo_align <- merge(denovo_align, sample_id[,1:2], by.x = "Sample", by.y = "Rawfilenumber")
+colnames(denovo_align)[6] <- "Sequence_name"
+denovo_align$Sequence_name <- unlist(denovo_align$Sequence_name, use.names = F)
+colnames(denovo_align)[7] <- "Sample_number"
+
+denovo_align <- merge(denovo_align, sample_description, by.x = "Sample_number", by.y = "Sample")
+
+# Filter to keep only the peptides that aligned correctly
+denovo_align_filtered <- denovo_align %>% filter(Sample_number == "1") %>% filter(Sequence_name == "h9C12-Q97A_HC" | Sequence_name == "h9C12_LC")
+denovo_align_filtered <- rbind(denovo_align_filtered, denovo_align %>% filter(Sample_number == "2" | Sample_number == "39") %>% filter(Sequence_name == "h9C12-WT_HC" | Sequence_name == "h9C12_LC"))
+denovo_align_filtered <- rbind(denovo_align_filtered, denovo_align %>% filter(Sample_number == "3") %>% filter(Sequence_name == "Brimab_HC" | Sequence_name == "Brimab_LC"))
+denovo_align_filtered <- rbind(denovo_align_filtered, denovo_align %>% filter(Sample_number == "4" | Sample_number == "43") %>% filter(Sequence_name == "Umab_HC" | Sequence_name == "Umab_LC"))
+denovo_align_filtered <- rbind(denovo_align_filtered, denovo_align %>% filter(Sample_number == "5") %>% filter(Sequence_name == "PGT121_HC" | Sequence_name == "PGT121_LC"))
+denovo_align_filtered <- rbind(denovo_align_filtered, denovo_align %>% filter(Sample_number == "6" | Sample_number == "47") %>% filter(Sequence_name == "PGDM1400_HC" | Sequence_name == "PGDM1400_LC"))
+denovo_align_filtered <- rbind(denovo_align_filtered, denovo_align %>% filter(Sample_number == "70"))
+
+denovo_align_filtered_HC <- denovo_align_filtered %>% filter(str_detect(Sequence_name, "HC"))
+denovo_align_filtered_LC <- denovo_align_filtered %>% filter(str_detect(Sequence_name, "LC"))
+```
+
+```{r}
+# Function to calculate V region coverage
+get_coverage_percent <- function(s_vector, sequence_name, cdr3) {
+  ref <- cdr3[cdr3$sequence_name == sequence_name, "amino_acid_sequence_Vregion"] # extract the V region of the ref mAb
+  # Get the start and end position of each peptide, bind to df
+  alignment_pos <- as.data.frame(do.call(rbind,(str_locate_all(string = ref, pattern = s_vector))))
+  # Sum up the coverage position length of all peptides and divide by length of V region
+  counts <- replicate(nchar(ref), 0)
+  if (nrow(alignment_pos) == 0)
+    return(0)
+  for (i in 1:nrow(alignment_pos)) {
+    counts[1:length(counts) %in% c(alignment_pos[i, ]$start : alignment_pos[i, ]$end)] <- counts[alignment_pos[i, ]$start : alignment_pos[i, ]$end] + 1
+  }
+  return(sum(counts > 0) / nchar(ref) * 100)
+}
+```
+
+```{r}
+get_cdr3_coverage_percent <- function(s_vector, sequence_name, cdr3) {
+  #print(s_vector)
+  #print(sequence_name)
+  if (identical(s_vector, character(0))) {
+    return(0)
+  }
+  ref <- cdr3[cdr3$sequence_name == sequence_name, "amino_acid_sequence_full"]
+  alignment_pos <- as.data.frame(do.call(rbind,(str_locate_all(string = ref, pattern = s_vector))))
+  counts <- replicate(nchar(ref), 0)
+  for (i in 1:nrow(alignment_pos)) {
+    counts[1:length(counts) %in% c(alignment_pos[i, ]$start : alignment_pos[i, ]$end)] <- counts[alignment_pos[i, ]$start : alignment_pos[i, ]$end] + 1
+  }
+  res_cdr <- str_locate(ref, as.character(cdr3[cdr3$sequence_name == sequence_name, ]$amino_acid_sequence_cdr3))
+  return(sum(counts[1:length(counts) %in% c(res_cdr[1] : res_cdr[2])] > 0) / (res_cdr[2] - res_cdr[1] + 1) * 100)
+}
+```
+
+## Heavy chain
+
+```{r}
+coverage_df_hc <- tibble(Sequence_name = c("h9C12-Q97A_HC", "h9C12-WT_HC", "Brimab_HC", "Umab_HC", "PGT121_HC",
+                                            "PGDM1400_HC","h9C12-WT_HC", "Umab_HC","PGDM1400_HC", "PGDM1400_HC",
+                                            "PGT121_HC", "Umab_HC", "Brimab_HC", "h9C12-WT_HC", "h9C12-Q97A_HC"),
+                      Sample_number = c(1,2,3,4,5,6,39,43,47,70,70,70,70,70,70),
+                      Coverage_Vregion_Casanovo = NA, Coverage_Vregion_Instanovo = NA, 
+                      Coverage_CDR3_Casanovo = NA, Coverage_CDR3_Instanovo = NA)
+
+for (i in 1:nrow(coverage_df_hc)){
+ coverage_df_hc$Coverage_Vregion_Casanovo[i] <- get_coverage_percent(denovo_align_filtered_HC %>% filter(Tool == "Casanovo" & Sample_number == coverage_df_hc$Sample_number[i] & Sequence_name == coverage_df_hc$Sequence_name[i]) %>% pull(Peptide), coverage_df_hc$Sequence_name[i], cdr3)
+  coverage_df_hc$Coverage_Vregion_Instanovo[i] <- get_coverage_percent(denovo_align_filtered_HC %>% filter(Tool == "Instanovo" & Sample_number == coverage_df_hc$Sample_number[i] & Sequence_name == coverage_df_hc$Sequence_name[i]) %>% pull(Peptide), coverage_df_hc$Sequence_name[i], cdr3)
+  coverage_df_hc$Coverage_CDR3_Casanovo[i] <- get_cdr3_coverage_percent(denovo_align_filtered_HC %>% filter(Tool == "Casanovo" & Sample_number == coverage_df_hc$Sample_number[i] & Sequence_name == coverage_df_hc$Sequence_name[i]) %>% pull(Peptide), coverage_df_hc$Sequence_name[i], cdr3)
+  coverage_df_hc$Coverage_CDR3_Instanovo[i] <- get_cdr3_coverage_percent(denovo_align_filtered_HC %>% filter(Tool == "Instanovo" & Sample_number == coverage_df_hc$Sample_number[i] & Sequence_name == coverage_df_hc$Sequence_name[i]) %>% pull(Peptide), coverage_df_hc$Sequence_name[i], cdr3)
+}
+```
+
+```{r}
+tab_hc <- kable(coverage_df_hc, digits = 2, booktabs = T) %>% kableExtra::kable_styling(latex_options = c("HOLD_position","scale_down", "striped"))
+tab_hc
+```
+
+## Light chain
+
+```{r}
+coverage_df_lc <- tibble(Sequence_name = c("h9C12-LC", "h9C12-LC", "Brimab_LC", "Umab_LC", "PGT121_LC",
+                                            "PGDM1400_LC","h9C12_LC", "Umab_LC","PGDM1400_LC", "PGDM1400_LC",
+                                            "PGT121_LC", "Umab_LC", "Brimab_LC", "h9C12_LC", "h9C12_LC"),
+                      Sample_number = c(1,2,3,4,5,6,39,43,47,70,70,70,70,70,70),
+                      Coverage_Vregion_Casanovo = NA, Coverage_Vregion_Instanovo = NA,
+                      Coverage_CDR3_Casanovo = NA, Coverage_CDR3_Instanovo = NA)
+
+for (i in 1:nrow(coverage_df_lc)){
+  coverage_df_lc$Coverage_Vregion_Casanovo[i] <- get_coverage_percent(denovo_align_filtered_LC %>% filter(Tool == "Casanovo" & Sample_number == coverage_df_lc$Sample_number[i] & Sequence_name == coverage_df_lc$Sequence_name[i]) %>% pull(Peptide), coverage_df_lc$Sequence_name[i], cdr3)
+ coverage_df_lc$Coverage_Vregion_Instanovo[i] <- get_coverage_percent(denovo_align_filtered_LC %>% filter(Tool == "Instanovo" & Sample_number == coverage_df_lc$Sample_number[i] & Sequence_name == coverage_df_lc$Sequence_name[i]) %>% pull(Peptide), coverage_df_lc$Sequence_name[i], cdr3)
+ coverage_df_lc$Coverage_CDR3_Casanovo[i] <- get_cdr3_coverage_percent(denovo_align_filtered_LC %>% filter(Tool == "Instanovo" & Sample_number == coverage_df_lc$Sample_number[i] & Sequence_name == coverage_df_lc$Sequence_name[i]) %>% pull(Peptide), coverage_df_lc$Sequence_name[i], cdr3)
+  coverage_df_lc$Coverage_CDR3_Instanovo[i] <- get_cdr3_coverage_percent(denovo_align_filtered_LC %>% filter(Tool == "Instanovo" & Sample_number == coverage_df_lc$Sample_number[i] & Sequence_name == coverage_df_lc$Sequence_name[i]) %>% pull(Peptide), coverage_df_lc$Sequence_name[i], cdr3)
+}
+```
+
+```{r}
+tab_lc <- kable(coverage_df_lc, digits = 2, booktabs = T) %>% kableExtra::kable_styling(latex_options = c("HOLD_position","scale_down", "striped"))
+tab_lc
+```
+
+```{r}
+# # Coverage plot for denovo peptides
+make_coverage_plot <- function(ab_name, df) {
+  peptides <- df$Peptide # peptides that perfectly match to an ab
+  res_seq <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(peptides)) # position number of peptide on V region
+  res_cdr3 <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_cdr3)) # position number of the cdr3
+  # List the position in the V region for each peptide in long format
+  df_cdr3 <- data.frame(Sequence = peptides,
+                        Tool = df$Tool,
+                        start = res_seq[, 1],
+                        end = res_seq[, 2])
+
+  df_cdr3 <- df_cdr3[with(df_cdr3, order(start, -end)), ] # Order the peptides by position in V region
+  df_cdr3$y <- 1:nrow(df_cdr3) # Value for y-axis
+
+  df_cdr3_tmp <- melt(df_cdr3, c("Sequence", "y", "Tool")) # transform to long format
+
+  
+  p_coverage <- ggplot(df_cdr3_tmp, aes(x=value, y=y)) +
+    geom_rect(aes(xmin = res_cdr3[1, 1], xmax = res_cdr3[1, 2], ymin = -Inf, ymax = Inf),
+              fill = "#FDFD96", alpha = 0.05) + #cdr3 yellow rectangle
+    geom_point(size=0.2) + #point marking start and end of peptide
+    geom_segment(aes(x = start, y = y, xend = end, yend = y, color = Tool), size = 0.5, data = df_cdr3) + # peptide line
+    scale_colour_manual(values = c("#aa50d0", "#030304")) +
+    guides(fill = guide_legend(keywidth = 1, keyheight = 1),
+    linetype=guide_legend(keywidth = 3, keyheight = 1),
+    colour=guide_legend(keywidth = 3, keyheight = 1)) +
+    theme_classic() +
+    theme(text = element_text(size = 24), legend.position = "none") +
+    labs(x = "Position in the variable region", y = "", #title = ab_name
+         )
+  
+  print(p_coverage)
+   
+  ggsave(filename = paste0("./figures/",ab_name,".pdf"), plot = p_coverage, width = 14, height = 8, dpi = 600)
+}
+```
+
+\newpage
+
+# Heavy chain V region coverage by denovo tool
+
+```{r fig.height=5, fig.width=7}
+make_coverage_plot("h9C12-WT_HC", denovo_align_filtered_HC)
+```
+
+```{r fig.height=5, fig.width=7}
+make_coverage_plot("h9C12-Q97A_HC", denovo_align_filtered_HC)
+```
+
+```{r fig.height=5, fig.width=7}
+make_coverage_plot("Brimab_HC", denovo_align_filtered_HC)
+```
+
+```{r fig.height=5, fig.width=7}
+make_coverage_plot("Umab_HC", denovo_align_filtered_HC)
+```
+
+```{r fig.height=5, fig.width=7}
+make_coverage_plot("PGT121_HC", denovo_align_filtered_HC)
+```
+
+```{r fig.height=5, fig.width=7}
+make_coverage_plot("PGDM1400_HC", denovo_align_filtered_HC)
+```
+
+Overall, Casanovo and Instanovo inferred mostly identical peptides, with Casanovo inferred some peptides not seen in Instanovo, and a few exceptions where Instanovo peptides are slightly shorter/longer than their Casanovo counterparts
+
+# Light chain V region coverage by denovo tool
+
+```{r fig.height=5, fig.width=7}
+make_coverage_plot("h9C12_LC", denovo_align_filtered_LC)
+```
+
+```{r fig.height=5, fig.width=7}
+make_coverage_plot("Brimab_LC", denovo_align_filtered_LC)
+```
+
+```{r fig.height=5, fig.width=7}
+make_coverage_plot("Umab_LC", denovo_align_filtered_LC)
+```
+
+```{r fig.height=5, fig.width=7}
+make_coverage_plot("PGT121_LC", denovo_align_filtered_LC)
+```
+
+```{r fig.height=5, fig.width=7}
+make_coverage_plot("PGDM1400_LC", denovo_align_filtered_LC)
+```
+
+Similar patterns can be observed on the light chain, with the exception of Brimab where only Instanovo inffered peptides on the V region
