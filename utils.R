@@ -33,5 +33,69 @@ get_coverage_percent <- function(peptides_vector, sequence_name, annotation, mod
   return(coverage)
 }
 
+calculate_miscleavages_trypsin <- function(peptide_string) {
+  # Initial condition: cleavage after "K" or "R" unless followed by "P"
+  basic_cleavage_sites <- gregexpr("[KR](?![P])", peptide_string, perl=TRUE)[[1]]
+  
+  # Exception patterns where trypsin cannot cleave, including the end of the peptide where it's already cut
+  block_patterns <- c("CKD", "DKD", "CKH", "CKY", "CRK", "RRR", "RRH", "K$", "R$")
+  
+  # Find all the exceptions and remove them from the basic cleavage sites
+  block_sites <- unlist(lapply(block_patterns, function(pattern) {
+    gregexpr(pattern, peptide_string, perl=TRUE)[[1]]}))
+  
+  # Merge and sort cleavage sites while excluding exceptions (-1 positions indicate no match)
+  cleavage_sites <- setdiff(
+    basic_cleavage_sites[basic_cleavage_sites > 0], 
+    block_sites[block_sites > 0])
+  
+  # The number of miscleavages is the number of cleavage sites.
+  miscleavages <- max(0, length(cleavage_sites))
+  
+  return(miscleavages)
+}
 
+calculate_miscleavages_chymotrypsin <- function(peptide_string) {
+  # Initial condition: cleavage after "F" or "Y" or "W" unless followed by "P"
+  basic_cleavage_sites <- gregexpr("[FYW](?![P])", peptide_string, perl=TRUE)[[1]]
+  
+  # Exception patterns where Chymotrypsin cannot cleave, including the end of the peptide where it's already cut
+  block_patterns <- c("WM", "F$","W$", "Y$")
+  
+  # Find all the exceptions and remove them from the basic cleavage sites
+  block_sites <- unlist(lapply(block_patterns, function(pattern) {
+    gregexpr(pattern, peptide_string, perl=TRUE)[[1]]}))
+  
+  # Merge and sort cleavage sites while excluding exceptions (-1 positions indicate no match)
+  cleavage_sites <- setdiff(
+    basic_cleavage_sites[basic_cleavage_sites > 0], 
+    block_sites[block_sites > 0])
+  
+  # The number of miscleavages is the number of cleavage sites.
+  miscleavages <- max(0, length(cleavage_sites))
+  
+  return(miscleavages)
+}
+
+calculate_miscleavages_aspn <- function(peptide_string) {
+  # Initial condition: cleavage before "D"
+  basic_cleavage_sites <- gregexpr("(?<=D)", peptide_string, perl=TRUE)[[1]] - 1
+  
+  # Exception patterns where AspN cannot cleave, including the beginning of the peptide where it's already cut
+  block_patterns <- c("^D")
+  
+  # Find all the exceptions and remove them from the basic cleavage sites
+  block_sites <- unlist(lapply(block_patterns, function(pattern) {
+    gregexpr(pattern, peptide_string, perl=TRUE)[[1]]}))
+  
+  # Merge and sort cleavage sites while excluding exceptions (-1 positions indicate no match)
+  cleavage_sites <- setdiff(
+    basic_cleavage_sites[basic_cleavage_sites > 0], 
+    block_sites[block_sites > 0])
+  
+  # The number of miscleavages is the number of cleavage sites.
+  miscleavages <- max(0, length(cleavage_sites))
+  
+  return(miscleavages)
+}  
 

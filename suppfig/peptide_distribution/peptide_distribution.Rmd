@@ -1,0 +1,157 @@
+---
+title: "Peptide distribution"
+author: "Khang"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning=F, message=F)
+library(readxl)
+library(seqinr)
+library(tidyverse)
+library(reshape2)
+library(forcats)
+library(RColorBrewer)
+library(kableExtra)
+library(gridExtra)
+```
+
+# Read in the filtered peptide list from the main dataset
+```{r}
+MQ_peptides <- read_tsv("../../../main_dataset/mq_ab_filtered.tsv")
+MSF_peptides <- read_tsv("../../../main_dataset/msf_ab_filtered.tsv")
+Casanovo_peptides <- read_tsv("../../../main_dataset/casanovo_ab_filtered.tsv")
+
+MQ_peptides$Tool <- "MaxQuant"
+MSF_peptides$Tool <- "MSFragger"
+Casanovo_peptides$Tool <- "Casanovo"
+
+# Merge all tools together, exclude intensity / search engine score
+All_peptides <- rbind(MQ_peptides[,-5], MSF_peptides[,-5], Casanovo_peptides[,-5])
+```
+
+# Plot the length distribution of peptides by tool and enzyme
+
+```{r}
+# Get the peptide length
+All_peptides$Sequence_length <- nchar(All_peptides$Sequence)
+
+All_peptides$enzyme <- str_replace_all(All_peptides$enzyme, "aspn", "AspN")
+All_peptides$enzyme <- str_replace_all(All_peptides$enzyme, "ct", "Ct")
+All_peptides$enzyme <- str_replace_all(All_peptides$enzyme, "tryp", "Tryp")
+All_peptides$enzyme <- str_replace_all(All_peptides$enzyme, "ct+tryp", "Ct+Tryp")
+
+# Compute the median sequence length for each group
+median_peptide_length <- aggregate(Sequence_length ~ enzyme+Tool, data = All_peptides, FUN = median)
+```
+
+```{r fig.height=5, fig.width=7}
+p_peptide_length <- ggplot(All_peptides) +
+  geom_bar(aes(x = Sequence_length), fill = "#264653") +
+  facet_grid(enzyme ~ Tool) +
+  geom_vline(data = median_peptide_length, aes(xintercept = Sequence_length), color = "red", linetype = "dashed") +
+  geom_text(data = median_peptide_length, aes(x = 45, y = 2500, label = Sequence_length)) +
+  theme_classic() +
+  labs(x = "Peptide length (aa)", y = "Peptide count")
+
+p_peptide_length
+#ggsave("./figures/peptide_length.pdf", p_peptide_length, height = 5, width = 7, dpi = 600)
+```
+
+# Calculate the miscleavage distribution of peptides by tool and enzyme
+
+```{r}
+# Write a function to calculate Trypsin peptide miscleavage
+calculate_miscleavages_trypsin <- function(peptide_string) {
+  # Initial condition: cleavage after "K" or "R" unless followed by "P"
+  basic_cleavage_sites <- gregexpr("[KR](?![P])", peptide_string, perl=TRUE)[[1]]
+  
+  # Exception patterns where trypsin cannot cleave, including the end of the peptide where it's already cut
+  block_patterns <- c("CKD", "DKD", "CKH", "CKY", "CRK", "RRR", "RRH", "K$", "R$")
+  
+  # Find all the exceptions and remove them from the basic cleavage sites
+  block_sites <- unlist(lapply(block_patterns, function(pattern) {
+    gregexpr(pattern, peptide_string, perl=TRUE)[[1]]}))
+  
+  # Merge and sort cleavage sites while excluding exceptions (-1 positions indicate no match)
+  cleavage_sites <- setdiff(
+    basic_cleavage_sites[basic_cleavage_sites > 0], 
+    block_sites[block_sites > 0])
+  
+  # The number of miscleavages is the number of cleavage sites.
+  miscleavages <- max(0, length(cleavage_sites))
+  
+  return(miscleavages)
+}   
+```
+
+```{r}
+# Write a function to calculate Chymotrypsin-high peptide miscleavage
+calculate_miscleavages_chymotrypsin <- function(peptide_string) {
+  # Initial condition: cleavage after "F" or "Y" or "W" unless followed by "P"
+  basic_cleavage_sites <- gregexpr("[FYW](?![P])", peptide_string, perl=TRUE)[[1]]
+  
+  # Exception patterns where Chymotrypsin cannot cleave, including the end of the peptide where it's already cut
+  block_patterns <- c("WM", "F$","W$", "Y$")
+  
+   # Find all the exceptions and remove them from the basic cleavage sites
+  block_sites <- unlist(lapply(block_patterns, function(pattern) {
+    gregexpr(pattern, peptide_string, perl=TRUE)[[1]]}))
+  
+  # Merge and sort cleavage sites while excluding exceptions (-1 positions indicate no match)
+  cleavage_sites <- setdiff(
+    basic_cleavage_sites[basic_cleavage_sites > 0], 
+    block_sites[block_sites > 0])
+  
+  # The number of miscleavages is the number of cleavage sites.
+  miscleavages <- max(0, length(cleavage_sites))
+  
+  return(miscleavages)
+}  
+```
+
+```{r}
+# Write a function to calculate AspN peptide miscleavage (minus 1 to take into account the lookbehind function adding 1 to the index)
+calculate_miscleavages_aspn <- function(peptide_string) {
+  # Initial condition: cleavage before "D"
+  basic_cleavage_sites <- gregexpr("(?<=D)", peptide_string, perl=TRUE)[[1]] - 1
+  
+  # Exception patterns where AspN cannot cleave, including the beginning of the peptide where it's already cut
+  block_patterns <- c("^D")
+  
+   # Find all the exceptions and remove them from the basic cleavage sites
+  block_sites <- unlist(lapply(block_patterns, function(pattern) {
+    gregexpr(pattern, peptide_string, perl=TRUE)[[1]]}))
+  
+  # Merge and sort cleavage sites while excluding exceptions (-1 positions indicate no match)
+  cleavage_sites <- setdiff(
+    basic_cleavage_sites[basic_cleavage_sites > 0], 
+    block_sites[block_sites > 0])
+  
+  # The number of miscleavages is the number of cleavage sites.
+  miscleavages <- max(0, length(cleavage_sites))
+  
+  return(miscleavages)
+}  
+```
+
+```{r}
+# go through the dataframe, calculate the miscleavage using the function based on the enzyme
+All_peptides <- All_peptides %>% mutate(Miscleavage = ifelse(enzyme == "Tryp", unlist(lapply(Sequence, function(x) calculate_miscleavages_trypsin(x))), ifelse(enzyme == "Ct", unlist(lapply(Sequence, function(x) calculate_miscleavages_chymotrypsin(x))), ifelse(enzyme == "AspN", unlist(lapply(Sequence, function(x) calculate_miscleavages_aspn(x))), ifelse(enzyme == "Ct+Tryp", unlist(lapply(Sequence, function(x) calculate_miscleavages_chymotrypsin(x))) + unlist(lapply(Sequence, function(x) calculate_miscleavages_trypsin(x))), 0)))))
+```
+
+```{r fig.height=5, fig.width=7}
+p_peptide_miscleavage <- ggplot(All_peptides) +
+  geom_bar(aes(x = Miscleavage), fill = "#264653") +
+  geom_text(stat = "count", aes(x = Miscleavage, label = ..count..), vjust = -0.2, size = 2) +
+  scale_x_continuous(breaks = seq(0,5)) +
+  scale_y_continuous(breaks = seq(0,12000, by = 3000), limits = c(0,12000)) +
+  facet_grid(enzyme ~ Tool) +
+  theme_classic() +
+  labs(x = "Number of miscleavages", y = "Peptide count")
+
+p_peptide_miscleavage
+#ggsave("./figures/peptide_miscleavage.pdf", p_peptide_miscleavage, height = 5, width = 7, dpi = 600)
+```
+
