@@ -1,0 +1,220 @@
+---
+title: "Theoretical vs experimental coverage"
+author: "Khang"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning = F, message = F)
+
+library(tidyverse)
+library(RColorBrewer)
+library(reshape2)
+```
+
+# Read the table of theoretical peptides
+```{r}
+theo_peptides <- read_tsv("./theoretical_cuttings.tsv")
+cdr3 <- data.frame(read_tsv("./antibodies_cdr3_variable_full.tsv"))
+cdr3$cdr3_start <- str_locate(cdr3$amino_acid_sequence_Vregion, cdr3$amino_acid_sequence_cdr3)[,1]
+cdr3$cdr3_end <- str_locate(cdr3$amino_acid_sequence_Vregion, cdr3$amino_acid_sequence_cdr3)[,2]
+```
+
+# Read the table of experimental peptides
+```{r}
+# Read in the filtered peptide list from the main dataset
+MQ_peptides <- read_tsv("../../../main_dataset/mq_ab_filtered.tsv")
+MSF_peptides <- read_tsv("../../../main_dataset/msf_ab_filtered.tsv")
+Casanovo_peptides <- read_tsv("../../../main_dataset/casanovo_ab_filtered.tsv")
+
+MQ_peptides$Tool <- "MaxQuant"
+MSF_peptides$Tool <- "MSFragger"
+Casanovo_peptides$Tool <- "Casanovo"
+
+# Merge all tools together, exclude intensity / search engine score
+exp_peptides <- rbind(MQ_peptides[,-5], MSF_peptides[,-5], Casanovo_peptides[,-5])
+
+exp_peptides$Sequence_length <- nchar(exp_peptides$Sequence)
+
+exp_peptides$enzyme <- str_replace_all(exp_peptides$enzyme, "aspn", "AspN")
+exp_peptides$enzyme <- str_replace_all(exp_peptides$enzyme, "ct", "Ct")
+exp_peptides$enzyme <- str_replace_all(exp_peptides$enzyme, "tryp", "Tryp")
+exp_peptides$enzyme <- str_replace_all(exp_peptides$enzyme, "ct+tryp", "Ct+Tryp")
+
+exp_peptides$Tool <- as_factor(exp_peptides$Tool)
+levels(exp_peptides$Tool) <-  c("MaxQuant", "MSFragger", "Casanovo")
+
+exp_peptides$match_ig_type <- str_replace_all(exp_peptides$match_ig_type, "Bri", "Brimab")
+exp_peptides$match_ig_type <- str_replace_all(exp_peptides$match_ig_type, "Ust", "Umab")
+
+# exclude peptides labelled contamination
+exp_peptides <- exp_peptides %>% filter(is_contamination == FALSE)
+```
+
+# Import function to calculate miscleavage and coverage
+
+```{r}
+source("../../utils.R")
+enzyme_cols <- c("AspN" = "#B4C540",
+                 "Tryp" = "#E84D8A",
+                 "Ct" = "#64C5EB",
+                 "Ct+Tryp" = "#7F58AF")
+# Calculate miscleavage for all exp peptides
+exp_peptides <- exp_peptides %>% mutate(n_miscleavages = ifelse(enzyme == "Tryp", unlist(lapply(Sequence, function(x) calculate_miscleavages_trypsin(x))), ifelse(enzyme == "Ct", unlist(lapply(Sequence, function(x) calculate_miscleavages_chymotrypsin(x))), ifelse(enzyme == "AspN", unlist(lapply(Sequence, function(x) calculate_miscleavages_aspn(x))), ifelse(enzyme == "Ct+Tryp", unlist(lapply(Sequence, function(x) calculate_miscleavages_chymotrypsin(x))) + unlist(lapply(Sequence, function(x) calculate_miscleavages_trypsin(x))), 0)))))
+
+# Remove peptides with > 2 miscleavage (predictions made by Casanovo)
+exp_peptides <- exp_peptides %>% filter(n_miscleavages <= 2)
+
+# Summarize the df to keep only unique peptides per Ab (remove dup peptides from different samples)
+sum_exp_peptides <- exp_peptides %>% group_by(match_ig_type, Sequence, enzyme, n_miscleavages) %>% summarize()
+```
+
+# Function to plot coverage
+```{r}
+make_coverage_plot_exp <- function(ab_name, df) {
+  
+  peptides <- df$Sequence # peptides that perfectly march to an ab
+  
+  res_seq <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(peptides))
+  res_cdr <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_cdr3))
+  
+  df_cdr3 <- data.frame(Sequence = peptides,
+                        start = res_seq[, 1],
+                        end = res_seq[, 2], 
+                        enzyme = as.factor(df$enzyme),
+                        n_miscleavages = as.factor(df$n_miscleavages))
+
+  df_cdr3 <- df_cdr3[with(df_cdr3, order(start, -end)), ]
+  df_cdr3$y <- 1:nrow(df_cdr3)
+
+  df_cdr3_tmp <- melt(df_cdr3, c("Sequence", "y", "n_miscleavages", "enzyme"))
+
+  
+  p_coverage <- ggplot(df_cdr3_tmp, aes(x=value, y=y)) +
+    geom_rect(aes(xmin = res_cdr[1, 1],
+                  xmax = res_cdr[1, 2],
+                  ymin = -Inf, ymax = Inf), fill = "#FDFD96", alpha = 0.05) + #cdr3
+    geom_point(size = 0.2) +
+    geom_segment(aes(x = start, y = y, xend = end, yend = y, color=enzyme, linetype=n_miscleavages), size = 1, data = df_cdr3) +
+    scale_color_manual(values = enzyme_cols) +
+    scale_linetype_manual(values = c("0" = 1, "1" = 2, "2" = 3)) +
+    #scale_x_continuous(breaks = c(seq(min(res_seq), max(res_seq), by = 20))) +
+    guides(fill = guide_legend(keywidth = 1, keyheight = 1),
+    linetype = guide_legend(keywidth = 3, keyheight = 1),
+    colour = guide_legend(keywidth = 3, keyheight = 1)) +
+    theme_classic() +
+    theme(text = element_text(size = 28), legend.position = "none") +
+    labs(x = "Position in the variable region", y = "", color = "Enzyme", linetype = "Miscleavages")
+   
+  ggsave(filename = paste0("./figures_exp/",ab_name,".pdf"), plot = p_coverage, width = 14, height = 8, dpi = 600)
+}
+```
+
+```{r fig.height=8, fig.width=14}
+for (match in cdr3$sequence_name) {
+  make_coverage_plot_exp(match, sum_exp_peptides[sum_exp_peptides$match_ig_type == match, ])
+  }
+```
+
+# Function to calculate coverage depth (count each enzyme separately)
+
+```{r}
+# Create an array of each position, starts with 0, take a peptide, for every position that peptide covers add 1 
+get_coverage_position <- function(ab_name, df) {
+  
+  peptides <- df$Sequence # peptides that perfectly match to an ab
+  
+  res_seq <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(peptides))
+  res_cdr <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_cdr3))
+  
+  df_cdr3 <- data.frame(Sequence = peptides,
+                        start = res_seq[, 1],
+                        end = res_seq[, 2], 
+                        enzyme = as.factor(df$enzyme),
+                        n_miscleavages = as.factor(df$n_miscleavages))
+
+  df_cdr3 <- df_cdr3[with(df_cdr3, order(start, -end)), ]
+  df_cdr3$y <- 1:nrow(df_cdr3)
+  
+  print(df_cdr3) 
+  }
+```
+
+```{r}
+# Get the residue positions for all theoretical peptides
+coverage_position_all <- list()
+for (match in cdr3$sequence_name) {
+  coverage_position_all[[match]] <- get_coverage_position(match, sum_exp_peptides[sum_exp_peptides$match_ig_type == match, ])
+}
+
+#coverage_position_all
+
+# Create a df with seq_names, position, enzyme, count
+
+#coverage_position_count <- list()
+#for(i in 1:length(coverage_position_all)){
+#  coverage_position_count[[i]] <- tibble(seq_name = names(coverage_position_all[i]),
+#                                         position = seq(1:nchar(cdr3$amino_acid_sequence_Vregion[i])),
+#                                         count = 0)
+#}
+#names(coverage_position_count) <- names(coverage_position_all)
+
+coverage_position_count <- list()
+for(i in 1:length(coverage_position_all)){
+  coverage_position_count[[i]] <- tibble(seq_name = names(coverage_position_all[i]),
+                                         position = rep(seq(1:nchar(cdr3$amino_acid_sequence_Vregion[i])), each = 4),
+                                         enzyme = rep(c("AspN", "Ct", "Ct+Tryp", "Tryp"), nchar(cdr3$amino_acid_sequence_Vregion[i])),
+                                         count = 0)
+}
+names(coverage_position_count) <- names(coverage_position_all)
+
+# for each peptide that corresponding to the correct enzyme, subset the rows in the count df corresponding to start and end, add 1
+  
+#for(i in 1:length(coverage_position_all)){
+#  for(j in 1:nrow(coverage_position_all[[i]])){
+#    coverage_position_count[[i]][seq(coverage_position_all[[i]]$start[j], #coverage_position_all[[i]]$end[j]),"count"] <- #coverage_position_count[[i]][seq(coverage_position_all[[i]]$start[j], #coverage_position_all[[i]]$end[j]),"count"] + 1
+#  }
+#}
+
+for(i in 1:length(coverage_position_all)){
+  for(j in 1:nrow(coverage_position_all[[i]])){
+    # create a sequence from "start" to "end"
+    pos_seq <- seq(coverage_position_all[[i]]$start[j], coverage_position_all[[i]]$end[j])
+    # get the value of "enzyme" in the current row of coverage_position_all
+    enzyme <- coverage_position_all[[i]]$enzyme[j]
+    # subset coverage_position_count to get the matching rows
+    subset_count <- coverage_position_count[[i]]$enzyme == enzyme &
+                    coverage_position_count[[i]]$position %in% pos_seq
+    # increment the "count" value by 1 for matching rows
+  coverage_position_count[[i]]$count[subset_count] <- coverage_position_count[[i]]$count[subset_count] + 1
+  }
+}
+```
+
+```{r fig.height=2, fig.width=14}
+
+ggplot(data = coverage_position_count[[1]], aes(x = position, y = count, fill = factor(enzyme, levels = c("Ct+Tryp", "Tryp", "Ct", "AspN")))) +
+  geom_rect(aes(xmin = cdr3$cdr3_start[1], xmax = cdr3$cdr3_end[1],
+                ymin = -Inf, ymax = Inf), fill = "#FDFD96", alpha = 0.05) + #cdr3
+  geom_col() +
+  scale_fill_manual(values = enzyme_cols) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "none") +
+  labs(x = "", y = "frequency")
+
+p_coverage_position_count <- list()
+
+for (i in 1:length(coverage_position_count)){
+  p_coverage_position_count[[i]] <- ggplot(data = coverage_position_count[[i]], aes(x = position, y = count, fill = factor(enzyme, levels = c("Ct+Tryp", "Tryp", "Ct", "AspN")))) +
+  geom_rect(aes(xmin = cdr3$cdr3_start[i], xmax = cdr3$cdr3_end[i],
+                ymin = -Inf, ymax = Inf), fill = "#FDFD96", alpha = 0.05) + #cdr3
+  geom_col() +
+  scale_fill_manual(values = enzyme_cols) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "none", text = element_text(size = 24)) +
+  labs(x = "")
+  
+  ggsave(filename = paste0("./figures_exp/",names(coverage_position_count)[i],"_freq.pdf"), plot = p_coverage_position_count[[i]], width = 14, height = 2, dpi = 600)
+}
+```

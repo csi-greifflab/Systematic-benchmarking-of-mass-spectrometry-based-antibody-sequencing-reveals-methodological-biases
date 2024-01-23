@@ -18,7 +18,6 @@ library(readr)
 library(readxl)
 library(seqinr)
 library(ggplot2)
-#library(sjmisc)
 library(reshape2)
 library(forcats)
 library(RColorBrewer)
@@ -28,18 +27,20 @@ library(dplyr)
 library(stringr)
 library(tidyr)
 library(kableExtra)
-#library(VennDiagram)
 library(gridExtra)
 ```
 
 
 ```{r}
-
 df <- data.frame(read_tsv("./antibodies_cdr3_variable_full.tsv"))
 
 seqs <- df$amino_acid_sequence_Vregion
 names(seqs) <- df$sequence_name
 
+enzyme_cols <- c("AspN" = "#B4C540",
+                 "Tryp" = "#E84D8A",
+                 "Ct" = "#64C5EB",
+                 "Ct+Tryp" = "#7F58AF")
 ```
 
 ```{r}
@@ -98,10 +99,7 @@ df_res <- df_res %>% filter(subseq_len >= 7)
 
 #write_tsv(df_res, "./theoretical_cuttings.tsv")
 
-enzyme_cols <- c("AspN" = "#B4C540",
-                 "Tryp" = "#E84D8A",
-                 "Ct" = "#64C5EB",
-                 "Ct+Tryp" = "#7F58AF")
+
 
 ```
 
@@ -240,19 +238,42 @@ for (match in cdr3$sequence_name) {
 #coverage_position_all
 
 # Create a df with seq_names, position, count
+#coverage_position_count <- list()
+#for(i in 1:length(coverage_position_all)){
+#  coverage_position_count[[i]] <- tibble(seq_name = names(coverage_position_all[i]),
+#                                         position = seq(1:nchar(cdr3$amino_acid_sequence_Vregion[i])),
+#                                         count = 0)
+#}
+#names(coverage_position_count) <- names(coverage_position_all)
+
 coverage_position_count <- list()
 for(i in 1:length(coverage_position_all)){
   coverage_position_count[[i]] <- tibble(seq_name = names(coverage_position_all[i]),
-                                         position = seq(1:nchar(cdr3$amino_acid_sequence_Vregion[i])),
+                                         position = rep(seq(1:nchar(cdr3$amino_acid_sequence_Vregion[i])), each = 4),
+                                         enzyme = rep(c("AspN", "Ct", "Ct+Tryp", "Tryp"), nchar(cdr3$amino_acid_sequence_Vregion[i])),
                                          count = 0)
 }
 names(coverage_position_count) <- names(coverage_position_all)
 
 # for each peptide, subset the rows in the count df corresponding to start and end, add 1
   
+#for(i in 1:length(coverage_position_all)){
+#  for(j in 1:nrow(coverage_position_all[[i]])){
+#    coverage_position_count[[i]][seq(coverage_position_all[[i]]$start[j], #coverage_position_all[[i]]$end[j]),"count"] <- #coverage_position_count[[i]][seq(coverage_position_all[[i]]$start[j], #coverage_position_all[[i]]$end[j]),"count"] + 1
+#  }
+#}
+
 for(i in 1:length(coverage_position_all)){
   for(j in 1:nrow(coverage_position_all[[i]])){
-    coverage_position_count[[i]][seq(coverage_position_all[[i]]$start[j], coverage_position_all[[i]]$end[j]),"count"] <- coverage_position_count[[i]][seq(coverage_position_all[[i]]$start[j], coverage_position_all[[i]]$end[j]),"count"] + 1
+    # create a sequence from "start" to "end"
+    pos_seq <- seq(coverage_position_all[[i]]$start[j], coverage_position_all[[i]]$end[j])
+    # get the value of "enzyme" in the current row of coverage_position_all
+    enzyme <- coverage_position_all[[i]]$enzyme[j]
+    # subset coverage_position_count to get the matching rows
+    subset_count <- coverage_position_count[[i]]$enzyme == enzyme &
+                    coverage_position_count[[i]]$position %in% pos_seq
+    # increment the "count" value by 1 for matching rows
+  coverage_position_count[[i]]$count[subset_count] <- coverage_position_count[[i]]$count[subset_count] + 1
   }
 }
 
@@ -260,23 +281,25 @@ coverage_position_count[1]
 ```
 
 ```{r fig.height=2, fig.width=14}
-ggplot(data = coverage_position_count[[1]], aes(x = position, y = count)) +
+ggplot(data = coverage_position_count[[1]], aes(x = position, y = count, fill = factor(enzyme, levels = c("Ct+Tryp", "Tryp", "Ct", "AspN")))) +
   geom_rect(aes(xmin = cdr3$cdr3_start[1], xmax = cdr3$cdr3_end[1],
                 ymin = -Inf, ymax = Inf), fill = "#FDFD96", alpha = 0.05) + #cdr3
   geom_col() +
+  scale_fill_manual(values = enzyme_cols) +
   theme_classic() +
-  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "none") +
   labs(x = "", y = "frequency")
 
 p_coverage_position_count <- list()
 
 for (i in 1:length(coverage_position_count)){
-  p_coverage_position_count[[i]] <- ggplot(data = coverage_position_count[[i]], aes(x = position, y = count)) +
+  p_coverage_position_count[[i]] <- ggplot(data = coverage_position_count[[i]], aes(x = position, y = count, fill = factor(enzyme, levels = c("Ct+Tryp", "Tryp", "Ct", "AspN")))) +
   geom_rect(aes(xmin = cdr3$cdr3_start[i], xmax = cdr3$cdr3_end[i],
                 ymin = -Inf, ymax = Inf), fill = "#FDFD96", alpha = 0.05) + #cdr3
   geom_col() +
+    scale_fill_manual(values = enzyme_cols) +
   theme_classic() +
-  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), text = element_text(size = 24)) +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "none", text = element_text(size = 24)) +
   labs(x = "")
   
   ggsave(filename = paste0("./figures/",names(coverage_position_count)[i],"_freq.pdf"), plot = p_coverage_position_count[[i]], width = 14, height = 2, dpi = 600)

@@ -42,18 +42,21 @@ All_peptides$enzyme <- str_replace_all(All_peptides$enzyme, "ct", "Ct")
 All_peptides$enzyme <- str_replace_all(All_peptides$enzyme, "tryp", "Tryp")
 All_peptides$enzyme <- str_replace_all(All_peptides$enzyme, "ct+tryp", "Ct+Tryp")
 
+All_peptides$Tool <- as_factor(All_peptides$Tool)
+levels(All_peptides$Tool) <-  c("MaxQuant", "MSFragger", "Casanovo")
 # Compute the median sequence length for each group
 median_peptide_length <- aggregate(Sequence_length ~ enzyme+Tool, data = All_peptides, FUN = median)
 ```
 
 ```{r fig.height=5, fig.width=7}
+# Use after_stat(prop) to converst stat_count into proportions and times 100 to become percent
 p_peptide_length <- ggplot(All_peptides) +
-  geom_bar(aes(x = Sequence_length), fill = "#264653") +
-  facet_grid(enzyme ~ Tool) +
-  geom_vline(data = median_peptide_length, aes(xintercept = Sequence_length), color = "red", linetype = "dashed") +
-  geom_text(data = median_peptide_length, aes(x = 45, y = 2500, label = Sequence_length)) +
+  geom_bar(aes(x = Sequence_length, y = after_stat(prop*100)), fill = "#264653") +
+  facet_grid(factor(enzyme, levels = c("Ct+Tryp", "Tryp", "Ct", "AspN")) ~ factor(Tool, levels = c("MaxQuant", "MSFragger", "Casanovo"))) +
+  geom_vline(data = median_peptide_length, aes(xintercept = Sequence_length), color = "#219ebc", linetype = "dashed") +
+  geom_text(data = median_peptide_length, aes(x = 45, y = 30, label = Sequence_length), color = "#219ebc") +
   theme_classic() +
-  labs(x = "Peptide length (aa)", y = "Peptide count")
+  labs(x = "Peptide length (aa)", y = "Peptide count proportion (%)")
 
 p_peptide_length
 #ggsave("./figures/peptide_length.pdf", p_peptide_length, height = 5, width = 7, dpi = 600)
@@ -143,13 +146,13 @@ All_peptides <- All_peptides %>% mutate(Miscleavage = ifelse(enzyme == "Tryp", u
 
 ```{r fig.height=5, fig.width=7}
 p_peptide_miscleavage <- ggplot(All_peptides) +
-  geom_bar(aes(x = Miscleavage), fill = "#264653") +
-  geom_text(stat = "count", aes(x = Miscleavage, label = ..count..), vjust = -0.2, size = 2) +
+  geom_bar(aes(x = Miscleavage, y = after_stat(prop*100)), fill = "#264653") +
+  geom_text(stat = "count", aes(x = Miscleavage, y = after_stat(prop*100), label = round(after_stat(prop*100), 2)), vjust = -0.2, size = 2) +
   scale_x_continuous(breaks = seq(0,5)) +
-  scale_y_continuous(breaks = seq(0,12000, by = 3000), limits = c(0,12000)) +
-  facet_grid(enzyme ~ Tool) +
+  scale_y_continuous(breaks = seq(0,100, by = 25), limits = c(0,100)) +
+  facet_grid(factor(enzyme, levels = c("Ct+Tryp", "Tryp", "Ct", "AspN")) ~ factor(Tool, levels = c("MaxQuant", "MSFragger", "Casanovo"))) +
   theme_classic() +
-  labs(x = "Number of miscleavages", y = "Peptide count")
+  labs(x = "Number of miscleavages", y = "Peptide count proportion (%)")
 
 p_peptide_miscleavage
 #ggsave("./figures/peptide_miscleavage.pdf", p_peptide_miscleavage, height = 5, width = 7, dpi = 600)
