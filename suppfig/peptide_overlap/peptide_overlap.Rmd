@@ -58,7 +58,8 @@ test <- list(Set1 = Sum_peptides %>% filter(match_ig_type == "PGDM1400_HC" & enz
 ```
 
 ```{r fig.height=4, fig.width=4}
-ggvenn(test, auto_scale = T, fill_color = c("gray30", "white"), set_name_color = "white")
+ggvenn(test, auto_scale = T, fill_color = c("gray30", "white"), set_name_color = "white", text_size = 5) +
+  theme(plot.margin = unit(c(0, 0, 0, 0), "inches"))
 #ggsave("./figures/test.pdf", p_test, height = 3, widt = 3, dpi = 600)
 ```
 
@@ -79,8 +80,8 @@ test <- list(exp = unique_peptide_exp$Brimab_HC.Ct, theo = unique_peptide_theo$B
 
 ```{r fig.height=4, fig.width=4}
 p_overlap <- map2(.x = unique_peptide_theo, .y = unique_peptide_exp, function(x,y) 
-  ggvenn(list(theo = x, exp = y), auto_scale = T, fill_color = c("white","gray30"), set_name_color = "white") +
-  scale_x_continuous(expand = expansion(mult = .2)) + scale_y_continuous(expand = expansion(mult = .2)))
+  ggvenn(list(theo = x, exp = y), auto_scale = T, fill_color = c("white","gray30"), set_name_color = "white", text_size = 4.5, stroke_size = 0.75) +
+  scale_x_continuous(expand = expansion(mult = .2)) + scale_y_continuous(expand = expansion(mult = .2))) 
 
 p_overlap
 
