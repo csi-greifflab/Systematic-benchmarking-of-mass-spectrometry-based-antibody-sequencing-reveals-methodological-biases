@@ -1,19 +1,14 @@
 make_heatmap <- function(df, heatmap_name = "") {
-  # information about samples 1..70
-  sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
-  
-  concentrations <- as.matrix(sample_info[, c(colnames(sample_info)[grepl("concentration_", colnames(sample_info), fixed = TRUE)])])
-  colnames(concentrations) <- str_remove(colnames(concentrations), "concentration_")
+  concentrations <- data.frame(read_tsv(file.path(metadata_path, "concentration_matrix.tsv")))
   rownames(concentrations) <- 1:70
-  concentrations <- concentrations[, c("h9C12-Q97A", "h9C12-WT", "Brimab", "Umab", "PGT121", "PGDM1400")]
-  
+  sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
   
   n_peptides <- df %>%
     group_by(Sample, match_ig_type) %>%
     summarise(n_peptides=length(unique(Sequence))) %>%
     as.data.frame()
   
-  n_peptides <- reshape(n_peptides[(n_peptides$match_ig_type != "CON") & (n_peptides$match_ig_type != "ab_multimap"), ], idvar="Sample", timevar="match_ig_type", direction="wide")
+  n_peptides <- reshape(n_peptides, idvar="Sample", timevar="match_ig_type", direction="wide")
   
   all_abs_HC <- c("n_peptides.h9C12-Q97A_HC", "n_peptides.h9C12-WT_HC", 
                   "n_peptides.Brimab_HC", "n_peptides.Umab_HC", 
@@ -38,6 +33,10 @@ make_heatmap <- function(df, heatmap_name = "") {
   n_peptides_LC <- n_peptides_LC[, -1]
   n_peptides_LC <- cbind(n_peptides_LC[, 1], n_peptides_LC)
   
+  #sample_info$has_blood[!sample_info$has_blood] <- 0
+  sample_info$has_blood[sample_info$has_blood] <- 1000
+  sample_info$has_blood[c(69, 70)] <- 50000
+  
   Heatmap(concentrations, 
           cell_fun = function(j, i, x, y, width, height, fill) { 
             if(!is.na(n_peptides_HC[i, j]) & !is.na(n_peptides_LC[i, j])) {
@@ -54,9 +53,17 @@ make_heatmap <- function(df, heatmap_name = "") {
           row_names_gp = grid::gpar(fontsize = 10),
           name = "Concentration (ng)", 
           left_annotation = rowAnnotation(GingisKHAN = sample_info$has_GingisKHAN, 
-                                          blood = sample_info$has_blood, 
-                                          col = list(blood = c("TRUE" = "red", "FALSE" = "white"), 
+                                          blood = as.factor(sample_info$has_blood), 
+                                          col = list(blood = c("0" = "white", "1000" = "#ff0000", "50000" = "#9b0000"), 
                                                      GingisKHAN = c("TRUE" = "black", "FALSE" = "white"))),
           column_title = heatmap_name
   )
 }
+
+
+
+
+
+
+
+

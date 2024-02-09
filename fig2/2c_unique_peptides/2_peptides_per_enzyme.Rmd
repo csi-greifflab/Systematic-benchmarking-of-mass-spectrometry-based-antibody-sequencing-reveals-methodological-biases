@@ -1,0 +1,95 @@
+---
+title: "Untitled"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, message=F}
+source("/storage/mariiac/msms_figures/my_config.R")
+```
+
+```{r}
+df <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
+df <- df[df$is_not_contamination, ]
+cdr3 <- read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv"))
+```
+
+
+```{r}
+get_n_unique_peptides <- function(df) {
+   df_n_ab <- df %>% group_by(Protease, match_ig_type) %>%
+                     dplyr::summarise(n_peptides_vdj=length(unique(Sequence)), n_peptides_cdr3=length(unique(Sequence[is_cdr3_related]))) %>% 
+                     as.data.frame()
+   df_n_ab2 <- df %>% group_by(match_ig_type) %>%
+                     dplyr::summarise(n_peptides_vdj=length(unique(Sequence)), n_peptides_cdr3=length(unique(Sequence[is_cdr3_related]))) %>% 
+                     as.data.frame()
+   df_n_ab2$Protease <- "All"
+   df_n_ab <- rbind(df_n_ab, df_n_ab2)
+ 
+   df_n_ab$match_ig_type <- as.factor(df_n_ab$match_ig_type) 
+   df_n_ab$match_ig_type <- fct_relevel(df_n_ab$match_ig_type, HC_and_LC_names)
+   return(df_n_ab)
+ }
+ 
+n_peptides <- get_n_unique_peptides(df)
+  
+```
+
+```{r}
+plot_n_unique_peptides <- function(n_peptides, chain_type, mode, plot_path) {
+  if (mode == "cdr3") {
+    n_peptides <- n_peptides[, c("Protease", "match_ig_type", "n_peptides_cdr3")]
+    y_lim <- 20
+  } else if (mode == "vdj") {
+    n_peptides <- n_peptides[, c("Protease", "match_ig_type", "n_peptides_vdj")]
+    y_lim <- 100
+  } else {
+    stop("Wrong mode parameter value. Should be cdr3 or vdj.")
+  }
+  
+  if (chain_type == "HC") {
+    n_peptides <- n_peptides[str_detect(n_peptides$match_ig_type, "HC"), ]
+  } else if (chain_type == "LC") {
+    n_peptides <- n_peptides[str_detect(n_peptides$match_ig_type, "LC"), ]
+  } else {
+    stop("Wrong chain_type parameter value. Should be HC or LC.")
+  }
+  
+  #n_peptides$match_ig_type <- fct_relevel(n_peptides$match_ig_type, ab_order) 
+  
+  g <- ggplot(n_peptides, aes(x = match_ig_type,  y = get(colnames(n_peptides)[3]), color = Protease, label = get(colnames(n_peptides)[3]))) +
+    geom_point(size=4) +
+    geom_text(hjust=1.8, size=4.5) +
+    theme_minimal() +
+    theme(panel.spacing = unit(1, "lines")) +
+    scale_colour_manual(values = enzyme_cols) +
+    ylim(0, y_lim) +
+    theme(text = element_text(size=14), legend.position="bottom")
+
+  plot(g)
+  
+  png(file.path(plot_path, paste0(c(chain_type, mode, ".png"), collapse = "_")), 
+      width = 5, height = 4, units = 'in', res = 600)
+  plot(g)
+  dev.off()
+}
+```
+
+# main figures
+
+```{r}
+plot_n_unique_peptides(n_peptides, "HC", "vdj", file.path(fig2_path, "2c_unique_peptides"))
+```
+
+```{r}
+plot_n_unique_peptides(n_peptides, "HC", "cdr3", file.path(fig2_path, "2c_unique_peptides"))
+```
+
+# suppfigs 
+
+```{r}
+plot_n_unique_peptides(n_peptides, "LC", "vdj", file.path(fig2_path, "2c_unique_peptides", "_suppfigs"))
+```
+
+```{r}
+plot_n_unique_peptides(n_peptides, "LC", "cdr3", file.path(fig2_path, "2c_unique_peptides", "_suppfigs"))
+```

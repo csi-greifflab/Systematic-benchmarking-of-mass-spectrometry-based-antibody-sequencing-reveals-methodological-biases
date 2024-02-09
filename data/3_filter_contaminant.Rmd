@@ -22,7 +22,14 @@ source("/storage/mariiac/msms_figures/my_config.R")
   blood_alignment <- align_to_ref(reference = imgt_genes, peptides = unlist(blood_contam_peptides))
   
   rows_to_remove <- df$has_blood & df$is_contamination & (df$Sequence %in% blood_alignment$sequence)
-  make_heatmap(df[rows_to_remove, ], "Peptides removed from the blood samples")
+  
+  hmap <- make_heatmap(df[rows_to_remove, ], "FP removed from the blood samples")
+  
+  png(file.path(data_path, "supfigs/remove_FP_peptides_from_blood.png"), 
+  width = 4.5, height = 12, units = 'in', res = 600)
+  draw(hmap, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
+  
+  
   df <- df[!rows_to_remove, ]
 ```
 
@@ -46,7 +53,13 @@ for (i in 1:nrow(shared_peptides)) {
 }
 
 
-make_heatmap(df[rows_to_remove, ], "Removed shared peptides")
+hmap <- make_heatmap(df[rows_to_remove, ], "Removed shared peptides")
+
+png(file.path(data_path, "supfigs/remove_FP_shared_peptides.png"), 
+  width = 4.5, height = 12, units = 'in', res = 600)
+  draw(hmap, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
+  
+  
 df <- df[-rows_to_remove, ]
 ```
 
@@ -94,7 +107,12 @@ for(i in 1:length(file_names_splitted)) {
     }
 }
 
-make_heatmap(df[rows_to_remove, ], "Cleaned from the blanks")
+hmap <- make_heatmap(df[rows_to_remove, ], "Cleaned from the blanks")
+
+png(file.path(data_path, "supfigs/remove_contaminations.png"), 
+  width = 4.5, height = 12, units = 'in', res = 600)
+  draw(hmap, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
+  
 df <- df[-rows_to_remove, ]
 
 write_tsv(df, file.path(data_path, "all_peptides_preprocessed.tsv"))

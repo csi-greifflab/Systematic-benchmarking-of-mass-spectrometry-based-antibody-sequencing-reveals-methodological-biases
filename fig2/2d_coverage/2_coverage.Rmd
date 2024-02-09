@@ -1,0 +1,103 @@
+---
+title: "Fig 2d: coverage heatmaps"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, message=F}
+source("/storage/mariiac/msms_figures/my_config.R")
+```
+
+```{r}
+df <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
+df <- df[df$is_not_contamination, ]
+cdr3 <- read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv"))
+```
+
+
+```{r}
+
+coverage <- expand.grid(names(enzyme_cols), cdr3$sequence_name)
+colnames(coverage) <- c("enzyme", "match_ig_type")
+coverage$coverage_cdr3 <- NA
+coverage$coverage_vdj <- NA
+
+for (i in 1:nrow(coverage)){
+  if (coverage$enzyme[i] == "All") {
+    seqs <- unlist(unique(df[df$match_ig_type == coverage$match_ig_type[i], "Sequence"]))
+  } else {
+    seqs <- unlist(unique(df[df$Protease == coverage$enzyme[i] & df$match_ig_type == coverage$match_ig_type[i], "Sequence"]))
+  }
+  coverage$coverage_cdr3[i]  <- get_coverage_percent(seqs, coverage$match_ig_type[i], annotation=cdr3, mode="cdr3")
+  coverage$coverage_vdj[i]  <- get_coverage_percent(seqs, coverage$match_ig_type[i], annotation=cdr3, mode="vdj")
+}
+
+```
+
+```{r}
+plot_coverage_per_ab_and_protease <- function(coverage, chain_type, mode, plot_path) {
+  if (mode == "cdr3") {
+    coverage <- coverage[, c("enzyme", "match_ig_type", "coverage_cdr3")]
+  } else if (mode == "vdj") {
+    coverage <- coverage[, c("enzyme", "match_ig_type", "coverage_vdj")]
+  } else {
+    stop("Wrong mode parameter value. Should be cdr3 or vdj.")
+  }
+  
+  if (chain_type == "HC") {
+    coverage <- coverage[str_detect(coverage$match_ig_type, "HC"), ]
+    ab_order <- HC_names
+  } else if (chain_type == "LC") {
+    coverage <- coverage[str_detect(coverage$match_ig_type, "LC"), ]
+    ab_order <- LC_names
+  } else {
+    stop("Wrong chain_type parameter value. Should be HC or LC.")
+  }
+  
+  coverage <- reshape(coverage, idvar = "enzyme", timevar = "match_ig_type", direction = "wide")
+  
+  rownames(coverage) <- coverage$enzyme
+  coverage <- coverage[c("All", "Ct+Tryp", "Tryp", "Ct", "AspN"), ]
+  m <- coverage[, -1]
+  colnames(m) <- unlist(str_split(colnames(coverage[, -1]), "\\."))[c(F, T)]
+  
+  
+  hmap <- Heatmap(m, 
+                  cell_fun = function(j, i, x, y, width, height, fill) {grid.text(sprintf("%.2f", m[i, j]), x, y, gp = gpar(fontsize = 9))}, 
+                  cluster_rows = FALSE,
+                  cluster_columns = FALSE,
+                  rect_gp = gpar(col = "white", lwd = 4), 
+                  heatmap_legend_param = list(direction = "horizontal"),
+                  col = colorRamp2(c(0, 70, 100), c("#6EB5FF", "white", "#FFABAB")), 
+                  right_annotation = rowAnnotation(enzyme = rownames(m), col = list(enzyme = enzyme_cols)), 
+                  column_order = ab_order)
+  
+  draw(hmap, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
+  
+  png(file.path(plot_path, paste0(c(chain_type, mode, ".png"), collapse = "_")), 
+      width = 3.7, height = 4.2, units = 'in', res = 600)
+  draw(hmap, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
+  dev.off()
+}
+
+```
+
+
+# main figures
+
+```{r}
+plot_coverage_per_ab_and_protease(coverage, "HC", "vdj", file.path(fig2_path, "2d_coverage"))
+```
+
+```{r}
+plot_coverage_per_ab_and_protease(coverage, "HC", "cdr3", file.path(fig2_path, "2d_coverage"))
+```
+
+# suppfigs
+
+```{r}
+plot_coverage_per_ab_and_protease(coverage, "LC", "vdj", file.path(fig2_path, "2d_coverage", "_suppfigs"))
+```
+
+```{r}
+plot_coverage_per_ab_and_protease(coverage, "LC", "cdr3", file.path(fig2_path, "2d_coverage", "_suppfigs"))
+```

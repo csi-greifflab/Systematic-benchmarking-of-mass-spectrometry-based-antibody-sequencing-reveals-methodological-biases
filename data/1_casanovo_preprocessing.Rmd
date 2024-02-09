@@ -60,7 +60,7 @@ print(nrow(df))
 # Remove PTMs, e.g. YLTSM+15.995ASR will be replaced with YLTSMASR
 df$Sequence <- str_replace_all(string = df$Sequence, pattern = "[0-9.+-]", replacement = "")
 
-# Filter peptides shorter than 5 AA
+# Filter peptides shorter than 6 AA
 df <- df[sapply(df$Sequence, nchar) > 6, ]
 print(nrow(df))
 

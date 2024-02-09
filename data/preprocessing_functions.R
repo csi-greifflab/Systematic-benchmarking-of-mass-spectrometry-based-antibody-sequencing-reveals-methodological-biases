@@ -84,7 +84,7 @@ generate_sample_info <- function() {
     d[, short_name] <- str_detect(d$Sample_info, long_name)
     d[, paste0(c(short_name, "HC"), collapse = "_")] <- d[, short_name]
     if (short_name == "h9C12-Q97A" | short_name == "h9C12-WT") {
-      d[, "h9C12_LC"] <- str_detect(d$Sample_info, c("h9C12 Q97A", "h9C12 WT"))
+      d[, "h9C12_LC"] <- str_detect(d$Sample_info, "h9C12 Q97A") | str_detect(d$Sample_info, "h9C12 WT")
     } else {
       d[, paste0(c(short_name, "LC"), collapse = "_")] <- d[, short_name]
     }
