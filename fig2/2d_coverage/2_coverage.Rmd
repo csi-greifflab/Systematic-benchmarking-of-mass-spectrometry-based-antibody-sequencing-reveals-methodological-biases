@@ -68,13 +68,13 @@ plot_coverage_per_ab_and_protease <- function(coverage, chain_type, mode, plot_p
                   rect_gp = gpar(col = "white", lwd = 4), 
                   heatmap_legend_param = list(direction = "horizontal"),
                   col = colorRamp2(c(0, 70, 100), c("#6EB5FF", "white", "#FFABAB")), 
-                  right_annotation = rowAnnotation(enzyme = names(enzyme_cols), col = list(enzyme = enzyme_cols)), 
+                  right_annotation = rowAnnotation(enzyme = rownames(m), col = list(enzyme = enzyme_cols)), 
                   column_order = ab_order)
   
   draw(hmap, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
   
   png(file.path(plot_path, paste0(c(chain_type, mode, ".png"), collapse = "_")), 
-      width = 4, height = 4, units = 'in', res = 600)
+      width = 3.7, height = 4.2, units = 'in', res = 600)
   draw(hmap, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
   dev.off()
 }
