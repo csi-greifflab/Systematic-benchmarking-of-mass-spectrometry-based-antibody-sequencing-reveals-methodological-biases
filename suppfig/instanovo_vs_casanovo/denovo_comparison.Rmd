@@ -27,6 +27,8 @@ library(gridExtra)
 # Load metadata
 sample_id <- read_excel("./instanovo/Instanovo test samples.xlsx")
 cdr3 <- read_tsv("./antibodies_cdr3_variable_full.tsv")
+cdr3$cdr3_start <- str_locate(cdr3$amino_acid_sequence_Vregion, cdr3$amino_acid_sequence_cdr3)[,1]
+cdr3$cdr3_end <- str_locate(cdr3$amino_acid_sequence_Vregion, cdr3$amino_acid_sequence_cdr3)[,2]
 sample_description <- read_tsv("./detailed_sample_description.tsv")
 ```
 
@@ -237,6 +239,8 @@ make_coverage_plot <- function(ab_name, df) {
     geom_point(size=0.2) + #point marking start and end of peptide
     geom_segment(aes(x = start, y = y, xend = end, yend = y, color = Tool), size = 0.5, data = df_cdr3) + # peptide line
     scale_colour_manual(values = c("#aa50d0", "#030304")) +
+    scale_x_continuous(limits = c(0, max(df_cdr3_tmp$value))) +
+    scale_y_continuous(limits = c(0, 40)) +
     guides(fill = guide_legend(keywidth = 1, keyheight = 1),
     linetype=guide_legend(keywidth = 3, keyheight = 1),
     colour=guide_legend(keywidth = 3, keyheight = 1)) +
@@ -255,27 +259,27 @@ make_coverage_plot <- function(ab_name, df) {
 
 # Heavy chain V region coverage by denovo tool
 
-```{r fig.height=5, fig.width=7}
+```{r fig.height=8, fig.width=14}
 make_coverage_plot("h9C12-WT_HC", denovo_align_filtered_HC)
 ```
 
-```{r fig.height=5, fig.width=7}
+```{r fig.height=8, fig.width=14}
 make_coverage_plot("h9C12-Q97A_HC", denovo_align_filtered_HC)
 ```
 
-```{r fig.height=5, fig.width=7}
+```{r fig.height=8, fig.width=14}
 make_coverage_plot("Brimab_HC", denovo_align_filtered_HC)
 ```
 
-```{r fig.height=5, fig.width=7}
+```{r fig.height=8, fig.width=14}
 make_coverage_plot("Umab_HC", denovo_align_filtered_HC)
 ```
 
-```{r fig.height=5, fig.width=7}
+```{r fig.height=8, fig.width=14}
 make_coverage_plot("PGT121_HC", denovo_align_filtered_HC)
 ```
 
-```{r fig.height=5, fig.width=7}
+```{r fig.height=8, fig.width=14}
 make_coverage_plot("PGDM1400_HC", denovo_align_filtered_HC)
 ```
 
@@ -283,24 +287,109 @@ Overall, Casanovo and Instanovo inferred mostly identical peptides, with Casanov
 
 # Light chain V region coverage by denovo tool
 
-```{r fig.height=5, fig.width=7}
+```{r fig.height=8, fig.width=14}
 make_coverage_plot("h9C12_LC", denovo_align_filtered_LC)
 ```
 
-```{r fig.height=5, fig.width=7}
+```{r fig.height=8, fig.width=14}
 make_coverage_plot("Brimab_LC", denovo_align_filtered_LC)
 ```
 
-```{r fig.height=5, fig.width=7}
+```{r fig.height=8, fig.width=14}
 make_coverage_plot("Umab_LC", denovo_align_filtered_LC)
 ```
 
-```{r fig.height=5, fig.width=7}
+```{r fig.height=8, fig.width=14}
 make_coverage_plot("PGT121_LC", denovo_align_filtered_LC)
 ```
 
-```{r fig.height=5, fig.width=7}
+```{r fig.height=8, fig.width=14}
 make_coverage_plot("PGDM1400_LC", denovo_align_filtered_LC)
 ```
 
-Similar patterns can be observed on the light chain, with the exception of Brimab where only Instanovo inffered peptides on the V region
+Similar patterns can be observed on the light chain, with the exception of Brimab where only Instanovo infered peptides on the V region
+
+# Function to calculate coverage depth (count each tool separately)
+
+```{r}
+# Create an array of each position, starts with 0, take a peptide, for every position that peptide covers add 1 
+get_coverage_position <- function(ab_name, df) {
+  peptides <- df$Peptide # peptides that perfectly match to an ab
+  res_seq <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(peptides)) # position number of peptide on V region
+  res_cdr3 <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_cdr3)) # position number of the cdr3
+  # List the position in the V region for each peptide in long format
+  df_cdr3 <- data.frame(Sequence = peptides,
+                        Tool = df$Tool,
+                        start = res_seq[, 1],
+                        end = res_seq[, 2])
+
+  df_cdr3 <- df_cdr3[with(df_cdr3, order(start, -end)), ] # Order the peptides by position in V region
+  df_cdr3$y <- 1:nrow(df_cdr3) # Value for y-axis
+
+  df_cdr3_tmp <- melt(df_cdr3, c("Sequence", "y", "Tool")) # transform to long format
+  
+  print(df_cdr3) 
+  }
+```
+
+```{r}
+# Get the residue positions for all  peptides
+coverage_position_all <- list()
+for (match in cdr3$sequence_name) {
+  coverage_position_all[[match]] <- get_coverage_position(match, denovo_align_filtered[denovo_align_filtered$Sequence_name == match, ])
+}
+
+coverage_position_all
+
+coverage_position_count <- list()
+for(i in 1:length(coverage_position_all)){
+  coverage_position_count[[i]] <- tibble(seq_name = names(coverage_position_all[i]),
+                                         position = rep(seq(1:nchar(cdr3$amino_acid_sequence_Vregion[i])), each = 2),
+                                         Tool = rep(c("Casanovo", "Instanovo"), nchar(cdr3$amino_acid_sequence_Vregion[i])),
+                                         count = 0)
+}
+names(coverage_position_count) <- names(coverage_position_all)
+
+# for each peptide that corresponding to the correct Tool, subset the rows in the count df corresponding to start and end, add 1
+
+for(i in 1:length(coverage_position_all)){
+  for(j in 1:nrow(coverage_position_all[[i]])){
+    # create a sequence from "start" to "end"
+    pos_seq <- seq(coverage_position_all[[i]]$start[j], coverage_position_all[[i]]$end[j])
+    # get the value of "Tool" in the current row of coverage_position_all
+    Tool <- coverage_position_all[[i]]$Tool[j]
+    # subset coverage_position_count to get the matching rows
+    subset_count <- coverage_position_count[[i]]$Tool == Tool &
+                    coverage_position_count[[i]]$position %in% pos_seq
+    # increment the "count" value by 1 for matching rows
+  coverage_position_count[[i]]$count[subset_count] <- coverage_position_count[[i]]$count[subset_count] + 1
+  }
+}
+```
+
+```{r fig.height=2, fig.width=14}
+ggplot(data = coverage_position_count[[3]], aes(x = position, y = count, fill = factor(Tool, levels = c("Casanovo", "Instanovo")))) +
+  geom_rect(aes(xmin = cdr3$cdr3_start[3], xmax = cdr3$cdr3_end[3],
+                ymin = -Inf, ymax = Inf), fill = "#FDFD96", alpha = 0.05) + #cdr3
+  geom_col() +
+  scale_fill_manual(values = c("#aa50d0", "#030304")) +
+  scale_x_continuous(limits = c(0, max(coverage_position_count[[3]]$position))) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "none") +
+  labs(x = "", y = "frequency")
+
+p_coverage_position_count <- list()
+
+for (i in 1:length(coverage_position_count)){
+  p_coverage_position_count[[i]] <- ggplot(data = coverage_position_count[[i]], aes(x = position, y = count, fill = factor(Tool, levels = c("Casanovo", "Instanovo")))) +
+  geom_rect(aes(xmin = cdr3$cdr3_start[i], xmax = cdr3$cdr3_end[i],
+                ymin = -Inf, ymax = Inf), fill = "#FDFD96", alpha = 0.05) + #cdr3
+  geom_col() +
+  scale_fill_manual(values = c("#aa50d0", "#030304")) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "none", text = element_text(size = 24)) +
+  labs(x = "")
+  
+  ggsave(filename = paste0("./figures/",names(coverage_position_count)[i],"_freq.pdf"), plot = p_coverage_position_count[[i]], width = 14, height = 2, dpi = 600)
+}
+```
