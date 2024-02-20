@@ -1,0 +1,149 @@
+---
+title: "Fig 6"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+source("/storage/mariiac/msms_figures/my_config.R")
+```
+
+```{r}
+df <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
+df <- df[df$is_not_contamination, ]
+cdr3 <- read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv"))
+sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
+```
+
+```{r}
+df_cdr3 <- cbind(df, 
+                 str_locate(df$amino_acid_sequence_Vregion, as.character(df$Sequence)))
+cdr3 <- cbind(cdr3, str_locate(cdr3$amino_acid_sequence_Vregion, as.character(cdr3$amino_acid_sequence_cdr3)))
+
+make_coverage_plot <- function(ab_name, df_cdr3) {
+  df_cdr3 <- df_cdr3[df_cdr3$match_ig_type == ab_name, ]
+  df_cdr3 <- df_cdr3[, c("Sequence", "start", "end", "tool")]
+
+  df_cdr3 <- unique(df_cdr3)
+  df_cdr3 <- df_cdr3[with(df_cdr3, order(start, -end)), ]
+  df_cdr3$y <- 1:nrow(df_cdr3)
+
+  df_cdr3_tmp <- melt(df_cdr3, c("Sequence", "y", "tool"))
+  
+  ggplot(df_cdr3_tmp, aes(x=value, y=y)) +
+    geom_rect(aes(xmin = cdr3[cdr3$sequence_name==ab_name, ]$start,
+                  xmax = cdr3[cdr3$sequence_name==ab_name, ]$end,
+                  ymin = -Inf, ymax = Inf), fill = "yellow", alpha = 0.05) + #cdr3
+    geom_point(size=0.2) +
+    geom_segment(aes(x = start, y = y, xend = end, yend = y, colour=tool), data = df_cdr3) +
+    ggtitle(ab_name)
+}
+
+
+for (ab_name in HC_and_LC_names) {
+  print(ab_name)
+  plot(make_coverage_plot(ab_name, df_cdr3))
+}
+```
+
+```{r}
+get_coverage_by_tool <- function(df, sequence_name, annotation, mode) {
+  V_ref <- unlist(annotation[annotation$sequence_name == sequence_name, "amino_acid_sequence_Vregion"])
+  VC_ref <- unlist(annotation[annotation$sequence_name == sequence_name, "amino_acid_sequence_full"])
+  CDR3_ref <- unlist(annotation[annotation$sequence_name == sequence_name, "amino_acid_sequence_cdr3"])
+  
+  if (mode == "cdr3") {
+    ref <- CDR3_ref
+  } else if (mode == "vdj") {
+    ref <- V_ref
+  # } else if (mode == "both") {
+  #   return (c(vdj = get_coverage_percent(peptides_vector, sequence_name, annotation, "vdj"), 
+  #             cdr3 = get_coverage_percent(peptides_vector, sequence_name, annotation, "cdr3")))
+  } else {
+    stop("Wrong mode parameter value. Should be cdr3 or vdj.")
+  }
+    
+  get_bool_coverage <- function(tool) {
+    alignment_pos <- as.data.frame(do.call(rbind,(str_locate_all(string = VC_ref, 
+                                                             pattern = df$Sequence[df$tool == tool]))))
+    counts <- replicate(nchar(VC_ref), 0)
+    for (i in 1:nrow(alignment_pos)) {
+    counts[1:length(counts) %in% c(alignment_pos[i, ]$start : alignment_pos[i, ]$end)] <- 
+      counts[alignment_pos[i, ]$start : alignment_pos[i, ]$end] + 1
+    }
+    return(counts>0)
+  }
+  
+  cov_casanovo <- get_bool_coverage("Casanovo")
+  cov_msf <- get_bool_coverage("MSFragger")
+  cov_mq <- get_bool_coverage("MaxQuant")
+  
+  not_covered <- !(cov_casanovo | cov_msf | cov_mq)
+  casanovo_only <- cov_casanovo & !(cov_msf | cov_mq)
+  ref_only <- !cov_casanovo & (cov_msf | cov_mq)
+  covered_all <- cov_casanovo & cov_msf & cov_mq
+  
+  ref_location <- str_locate(string = VC_ref, pattern = ref)
+  ref_positions <- c(ref_location[1] : ref_location[2])
+  idx <- 1:length(not_covered) %in% ref_positions
+  
+  return(list(not_covered = sum(not_covered[idx]),
+              covered_all = sum(covered_all[idx]),
+              casanovo_only = sum(casanovo_only[idx]), 
+              ref_only = sum(ref_only[idx])))
+}
+```
+
+
+```{r}
+df1 <- data.frame(t(sapply(HC_and_LC_names, get_coverage_by_tool, df = df, annotation = cdr3, mode="cdr3")))
+df1$mode <- "cdr3"
+df1$match_ig_type <- rownames(df1)
+df2 <- data.frame(t(sapply(HC_and_LC_names, get_coverage_by_tool, df = df, annotation = cdr3, mode="vdj")))
+df2$mode <- "vdj"
+df2$match_ig_type <- rownames(df2)
+
+res <- rbind(df1, df2)
+
+library(tidyr)
+res <- gather(res, pos_type, n_pos, -mode, -match_ig_type)
+res$n_pos <- unlist(res$n_pos) 
+```
+
+```{r, fig.width=10, fig.height=3}
+res_HC <- res[res$pos_type != "not_covered" & str_detect(res$match_ig_type, "HC"), ]
+res$match_ig_type <- fct_relevel(res$match_ig_type, levels = HC_names)
+
+g <- ggplot(res_HC[res_HC$n_pos > 0, ], aes(y = match_ig_type, x = n_pos, fill = pos_type, label = n_pos)) +
+  facet_grid(.~mode, scales='free_x') +
+  geom_col() +
+  theme_minimal() +
+  geom_text(position = position_stack(vjust = 0.5), size = 3, color = "#ffffff") +
+  scale_fill_manual(values=c("casanovo_only" = "#6a3e37", "covered_all" = "#909090", "ref_only" = "#e46e00")) 
+
+plot(g)
+  
+  png(file.path(fig6_path, "HC_pos_distribution.png"), 
+      width = 10, height = 3, units = 'in', res = 600)
+  plot(g)
+  dev.off()
+```
+
+```{r, fig.width=10, fig.height=3}
+res_LC <- res[res$pos_type != "not_covered" & str_detect(res$match_ig_type, "LC"), ]
+res$match_ig_type <- fct_relevel(res$match_ig_type, levels = HC_names)
+
+g <- ggplot(res_LC[res_LC$n_pos > 0, ], aes(y = match_ig_type, x = n_pos, fill = pos_type, label = n_pos)) +
+  facet_grid(.~mode, scales='free_x') +
+  geom_col() +
+  theme_minimal() +
+  geom_text(position = position_stack(vjust = 0.5), size = 3, color = "#ffffff") +
+  scale_fill_manual(values=c("casanovo_only" = "#6a3e37", "covered_all" = "#909090", "ref_only" = "#e46e00")) 
+
+plot(g)
+  
+  png(file.path(fig6_path, "LC_pos_distribution.png"), 
+      width = 10, height = 3, units = 'in', res = 600)
+  plot(g)
+  dev.off()
+```
+
