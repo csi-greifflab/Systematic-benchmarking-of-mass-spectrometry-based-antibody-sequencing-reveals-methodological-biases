@@ -6,7 +6,11 @@ get_coverage_percent <- function(peptides_vector, sequence_name, annotation, mod
   alignment_pos <- as.data.frame(do.call(rbind,(str_locate_all(string = VC_ref, 
                                                                pattern = peptides_vector))))
   if (nrow(alignment_pos) == 0)
-    return(0)
+    if(mode == "both") {
+      return(c(vdj = 0, cdr3 = 0))
+      }
+    else {return(0)
+      }
   
   if (mode == "cdr3") {
     ref <- CDR3_ref

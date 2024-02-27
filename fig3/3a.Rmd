@@ -4,7 +4,8 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-source("/storage/mariiac/msms_figures/my_config.R")
+#source("/storage/mariiac/msms_figures/my_config.R")
+source("../my_config.R")
 ```
 
 ```{r}
@@ -14,7 +15,6 @@ df <- df[df$is_not_contamination, ]
 
 ```{r}
 replicate_subsets <- unlist(lapply(1:4, combn, x = paste0("run", 1:4), simplify = FALSE), recursive = FALSE)
-
 ```
 
 
@@ -22,12 +22,11 @@ replicate_subsets <- unlist(lapply(1:4, combn, x = paste0("run", 1:4), simplify 
 ```{r}
 res <- data.frame()
 cdr3 <- read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv"))
-
 sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
 
 for (i in 1:length(replicate_subsets)) {
   for (sample in 1:70) {
-    abs_all <- c("h9C12-Q97A_HC", "h9C12-WT_HC",   "Brimab_HC",     "PGDM1400_HC",   "PGT121_HC",     "Umab_HC")
+    abs_all <- c("h9C12-Q97A_HC", "h9C12-WT_HC", "Brimab_HC", "PGDM1400_HC", "PGT121_HC", "Umab_HC")
     abs_ref <- abs_all[unlist(sample_info[sample, abs_all])]
     
     subset <- replicate_subsets[[i]]
@@ -48,8 +47,6 @@ for (i in 1:length(replicate_subsets)) {
 
 res$subset <- factor(res$subset,
     levels = unlist(lapply(replicate_subsets, function(x) {paste0(x, collapse = " ")})) ,ordered = TRUE)
-
-
 ```
 
 ```{r}
@@ -62,11 +59,17 @@ concentrations$sequence_name <- paste0(concentrations$variable, "_HC")
 res <- merge(res, concentrations, by = c("sample", "sequence_name"), all.x = T)
 
 res <- res[res$subset %in% c("run1", "run2", "run3", "run4", "run1 run2 run3 run4"), ]
+
+res_med <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
+
+res_med_range <- res_med %>% group_by(value, sequence_name) %>% summarise(med_vdj_range = max(med_vdj) - min(med_vdj), med_cdr3_range = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, med_cdr3_range)
+
+res_iqr <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
+
+res_iqr_mean <- res_iqr %>% group_by(sequence_name, value) %>% summarise(mean_iqr_vdj = mean(iqr_vdj), mean_iqr_cdr3 = mean(iqr_cdr3)) %>% arrange(value, mean_iqr_cdr3)
 ```
 
 ```{r, fig.height=7, fig.width = 8}
-
-
 g <- ggplot(res, aes(x = as.factor(subset), y = vdj, fill = as.factor(subset))) +
   geom_boxplot(outlier.shape = NA) +
   facet_grid(factor(res$sequence_name, levels = HC_names) ~value) +
@@ -74,6 +77,8 @@ g <- ggplot(res, aes(x = as.factor(subset), y = vdj, fill = as.factor(subset))) 
   theme_bw() +
   scale_fill_manual(values = c("#1F1F1F", "#4A4B4B", "#6F6F6F", "#A4A4A4", "#e6007e")) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+g
 
 plot(g)
   
@@ -86,7 +91,6 @@ plot(g)
 
 
 ```{r, fig.height=7, fig.width = 8}
-
 g <- ggplot(res, aes(x = as.factor(subset), y = cdr3, fill = as.factor(subset))) +
   geom_boxplot(outlier.shape = NA) +
   facet_grid(factor(res$sequence_name, levels = HC_names) ~value) +
