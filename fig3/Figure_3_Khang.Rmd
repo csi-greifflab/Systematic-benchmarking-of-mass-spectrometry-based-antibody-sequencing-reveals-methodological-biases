@@ -1,0 +1,255 @@
+---
+title: "Figure 3"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+#source("/storage/mariiac/msms_figures/my_config.R")
+source("../my_config.R")
+```
+
+```{r}
+#Read the filtered data and removed peptides labelled contaminations
+df <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
+df <- df[df$is_not_contamination, ]
+
+cdr3 <- read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv"))
+sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
+
+# Create combinations of replicates
+replicate_subsets <- unlist(lapply(1:4, combn, x = paste0("run", 1:4), simplify = FALSE), recursive = FALSE)
+```
+
+```{r}
+res <- data.frame()
+# Calculate coverage for each sample, iterate by rep combn
+for (i in 1:length(replicate_subsets)) {
+  for (sample in 1:70) {
+    abs_all <- c("h9C12-Q97A_HC", "h9C12-WT_HC", "Brimab_HC", "PGDM1400_HC", "PGT121_HC", "Umab_HC")
+    # Use only the mAb that should be in that sample as ref
+    abs_ref <- abs_all[unlist(sample_info[sample, abs_all])]
+    # choose the correct runs and filter for the correct sample
+    subset <- replicate_subsets[[i]]
+    df_tmp <- df[df$run %in% subset & df$Sample == sample, ]
+    
+    if (length(abs_ref)) {
+      coverage <- sapply(X = abs_ref, FUN = get_coverage_percent, 
+                       peptides_vector = df_tmp$Sequence, annotation = cdr3, mode = "both")
+      coverage <- data.frame(t(coverage))
+      coverage$subset <- paste0(subset, collapse = " ")
+      coverage$sequence_name <- rownames(coverage)
+      coverage$sample <- sample
+      res <- rbind(res, coverage)
+    }
+  }
+}
+
+res$subset <- factor(res$subset,
+    levels = unlist(lapply(replicate_subsets, function(x) {paste0(x, collapse = " ")})) ,ordered = TRUE)
+```
+
+```{r}
+concentrations <- data.frame(read_tsv(file.path(metadata_path, "concentration_matrix.tsv")))
+concentrations$sample <- 1:70
+colnames(concentrations)[1:2] <- c("h9C12-Q97A", "h9C12-WT")
+concentrations <- melt(concentrations, id.vars = "sample")
+concentrations$sequence_name <- paste0(concentrations$variable, "_HC")
+
+res <- merge(res, concentrations, by = c("sample", "sequence_name"), all.x = T)
+```
+
+```{r}
+# Count the number of runs merged
+res$subset_count <- str_count(res$subset, "run")
+res$sequence_name <- factor(res$sequence_name, levels = HC_names)
+
+# calculate the median and iqr range
+res_med <- res %>%  group_by(sequence_name, subset_count, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
+res_med$sequence_name <- factor(res_med$sequence_name, levels = HC_names)
+
+res_med_range <- res_med %>% group_by(value, sequence_name) %>% summarise(med_vdj_range = max(med_vdj) - min(med_vdj), med_cdr3_range = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, med_cdr3_range)
+
+res_iqr <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
+
+res_iqr_mean <- res_iqr %>% group_by(sequence_name, value) %>% summarise(mean_iqr_vdj = mean(iqr_vdj), mean_iqr_cdr3 = mean(iqr_cdr3)) %>% arrange(value, mean_iqr_cdr3)
+
+label_value <- c("1" = "1 ng", "10" =  "10 ng", "100" = "100 ng", "1000" = "1000 ng")
+```
+
+```{r fig.height=7, fig.width=6}
+p_vdj_merged <- ggplot(res, aes(x = as.factor(subset_count), y = vdj, fill = as.factor(subset_count))) +
+  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
+  geom_point(pch = 21, size = 0.5, position = position_jitterdodge()) +
+  geom_text(data = res_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
+  theme_bw() +
+  scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
+        strip.text.y = element_blank()) +
+  labs(x = "Number of replicates merged", y = "VDJ coverage (%)")
+
+p_vdj_merged
+
+#ggsave("./HC_vdj_merged.png", p_vdj_merged, height = 7, width = 6, dpi = 600)
+```
+
+```{r fig.height=7, fig.width=6}
+p_cdr3_merged <- ggplot(res, aes(x = as.factor(subset_count), y = cdr3, fill = as.factor(subset_count))) +
+  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
+  geom_point(pch = 21, size = 0.5, position = position_jitterdodge()) +
+  geom_text(data = res_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
+  theme_bw() +
+  scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
+        strip.text.y = element_blank()) +
+  labs(x = "Number of replicates merged", y = "CDRH3 coverage (%)")
+
+p_cdr3_merged
+
+#ggsave("./HC_CDR3_merged.png", p_cdr3_merged, height = 7, width = 6, dpi = 600)
+```
+# Old stuff
+```{r}
+res <- res[res$subset %in% c("run1", "run2", "run3", "run4", "run1 run2 run3 run4"), ]
+
+res_med <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
+
+res_med_range <- res_med %>% group_by(value, sequence_name) %>% summarise(med_vdj_range = max(med_vdj) - min(med_vdj), med_cdr3_range = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, med_cdr3_range)
+
+res_iqr <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
+
+res_iqr_mean <- res_iqr %>% group_by(sequence_name, value) %>% summarise(mean_iqr_vdj = mean(iqr_vdj), mean_iqr_cdr3 = mean(iqr_cdr3)) %>% arrange(value, mean_iqr_cdr3)
+```
+
+```{r, fig.height=7, fig.width = 8}
+g <- ggplot(res, aes(x = as.factor(subset), y = vdj, fill = as.factor(subset))) +
+  geom_boxplot(outlier.shape = NA) +
+  facet_grid(factor(res$sequence_name, levels = HC_names) ~value) +
+  geom_point(pch = 21, position = position_jitterdodge()) +
+  theme_bw() +
+  scale_fill_manual(values = c("#1F1F1F", "#4A4B4B", "#6F6F6F", "#A4A4A4", "#e6007e")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+g
+
+plot(g)
+  
+  png(file.path(fig3_path, "HC_vdj.png"), 
+      width = 7, height = 8, units = 'in', res = 600)
+  plot(g)
+  dev.off()
+```
+
+```{r, fig.height=7, fig.width = 8}
+g <- ggplot(res, aes(x = as.factor(subset), y = cdr3, fill = as.factor(subset))) +
+  geom_boxplot(outlier.shape = NA) +
+  facet_grid(factor(res$sequence_name, levels = HC_names) ~value) +
+  geom_point(pch = 21, position = position_jitterdodge()) +
+  #geom_line(stat = "summary", fun = median, aes(group = as.factor(subset))) +
+  theme_bw() +
+  scale_fill_manual(values = c("#2F2F2F", "#4A4B4B", "#6F6F6F", "#A4A4A4", "#e6007e")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+plot(g)
+  
+  png(file.path(fig3_path, "HC_cdr3.png"), 
+      width = 7, height = 8, units = 'in', res = 600)
+  plot(g)
+  dev.off()
+
+# ggplot(res, aes(x = subset, y = cdr3)) +
+#   geom_boxplot() +
+#   facet_grid(sequence_name~.) +
+#   geom_jitter(aes(color = as.factor(value))) +
+#   theme_bw() +
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+# Light chain
+
+```{r}
+res <- data.frame()
+
+for (i in 1:length(replicate_subsets)) {
+  for (sample in 1:70) {
+    abs_all <- c("h9C12_LC", "Brimab_LC", "PGDM1400_LC", "PGT121_LC", "Umab_LC")
+    abs_ref <- abs_all[unlist(sample_info[sample, abs_all])]
+    
+    subset <- replicate_subsets[[i]]
+    df_tmp <- df[df$run %in% subset & df$Sample == sample, ]
+    
+    if (length(abs_ref)) {
+      coverage <- sapply(X = abs_ref, FUN = get_coverage_percent, 
+                       peptides_vector = df_tmp$Sequence, annotation = cdr3, mode = "both")
+      coverage <- data.frame(t(coverage))
+      coverage$subset <- paste0(subset, collapse = " ")
+      coverage$sequence_name <- rownames(coverage)
+      coverage$sample <- sample
+      res <- rbind(res, coverage)
+    }
+  }
+}
+
+res$subset <- factor(res$subset,
+    levels = unlist(lapply(replicate_subsets, function(x) {paste0(x, collapse = " ")})) ,ordered = TRUE)
+```
+
+```{r}
+concentrations <- data.frame(read_tsv(file.path(metadata_path, "concentration_matrix.tsv")))
+concentrations$sample <- 1:70
+colnames(concentrations)[1:2] <- c("h9C12", "h9C12")
+concentrations <- melt(concentrations, id.vars = "sample")
+concentrations$sequence_name <- paste0(concentrations$variable, "_LC")
+
+# Fix the concentration in the concentration matrix for h9C12
+concentrations$value[c(2,36)] <- 1
+concentrations$value[c(10,37)] <- 10
+concentrations$value[c(18,38)] <- 100
+concentrations$value[c(26,39)] <- 1000
+
+res <- merge(res, concentrations, by = c("sample", "sequence_name"), all.x = T)
+
+# Count the number of runs merged
+res$subset_count <- str_count(res$subset, "run")
+res$sequence_name <- factor(res$sequence_name, levels = LC_names)
+
+# calculate the median and iqr range
+res_med <- res %>%  group_by(sequence_name, subset_count, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
+res_med$sequence_name <- factor(res_med$sequence_name, levels = LC_names)
+```
+
+```{r fig.height=7, fig.width=6}
+p_vj_merged <- ggplot(res, aes(x = as.factor(subset_count), y = vdj, fill = as.factor(subset_count))) +
+  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
+  geom_point(pch = 21, size = 0.5, position = position_jitterdodge()) +
+  geom_text(data = res_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
+  theme_bw() +
+  scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
+        strip.text.y = element_blank()) +
+  labs(x = "Number of replicates merged", y = "VJ coverage (%)")
+
+p_vj_merged
+
+#ggsave("./LC_vdj_merged.png", p_vj_merged, height = 7, width = 6, dpi = 600)
+```
+
+```{r fig.height=7, fig.width=6}
+p_cdrl3_merged <- ggplot(res, aes(x = as.factor(subset_count), y = cdr3, fill = as.factor(subset_count))) +
+  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
+  geom_point(pch = 21, size = 0.5, position = position_jitterdodge()) +
+  geom_text(data = res_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
+  theme_bw() +
+  scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
+        strip.text.y = element_blank()) +
+  labs(x = "Number of replicates merged", y = "CDRL3 coverage (%)")
+
+p_cdrl3_merged
+
+#ggsave("./LC_CDR3_merged.png", p_cdrl3_merged, height = 7, width = 6, dpi = 600)
+```
+

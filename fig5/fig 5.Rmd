@@ -4,7 +4,8 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-source("/storage/mariiac/msms_figures/my_config.R")
+#source("/storage/mariiac/msms_figures/my_config.R")
+source("../my_config.R")
 ```
 
 ```{r}
@@ -48,11 +49,9 @@ res_ratio <- df %>%
 idx <- res_ratio$conc_ratio < 1
 res_ratio$conc_ratio[idx] <- 1/res_ratio$conc_ratio[idx]
 res_ratio$intensity_ratio[idx] <- 1/res_ratio$intensity_ratio[idx]
-
 ```
 
 ```{r}
-
 StripAttr <- function(x, attr_names = NULL) 
 {
     if (is.null(attr_names)) 
