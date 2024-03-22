@@ -122,7 +122,11 @@ p_cdr3
 res_med <- res %>%  group_by(sequence_name, subset_count, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
 res_med$sequence_name <- factor(res_med$sequence_name, levels = HC_names)
 
+res_med_gap <- res_med %>% filter(subset_count == 1 | subset_count == 4) %>% group_by(sequence_name, value) %>% summarise(gap_med_vdj = max(med_vdj) - min(med_vdj), gap_med_cdr3 = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, gap_med_vdj)
+
 res_med_range <- res_med %>% group_by(value, sequence_name) %>% summarise(med_vdj_range = max(med_vdj) - min(med_vdj), med_cdr3_range = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, med_cdr3_range)
+
+res_med_step <- res_med %>% group_by(sequence_name, value) %>% summarise(med_vdj_diff = diff(med_vdj), med_cdr3_diff = diff(med_cdr3)) %>% group_by(sequence_name, value) %>% summarise(avg_med_vdj_diff = mean(med_vdj_diff), avg_med_cdr3_diff = mean(med_cdr3_diff)) %>% arrange(value, avg_med_vdj_diff)
 
 res_iqr <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
 
@@ -194,8 +198,10 @@ res$subset <- factor(res$subset,
 
 ```{r}
 concentrations <- data.frame(read_tsv(file.path(metadata_path, "concentration_matrix.tsv")))
+# For the light chain, since h9C12-WT and h9C12-Q97 are the same, take the higher value of the two cols
+concentrations <- concentrations %>% mutate(h9C12 = pmax(concentrations$h9C12.Q97A, concentrations$h9C12.WT)) %>%
+  select(-c(1:2)) %>% relocate(h9C12)
 concentrations$sample <- 1:70
-colnames(concentrations)[1:2] <- c("h9C12", "h9C12")
 concentrations <- melt(concentrations, id.vars = "sample")
 concentrations$sequence_name <- paste0(concentrations$variable, "_LC")
 

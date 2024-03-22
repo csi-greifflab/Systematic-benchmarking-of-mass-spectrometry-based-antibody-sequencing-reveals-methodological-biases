@@ -10,9 +10,11 @@ library(ggbeeswarm)
 ```
 
 ```{r}
-#Read the filtered data and removed peptides labelled contaminations
+# Read the filtered data and removed peptides labelled contaminations
 df <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
 df <- df[df$is_not_contamination, ]
+
+# Calculate miscleavages and remove >2 miscleaved peptides (TO DO!!!!)
 
 cdr3 <- read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv"))
 sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
@@ -72,7 +74,49 @@ res$complexity_lvl <- ifelse(res$complexity > 1, "multiple", "single")
 res$sequence_name <- factor(res$sequence_name, levels = HC_names)
 ```
 
-# Panel A: Non-blood only, paired plot CDRH3 coverage comparison between pairs of sample of same mAb but different complexity lvl (1, 6 equal, or 6 unequal), facet by mAb and input amount (x: complexity lvl, y: coverage %).
+# Panel A,B: blood vs non-blood: paired plot CDRH3 coverage comparison from sample pairs of exact same input amount and composition, facet by mAb and concentration (x: blood or non-blood, y: coverage %)
+
+```{r}
+res_blood_med <- res %>% group_by(sequence_name, value, blood) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3))
+```
+
+```{r fig.height=7, fig.width=5}
+p_blood_vdj <- ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = vdj, color = blood)) +
+  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
+  geom_boxplot(width = 0.5, outlier.shape = NA, alpha = 0.5) +
+  geom_beeswarm(pch = 1, size = 0.8, cex = 3, corral = "wrap", corral.width = 0.9) +
+  scale_color_manual(values = c("black","red3")) +
+  geom_text(data = res_blood_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
+        strip.text.x = element_blank(), strip.text.y = element_blank()
+        ) +
+  labs(x = "Presence of serum IgG", y = "VDJ coverage (%)")
+
+p_blood_vdj
+
+#ggsave("./figures/blood_vdj.pdf", p_blood_vdj, height = 7, width = 5, dpi = 600)
+```
+
+```{r fig.height=7, fig.width=5}
+p_blood_cdr3 <- ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = cdr3, color = blood)) +
+  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
+  geom_beeswarm(pch = 1, size = 0.8, cex = 3, corral = "wrap", corral.width = 0.9) +
+  scale_color_manual(values = c("black","red3")) +
+  geom_text(data = res_blood_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
+        strip.text.x = element_blank(), strip.text.y = element_blank()
+        ) +
+  labs(x = "Presence of serum IgG", y = "CDRH3 coverage (%)")
+
+p_blood_cdr3
+
+#ggsave("./figures/blood_cdrh3.pdf", p_blood_cdr3, height = 7, width = 5, dpi = 600)
+```
+
+# Panel C,D: Non-blood only, paired plot CDRH3 coverage comparison between pairs of sample of same mAb but different complexity lvl (1, 6 equal, or 6 unequal), facet by mAb and input amount (x: complexity lvl, y: coverage %).
 ```{r}
 # Filter for non-blood samples
 res_noblood <- res %>% filter(sample %in% c(36:64,66))
@@ -82,183 +126,46 @@ res_noblood <- res_noblood %>% filter(sequence_name %in% c("h9C12-WT_HC", "Umab_
 
 res_noblood_med <- res_noblood %>% group_by(sequence_name, value, complexity_lvl) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3))
 
-label_value <- c("1" = "1 ng", "10" =  "10 ng", "100" = "100 ng", "1000" = "1000 ng")
+#label_value <- c("1" = "1 ng", "10" =  "10 ng", "100" = "100 ng", "1000" = "1000 ng")
 ```
 
-```{r fig.height=7, fig.width=6}
-ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multiple")), y = vdj, color = complexity_lvl)) +
-  #geom_boxplot(width = 0.5, outlier.shape = NA) +
+```{r fig.height=4.5, fig.width=5}
+p_noblood_vdj <- ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multiple")), y = vdj, color = complexity_lvl)) +
+  geom_boxplot(width = 0.5, outlier.shape = NA) +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(pch = 1, size = 1, cex = 3) +
   geom_text(data = res_noblood_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
+  scale_color_manual(values = c("grey40","black")) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
-        strip.background = element_rect(fill = "white")
-        #strip.text.y = element_blank()
+        strip.text.x = element_blank(), strip.text.y = element_blank()
         ) +
-  labs(x = "Number of spike-in mAbs", y = "VDJ coverage (%)")
+  labs(x = "Number of spike-in mAbs in sample", y = "VDJ coverage (%)")
+
+p_noblood_vdj
+
+#ggsave("./figures/noblood_vdj.pdf", p_noblood_vdj, height = 4.5, width = 5, dpi = 600)
 ```
 
-```{r fig.height=7, fig.width=6}
-ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multiple")), y = cdr3, color = complexity_lvl)) +
-  #geom_boxplot(width = 0.5, outlier.shape = NA) +
+```{r fig.height=4.5, fig.width=5}
+p_noblood_cdr3 <- ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multiple")), y = cdr3, color = complexity_lvl)) +
+  geom_boxplot(width = 0.5, outlier.shape = NA) +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(pch = 1, size = 1, cex = 3) +
   geom_text(data = res_noblood_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
+  scale_color_manual(values = c("grey40","black")) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
-        strip.background = element_rect(fill = "white")
-        #strip.text.y = element_blank()
+        #strip.text.x = element_blank(), strip.text.y = element_blank()
         ) +
-  labs(x = "Number of spike-in mAbs", y = "CDRH3 coverage (%)")
+  labs(x = "Number of spike-in mAbs in sample", y = "CDRH3 coverage (%)")
+
+p_noblood_cdr3
+
+#ggsave("./figures/noblood_cdrh3.pdf", p_noblood_cdr3, height = 4.5, width = 5, dpi = 600)
 ```
 
-# Panel B: blood vs non-blood: paired plot CDRH3 coverage comparison from sample pairs of exact same input amount and composition, facet by mAb and concentration (x: blood or non-blood, y: coverage %)
-
-```{r}
-res_blood_med <- res %>% group_by(sequence_name, value, blood) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3))
-```
-
-```{r fig.height=7, fig.width=6}
-ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = vdj, color = blood)) +
-  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
-  #geom_violin(width = 0.5, outlier.shape = NA, alpha = 0.5) +
-  geom_beeswarm(pch = 1, size = 0.8, cex = 3, corral = "wrap", corral.width = 0.9) +
-  scale_color_manual(values = c("black","red3")) +
-  geom_text(data = res_blood_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
-        strip.background = element_rect(fill = "white")
-        #strip.text.y = element_blank()
-        ) +
-  labs(x = "Presence of serum IgG", y = "VDJ coverage (%)")
-```
-
-```{r fig.height=7, fig.width=6}
-ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = cdr3, color = blood)) +
-  #geom_boxplot(width = 0.5, outlier.shape = NA) +
-  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
-  geom_beeswarm(pch = 1, size = 0.8, cex = 3, corral = "wrap", corral.width = 0.9) +
-  scale_color_manual(values = c("black","red3")) +
-  geom_text(data = res_blood_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
-        strip.background = element_rect(fill = "white"),
-        #strip.text.y = element_blank()
-        ) +
-  labs(x = "Presence of serum IgG", y = "CDR3 coverage (%)")
-```
-
-```{r}
-# Count the number of runs merged
-res$subset_count <- str_count(res$subset, "run")
-res$sequence_name <- factor(res$sequence_name, levels = HC_names)
-
-# calculate the median and iqr range
-res_med <- res %>%  group_by(sequence_name, subset_count, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
-res_med$sequence_name <- factor(res_med$sequence_name, levels = HC_names)
-
-res_med_range <- res_med %>% group_by(value, sequence_name) %>% summarise(med_vdj_range = max(med_vdj) - min(med_vdj), med_cdr3_range = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, med_cdr3_range)
-
-res_iqr <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
-
-res_iqr_mean <- res_iqr %>% group_by(sequence_name, value) %>% summarise(mean_iqr_vdj = mean(iqr_vdj), mean_iqr_cdr3 = mean(iqr_cdr3)) %>% arrange(value, mean_iqr_cdr3)
-
-label_value <- c("1" = "1 ng", "10" =  "10 ng", "100" = "100 ng", "1000" = "1000 ng")
-```
-
-```{r fig.height=7, fig.width=6}
-p_vdj_merged <- ggplot(res, aes(x = as.factor(subset_count), y = vdj, fill = as.factor(subset_count))) +
-  geom_boxplot(width = 0.5, outlier.shape = NA) +
-  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
-  geom_point(pch = 21, size = 0.5, position = position_jitterdodge()) +
-  geom_text(data = res_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
-  theme_bw() +
-  scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
-        strip.text.y = element_blank()) +
-  labs(x = "Number of replicates merged", y = "VDJ coverage (%)")
-
-p_vdj_merged
-
-#ggsave("./HC_vdj_merged.png", p_vdj_merged, height = 7, width = 6, dpi = 600)
-```
-
-```{r fig.height=7, fig.width=6}
-p_cdr3_merged <- ggplot(res, aes(x = as.factor(subset_count), y = cdr3, fill = as.factor(subset_count))) +
-  geom_boxplot(width = 0.5, outlier.shape = NA) +
-  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
-  geom_point(pch = 21, size = 0.5, position = position_jitterdodge()) +
-  geom_text(data = res_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
-  theme_bw() +
-  scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
-        strip.text.y = element_blank()) +
-  labs(x = "Number of replicates merged", y = "CDRH3 coverage (%)")
-
-p_cdr3_merged
-
-#ggsave("./HC_CDR3_merged.png", p_cdr3_merged, height = 7, width = 6, dpi = 600)
-```
-# Old stuff
-```{r}
-res <- res[res$subset %in% c("run1", "run2", "run3", "run4", "run1 run2 run3 run4"), ]
-
-res_med <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
-
-res_med_range <- res_med %>% group_by(value, sequence_name) %>% summarise(med_vdj_range = max(med_vdj) - min(med_vdj), med_cdr3_range = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, med_cdr3_range)
-
-res_iqr <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
-
-res_iqr_mean <- res_iqr %>% group_by(sequence_name, value) %>% summarise(mean_iqr_vdj = mean(iqr_vdj), mean_iqr_cdr3 = mean(iqr_cdr3)) %>% arrange(value, mean_iqr_cdr3)
-```
-
-```{r, fig.height=7, fig.width = 8}
-g <- ggplot(res, aes(x = as.factor(subset), y = vdj, fill = as.factor(subset))) +
-  geom_boxplot(outlier.shape = NA) +
-  facet_grid(factor(res$sequence_name, levels = HC_names) ~value) +
-  geom_point(pch = 21, position = position_jitterdodge()) +
-  theme_bw() +
-  scale_fill_manual(values = c("#1F1F1F", "#4A4B4B", "#6F6F6F", "#A4A4A4", "#e6007e")) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
-g
-
-plot(g)
-  
-  png(file.path(fig3_path, "HC_vdj.png"), 
-      width = 7, height = 8, units = 'in', res = 600)
-  plot(g)
-  dev.off()
-```
-
-```{r, fig.height=7, fig.width = 8}
-g <- ggplot(res, aes(x = as.factor(subset), y = cdr3, fill = as.factor(subset))) +
-  geom_boxplot(outlier.shape = NA) +
-  facet_grid(factor(res$sequence_name, levels = HC_names) ~value) +
-  geom_point(pch = 21, position = position_jitterdodge()) +
-  #geom_line(stat = "summary", fun = median, aes(group = as.factor(subset))) +
-  theme_bw() +
-  scale_fill_manual(values = c("#2F2F2F", "#4A4B4B", "#6F6F6F", "#A4A4A4", "#e6007e")) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
-plot(g)
-  
-  png(file.path(fig3_path, "HC_cdr3.png"), 
-      width = 7, height = 8, units = 'in', res = 600)
-  plot(g)
-  dev.off()
-
-# ggplot(res, aes(x = subset, y = cdr3)) +
-#   geom_boxplot() +
-#   facet_grid(sequence_name~.) +
-#   geom_jitter(aes(color = as.factor(value))) +
-#   theme_bw() +
-#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-```
-
-# Light chain
-
+# Supp figures, same thing for light chain
 ```{r}
 res <- data.frame()
 
@@ -288,59 +195,100 @@ res$subset <- factor(res$subset,
 
 ```{r}
 concentrations <- data.frame(read_tsv(file.path(metadata_path, "concentration_matrix.tsv")))
+# For the light chain, since h9C12-WT and h9C12-Q97 are the same, take the higher value of the two cols
+concentrations <- concentrations %>% mutate(h9C12 = pmax(concentrations$h9C12.Q97A, concentrations$h9C12.WT)) %>%
+  select(-c(1:2)) %>% relocate(h9C12)
 concentrations$sample <- 1:70
-colnames(concentrations)[1:2] <- c("h9C12", "h9C12")
-concentrations <- melt(concentrations, id.vars = "sample")
+# Add variable for blood/non-blood
+concentrations$blood <- TRUE
+concentrations$blood[c(36:64,66)] <- FALSE
+concentrations <- melt(concentrations, id.vars = c("sample","blood"))
 concentrations$sequence_name <- paste0(concentrations$variable, "_LC")
-
-# Fix the concentration in the concentration matrix for h9C12
-concentrations$value[c(2,36)] <- 1
-concentrations$value[c(10,37)] <- 10
-concentrations$value[c(18,38)] <- 100
-concentrations$value[c(26,39)] <- 1000
+# calculate the lvl of complexity of each sample (how many mAbs in each sample)
+complexity <- concentrations %>% group_by(sample) %>% summarize(complexity = sum(value > 0))
+concentrations <- left_join(concentrations, complexity, by = "sample")
+concentrations$equality <- "equal"
+concentrations[c(31,32,48:54,59:64),]$equality <- "unequal"
 
 res <- merge(res, concentrations, by = c("sample", "sequence_name"), all.x = T)
 
-# Count the number of runs merged
-res$subset_count <- str_count(res$subset, "run")
+res$complexity_lvl <- ifelse(res$complexity > 1, "multiple", "single")
 res$sequence_name <- factor(res$sequence_name, levels = LC_names)
-
-# calculate the median and iqr range
-res_med <- res %>%  group_by(sequence_name, subset_count, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
-res_med$sequence_name <- factor(res_med$sequence_name, levels = LC_names)
 ```
 
-```{r fig.height=7, fig.width=6}
-p_vj_merged <- ggplot(res, aes(x = as.factor(subset_count), y = vdj, fill = as.factor(subset_count))) +
+```{r}
+res_blood_med <- res %>% group_by(sequence_name, value, blood) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3))
+```
+
+```{r fig.height=5.75, fig.width=5}
+ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = vdj, color = blood)) +
+  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
+  geom_boxplot(width = 0.5, outlier.shape = NA, alpha = 0.5) +
+  geom_beeswarm(pch = 1, size = 0.8, cex = 3, corral = "wrap", corral.width = 0.9) +
+  scale_color_manual(values = c("black","red3")) +
+  geom_text(data = res_blood_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
+        strip.text.x = element_blank(), strip.text.y = element_blank()
+        ) +
+  labs(x = "Presence of serum IgG", y = "VJ coverage (%)")
+
+#ggsave("./figures/blood_vj.pdf", height = 5.75, width = 5, dpi = 600)
+```
+
+```{r fig.height=5.75, fig.width=5}
+ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = cdr3, color = blood)) +
   geom_boxplot(width = 0.5, outlier.shape = NA) +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
-  geom_point(pch = 21, size = 0.5, position = position_jitterdodge()) +
-  geom_text(data = res_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
+  geom_beeswarm(pch = 1, size = 0.8, cex = 3, corral = "wrap", corral.width = 0.9) +
+  scale_color_manual(values = c("black","red3")) +
+  geom_text(data = res_blood_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
   theme_bw() +
-  scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
-        strip.text.y = element_blank()) +
-  labs(x = "Number of replicates merged", y = "VJ coverage (%)")
+        strip.text.x = element_blank(), strip.text.y = element_blank()
+        ) +
+  labs(x = "Presence of serum IgG", y = "CDRL3 coverage (%)")
 
-p_vj_merged
-
-#ggsave("./LC_vdj_merged.png", p_vj_merged, height = 7, width = 6, dpi = 600)
+#ggsave("./figures/blood_cdrl3.pdf", height = 5.75, width = 5, dpi = 600)
 ```
 
-```{r fig.height=7, fig.width=6}
-p_cdrl3_merged <- ggplot(res, aes(x = as.factor(subset_count), y = cdr3, fill = as.factor(subset_count))) +
+```{r}
+# Filter for non-blood samples
+res_noblood <- res %>% filter(sample %in% c(36:64,66))
+# Select for only h9C12WT, Umab, and PGDM1400 (only those have single mab samples)
+res_noblood <- res_noblood %>% filter(sequence_name %in% c("h9C12_LC", "Umab_LC", "PGDM1400_LC"))
+
+res_noblood_med <- res_noblood %>% group_by(sequence_name, value, complexity_lvl) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3))
+```
+
+```{r fig.height=4.5, fig.width=5}
+ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multiple")), y = vdj, color = complexity_lvl)) +
   geom_boxplot(width = 0.5, outlier.shape = NA) +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
-  geom_point(pch = 21, size = 0.5, position = position_jitterdodge()) +
-  geom_text(data = res_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
+  geom_beeswarm(pch = 1, size = 1, cex = 3) +
+  geom_text(data = res_noblood_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
+  scale_color_manual(values = c("grey40","black")) +
   theme_bw() +
-  scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
-        strip.text.y = element_blank()) +
-  labs(x = "Number of replicates merged", y = "CDRL3 coverage (%)")
+        strip.text.x = element_blank(), strip.text.y = element_blank()
+        ) +
+  labs(x = "Number of spike-in mAbs in sample", y = "VJ coverage (%)")
 
-p_cdrl3_merged
-
-#ggsave("./LC_CDR3_merged.png", p_cdrl3_merged, height = 7, width = 6, dpi = 600)
+#ggsave("./figures/noblood_vj.pdf", height = 4.5, width = 5, dpi = 600)
 ```
 
+```{r fig.height=4.5, fig.width=5}
+ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multiple")), y = cdr3, color = complexity_lvl)) +
+  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
+  geom_beeswarm(pch = 1, size = 1, cex = 3) +
+  geom_text(data = res_noblood_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
+  scale_color_manual(values = c("grey40","black")) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
+        strip.text.x = element_blank(), strip.text.y = element_blank()
+        ) +
+  labs(x = "Number of spike-in mAbs in sample", y = "CDRL3 coverage (%)")
+
+#ggsave("./figures/noblood_cdrl3.pdf", height = 4.5, width = 5, dpi = 600)
+```
