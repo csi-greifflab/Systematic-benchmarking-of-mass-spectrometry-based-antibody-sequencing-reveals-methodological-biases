@@ -1,0 +1,243 @@
+---
+title: "MS main figure 6"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+#source("/storage/mariiac/msms_figures/my_config.R")
+source("../Khang_config.R")
+source("../utils.R")
+```
+
+```{r message=FALSE}
+cdr3 <- read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv"))
+sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
+df <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
+df <- df[df$is_not_contamination, ]
+
+# Calculate miscleavage for all exp peptides
+df <- df %>% mutate(n_miscleavages = ifelse(Protease == "Tryp", unlist(lapply(Sequence, function(x) calculate_miscleavages_trypsin(x))), ifelse(Protease == "Ct", unlist(lapply(Sequence, function(x) calculate_miscleavages_chymotrypsin(x))), ifelse(Protease == "AspN", unlist(lapply(Sequence, function(x) calculate_miscleavages_aspn(x))), ifelse(Protease == "Ct+Tryp", unlist(lapply(Sequence, function(x) calculate_miscleavages_chymotrypsin(x))) + unlist(lapply(Sequence, function(x) calculate_miscleavages_trypsin(x))), 0)))))
+```
+
+# Panel A: Cartoon showing Casanovo extra CDRH3 coverage
+```{r}
+df_cdr3 <- cbind(df, 
+                 str_locate(df$amino_acid_sequence_Vregion, as.character(df$Sequence)))
+cdr3 <- cbind(cdr3, str_locate(cdr3$amino_acid_sequence_Vregion, as.character(cdr3$amino_acid_sequence_cdr3)))
+
+make_coverage_plot <- function(ab_name, df_cdr3) {
+  df_cdr3 <- df_cdr3[df_cdr3$match_ig_type == ab_name, ]
+  df_cdr3 <- df_cdr3[, c("Sequence", "start", "end", "tool")]
+
+  df_cdr3 <- unique(df_cdr3)
+  df_cdr3 <- df_cdr3[with(df_cdr3, order(start, -end)), ]
+  df_cdr3$y <- 1:nrow(df_cdr3)
+
+  df_cdr3_tmp <- melt(df_cdr3, c("Sequence", "y", "tool"))
+  
+  ggplot(df_cdr3_tmp, aes(x=value, y=y)) +
+    geom_rect(aes(xmin = cdr3[cdr3$sequence_name==ab_name, ]$start,
+                  xmax = cdr3[cdr3$sequence_name==ab_name, ]$end,
+                  ymin = -Inf, ymax = Inf), fill = "yellow", alpha = 0.05) + #cdr3
+    geom_point(size=0.2) +
+    geom_segment(aes(x = start, y = y, xend = end, yend = y, colour=tool), data = df_cdr3) +
+    theme_classic() +
+    ggtitle(ab_name)
+}
+
+
+for (ab_name in HC_and_LC_names) {
+  print(ab_name)
+  plot(make_coverage_plot(ab_name, df_cdr3))
+}
+```
+# Panel B: calculate the number of positions on the cdr3 and vdj each tool cover
+```{r}
+get_coverage_by_tool <- function(df, sequence_name, annotation, mode) {
+  V_ref <- unlist(annotation[annotation$sequence_name == sequence_name, "amino_acid_sequence_Vregion"])
+  VC_ref <- unlist(annotation[annotation$sequence_name == sequence_name, "amino_acid_sequence_full"])
+  CDR3_ref <- unlist(annotation[annotation$sequence_name == sequence_name, "amino_acid_sequence_cdr3"])
+  
+  if (mode == "cdr3") {
+    ref <- CDR3_ref
+  } else if (mode == "vdj") {
+    ref <- V_ref
+  # } else if (mode == "both") {
+  #   return (c(vdj = get_coverage_percent(peptides_vector, sequence_name, annotation, "vdj"), 
+  #             cdr3 = get_coverage_percent(peptides_vector, sequence_name, annotation, "cdr3")))
+  } else {
+    stop("Wrong mode parameter value. Should be cdr3 or vdj.")
+  }
+    
+  get_bool_coverage <- function(tool) {
+    alignment_pos <- as.data.frame(do.call(rbind,(str_locate_all(string = VC_ref, 
+                                                             pattern = df$Sequence[df$tool == tool]))))
+    counts <- replicate(nchar(VC_ref), 0)
+    for (i in 1:nrow(alignment_pos)) {
+    counts[1:length(counts) %in% c(alignment_pos[i, ]$start : alignment_pos[i, ]$end)] <- 
+      counts[alignment_pos[i, ]$start : alignment_pos[i, ]$end] + 1
+    }
+    return(counts>0)
+  }
+  
+  cov_casanovo <- get_bool_coverage("Casanovo")
+  cov_msf <- get_bool_coverage("MSFragger")
+  cov_mq <- get_bool_coverage("MaxQuant")
+  
+  not_covered <- !(cov_casanovo | cov_msf | cov_mq)
+  casanovo_only <- cov_casanovo & !(cov_msf | cov_mq)
+  ref_only <- !cov_casanovo & (cov_msf | cov_mq)
+  covered_all <- cov_casanovo & cov_msf & cov_mq
+  
+  ref_location <- str_locate(string = VC_ref, pattern = ref)
+  ref_positions <- c(ref_location[1] : ref_location[2])
+  idx <- 1:length(not_covered) %in% ref_positions
+  
+  return(list(not_covered = sum(not_covered[idx]),
+              covered_all = sum(covered_all[idx]),
+              casanovo_only = sum(casanovo_only[idx]), 
+              ref_only = sum(ref_only[idx])))
+}
+```
+
+
+```{r}
+df1 <- data.frame(t(sapply(HC_and_LC_names, get_coverage_by_tool, df = df, annotation = cdr3, mode="cdr3")))
+df1$mode <- "cdr3"
+df1$match_ig_type <- rownames(df1)
+df2 <- data.frame(t(sapply(HC_and_LC_names, get_coverage_by_tool, df = df, annotation = cdr3, mode="vdj")))
+df2$mode <- "vdj"
+df2$match_ig_type <- rownames(df2)
+
+res <- rbind(df1, df2)
+
+library(tidyr)
+res <- gather(res, pos_type, n_pos, -mode, -match_ig_type)
+res$n_pos <- unlist(res$n_pos) 
+```
+
+```{r, fig.width=10, fig.height=3}
+res_HC <- res[res$pos_type != "not_covered" & str_detect(res$match_ig_type, "HC"), ]
+res_HC$match_ig_type <- factor(res_HC$match_ig_type, levels = HC_names)
+
+g <- ggplot(res_HC[res_HC$n_pos > 0, ], aes(y = match_ig_type, x = n_pos, fill = pos_type, label = n_pos)) +
+  facet_grid(.~mode, scales='free_x') +
+  geom_col() +
+  theme_minimal() +
+  geom_text(position = position_stack(vjust = 0.5), size = 3, color = "#ffffff") +
+  scale_fill_manual(values=c("casanovo_only" = "#6a3e37", "covered_all" = "#909090", "ref_only" = "#e46e00")) 
+
+plot(g)
+  
+  png(file.path(fig6_path, "./figures/HC_pos_distribution.png"), 
+      width = 10, height = 3, units = 'in', res = 600)
+  plot(g)
+  dev.off()
+```
+
+```{r, fig.width=10, fig.height=3}
+res_LC <- res[res$pos_type != "not_covered" & str_detect(res$match_ig_type, "LC"), ]
+res_LC$match_ig_type <- factor(res_LC$match_ig_type, levels = LC_names)
+
+g <- ggplot(res_LC[res_LC$n_pos > 0, ], aes(y = match_ig_type, x = n_pos, fill = pos_type, label = n_pos)) +
+  facet_grid(.~mode, scales='free_x') +
+  geom_col() +
+  theme_minimal() +
+  geom_text(position = position_stack(vjust = 0.5), size = 3, color = "#ffffff") +
+  scale_fill_manual(values=c("casanovo_only" = "#6a3e37", "covered_all" = "#909090", "ref_only" = "#e46e00")) 
+
+plot(g)
+  
+  png(file.path(fig6_path, "./figures/LC_pos_distribution.png"), 
+      width = 10, height = 3, units = 'in', res = 600)
+  plot(g)
+  dev.off()
+```
+
+# Panel C: show coverage plot of only Casanovo peptides, with CDR3 and VDJ coverage % on top
+
+# Function to plot coverage
+```{r}
+make_coverage_plot <- function(ab_name, df) {
+  peptides <- df$Sequence # peptides that perfectly march to an ab
+  # Locate the position of the peptide sequence and the cdr3 in the V region
+  res_seq <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(peptides)) # position number of peptide on V region
+  res_cdr3 <- str_locate(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_Vregion, as.character(cdr3[cdr3$sequence_name == ab_name, ]$amino_acid_sequence_cdr3)) # position number of the cdr3
+  
+  df_cdr3 <- data.frame(Sequence = peptides,
+                        start = res_seq[, 1],
+                        end = res_seq[, 2], 
+                        Tool = as.factor(df$tool),
+                        n_miscleavages = as.factor(df$n_miscleavages))
+  # Order the peptides based on starting position in the V region
+  df_cdr3 <- df_cdr3[with(df_cdr3, order(start, -end)), ]
+  df_cdr3$y <- 1:nrow(df_cdr3)
+
+  df_cdr3_tmp <- melt(df_cdr3, c("Sequence", "y", "n_miscleavages", "Tool"))
+  # Plot the coverage
+  p_coverage <- ggplot(df_cdr3_tmp, aes(x=value, y=y)) +
+    geom_rect(aes(xmin = res_cdr3[1, 1],
+                  xmax = res_cdr3[1, 2],
+                  ymin = -Inf, ymax = Inf), fill = "#FDFD96", alpha = 0.05) + #cdr3
+    geom_point(size = 0.2) +
+    geom_segment(aes(x = start, y = y, xend = end, yend = y, color = Tool, linetype = n_miscleavages), size = 1, data = df_cdr3) +
+    scale_color_manual(values = "#6a3e37") +
+    scale_linetype_manual(values = c("0" = 1, "1" = 2, "2" = 3, "3" = 3)) +
+    #scale_x_continuous(breaks = c(seq(min(res_seq), max(res_seq), by = 20))) +
+    guides(fill = guide_legend(keywidth = 1, keyheight = 1),
+    linetype = guide_legend(keywidth = 3, keyheight = 1),
+    colour = guide_legend(keywidth = 3, keyheight = 1)) +
+    theme_classic() +
+    theme(text = element_text(size = 16), legend.position = "none") +
+    labs(x = paste0("Position in the variable region ",str_remove(ab_name,"_HC")), y = "", color = "Tool", linetype = "Miscleavages")
+   
+  ggsave(filename = paste0("./figures/",ab_name,".pdf"), plot = p_coverage, height = 4, width = 7, dpi = 600)
+  p_coverage
+}
+```
+
+```{r fig.height=4, fig.width=7}
+# Summarize the df to keep only unique peptides per Ab (remove dup peptides from different samples)
+Sum_peptides <- df %>% group_by(match_ig_type, Sequence, tool, n_miscleavages) %>% summarize()
+
+# Keep only Casanovo peptides
+Sum_peptides <- Sum_peptides %>% filter(tool == "Casanovo")
+
+make_coverage_plot("PGDM1400_HC", Sum_peptides[Sum_peptides$match_ig_type == "PGDM1400_HC", ])
+make_coverage_plot("PGT121_HC", Sum_peptides[Sum_peptides$match_ig_type == "PGT121_HC", ])
+
+Sum_peptides %>% filter(match_ig_type == "PGDM1400_HC")
+```
+
+```{r}
+# Calculate CDRH3 and VDJ coverage
+coverage_PGDM1400 <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "PGDM1400_HC", cdr3, "both"),
+                            type = str_to_upper(names(coverage)))
+coverage_PGT121 <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "PGT121_HC", cdr3, "both"),
+                          type = str_to_upper(names(coverage)))
+```
+
+```{r fig.height=1.25, fig.width=7}
+ggplot(data = coverage_PGDM1400, aes(x = coverage, y = type)) +
+  geom_col(fill = "#6a3e37") +
+  scale_x_continuous(limits = c(0,100)) +
+  geom_text(aes(label = round(coverage,2), hjust = -0.2)) +
+  theme_classic() +
+  theme(text = element_text(size = 16)) +
+  labs(x = "Sequence coverage (%)", y = "")
+
+ggsave("./figures/coverage_PGDM1400_HC.pdf", height = 1.25, width = 7, dpi = 600)
+```
+```{r fig.height=1.25, fig.width=7}
+ggplot(data = coverage_PGT121, aes(x = coverage, y = type)) +
+  geom_col(fill = "#6a3e37") +
+  scale_x_continuous(limits = c(0,100)) +
+  geom_text(aes(label = round(coverage,2), hjust = -0.2)) +
+  theme_classic() +
+  theme(text = element_text(size = 16)) +
+  labs(x = "Sequence coverage (%)", y = "")
+
+ggsave("./figures/coverage_PGT121_HC.pdf", height = 1.25, width = 7, dpi = 600)
+```
+
