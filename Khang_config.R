@@ -13,6 +13,7 @@ library(forcats)
 library(ggbeeswarm)
 library(circlize)
 library(combinat)
+library(tidyverse)
 
 project_path <- "/Users/khangl/UiO Dropbox/Khang Le Quy/CSI/datasets/csi_datasets/ms_benchmarking/msms_figures"
 
