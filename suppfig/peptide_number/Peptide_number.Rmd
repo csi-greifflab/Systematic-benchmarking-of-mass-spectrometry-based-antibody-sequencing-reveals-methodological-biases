@@ -1,0 +1,269 @@
+---
+title: "MS supp fig peptide numbers"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+source("/Users/khangl/UiO Dropbox/Khang Le Quy/CSI/datasets/csi_datasets/ms_benchmarking/msms_figures/Khang_config.R")
+source("/Users/khangl/UiO Dropbox/Khang Le Quy/CSI/datasets/csi_datasets/ms_benchmarking/msms_figures/utils.R")
+library(corrplot)
+library(ggfortify)
+library(GGally)
+```
+
+```{r message=FALSE}
+cdr3 <- read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv"))
+sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
+
+df <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
+df <- df[df$is_not_contamination, ]
+
+# Read the sample number and replicates
+sample_number <- read_tsv(file.path(metadata_path, "rawfiles_description_wo_blanks.tsv"))
+sample_number <- sample_number %>% group_by(Sample, Protease, run) %>% 
+  mutate(replicate = row_number())
+
+df <- left_join(df, sample_number[,c(1,5)])
+```
+
+# Panel A: Number of unique peptides per experimental replicate
+
+```{r}
+n_unique_peptide_vdj <- df %>% group_by(run) %>% summarize(n_peptide = length(unique(Sequence)))
+n_unique_peptide_cdr3 <-df %>% filter(is_cdr3_related == TRUE) %>% group_by(run) %>% summarize(n_peptide = length(unique(Sequence)))
+```
+
+```{r fig.height=4, fig.width=4}
+ggplot(data = n_unique_peptide_vdj, aes(x = run, y = n_peptide, fill = run)) +
+  geom_col(width = 0.8) +
+  geom_text(aes(label = n_peptide), vjust = -0.2) +
+  scale_fill_manual(values = c("#48cae4", "#0096c7", "#0077B6", "#03045E")) +
+  scale_x_discrete(labels = c("1", "2", "3", "4")) +
+  labs(x = "Experimental replicate", y = "Number of unique peptide sequences") +
+  theme_bw() +
+  theme(legend.position = "none")
+```
+
+```{r fig.height=4, fig.width=4}
+ggplot(data = n_unique_peptide_cdr3, aes(x = run, y = n_peptide, fill = run)) +
+  geom_col(width = 0.8) +
+  geom_text(aes(label = n_peptide), vjust = -0.2) +
+  scale_fill_manual(values = c("#48cae4", "#0096c7", "#0077B6", "#03045E")) +
+  scale_x_discrete(labels = c("1", "2", "3", "4")) +
+  labs(x = "Experimental replicate", y = "Number of unique peptide sequences") +
+  theme_bw() +
+  theme(legend.position = "none")
+```
+
+
+```{r fig.height=7, fig.width=7}
+ggplot(data = df, aes(x = factor(replicate), y = log10(intensity))) +
+  geom_point(aes(color = tool), shape = 21, size = 0.1, stroke = 0.1, position = position_jitterdodge(), show.legend = F) +
+  scale_color_manual(values = c("#00858a", "#e46e00")) +
+  geom_boxplot(aes(fill = tool), width = 0.75, outlier.size = 0.5, outlier.shape = NA) +
+  geom_text(data = median_intensity %>% filter(tool == "MaxQuant"), aes(x = factor(replicate), y = 3, label = round(median,2)), color = "#00858a") +
+  geom_text(data = median_intensity %>% filter(tool == "MSFragger"), aes(x = factor(replicate), y = 2, label = round(median,2)), color = "#e46e00") +
+  scale_fill_manual(values = c("#00858a", "#e46e00")) +
+  facet_grid(run~factor(Protease, levels = c("Tryp", "Ct", "Ct+Tryp", "AspN"))) +
+  theme_bw() +
+  theme(legend.position = "bottom", strip.background = element_blank(), strip.text = element_blank()) +
+  labs(x = "Technical replicate", y = "log10 MS signal intensity", fill = "Tool")
+
+#ggsave("./figures/log10SI.png", height = 7, width = 7, dpi = 600)
+```
+# Panel B: Pearson correlation of intensity between replicates (with missing peptides in other replicates as zeroes), separate MQ and MSF
+```{r}
+# Fill in the missing intensity values for the same peptides across all runs and reps
+df_complete <- df %>% select(Sample, Sequence, Protease, tool, run, replicate, intensity)
+df_complete$run <- factor(str_remove_all(df_complete$run, "run"))
+df_complete$tool <- factor(df_complete$tool, levels = c("MaxQuant", "MSFragger"))
+df_complete <- distinct(df_complete)
+
+df_complete_mq <- df_complete %>% filter(tool == "MaxQuant")
+df_complete_msf <- df_complete %>% filter(tool == "MSFragger")
+
+df_complete <- df_complete %>% group_by(Sample, Sequence, Protease) %>% 
+  complete(run, replicate, tool, fill = list(intensity = 0), explicit = FALSE)
+
+df_complete_mq <- df_complete_mq %>% group_by(Sample, Sequence, Protease) %>% 
+  complete(run, replicate, fill = list(intensity = 0), explicit = FALSE)
+
+df_complete_msf <- df_complete_msf %>% group_by(Sample, Sequence, Protease) %>% 
+  complete(run, replicate, fill = list(intensity = 0), explicit = FALSE)
+
+# Split the df into smaller df by groups of tech-exp rep, separate by MQ and MSF
+#df_split <- df_complete %>% group_by(run, replicate, tool) %>% group_split()
+df_split_mq <- df_complete_mq %>% group_by(run, replicate) %>% group_split()
+df_split_msf <- df_complete_msf %>% group_by(run, replicate) %>% group_split()
+
+#df_complete %>% group_by(run, replicate, tool) %>% group_keys()
+
+names(df_split_mq) <- sort(as.vector(outer(c("run1", "run2", "run3", "run4"),
+                                               c("rep1", "rep2", "rep3"),
+                                               FUN = paste, sep = "_")))
+names(df_split_msf) <- sort(as.vector(outer(c("run1", "run2", "run3", "run4"),
+                                               c("rep1", "rep2", "rep3"),
+                                               FUN = paste, sep = "_")))
+
+# Keep only rows where it is common in all sets
+df_split_mq <- map(df_split_mq, function(x) x %>% select(Sample, Sequence, Protease, intensity))
+df_split_mq <- map(df_split_mq, function(x) x %>% mutate(everything = paste0(Sample, Sequence, Protease)))
+df_split_mq <- map(df_split_mq, function(x) x %>% distinct(everything, .keep_all = T) %>% arrange(everything))
+
+df_split_msf <- map(df_split_msf, function(x) x %>% select(Sample, Sequence, Protease, intensity))
+df_split_msf <- map(df_split_msf, function(x) x %>% mutate(everything = paste0(Sample, Sequence, Protease)))
+df_split_msf <- map(df_split_msf, function(x) x %>% distinct(everything, .keep_all = T) %>% arrange(everything))
+
+
+#cor(df_split$run2_rep1_MQ$intensity, df_split$run2_rep3_MQ$intensity, method = "pearson")
+
+# Create an empty matrix to store the correlation results
+pearson_matrix_mq <- matrix(NA, ncol = 12, nrow = 12)
+pearson_matrix_msf <- matrix(NA, ncol = 12, nrow = 12)
+
+# Name the rows and columns of the correlation matrix
+rownames(pearson_matrix_mq) <- colnames(pearson_matrix_mq) <- names(df_split_mq)
+rownames(pearson_matrix_msf) <- colnames(pearson_matrix_msf) <- names(df_split_msf)
+
+
+# Make a for loop to calculate pairwise pearson correlation with repeats
+# For every comparison, remove the (0,0) values to get the correct results
+# Nested loop to perform pairwise correlation
+for (i in 1:length(df_split_mq)) {
+  for (j in 1:length(df_split_mq)) {
+    idx <- which(df_split_mq[[i]]$intensity != 0 | df_split_mq[[j]]$intensity != 0)
+    pearson_matrix_mq[i,j] <- cor(df_split_mq[[i]]$intensity[idx], df_split_mq[[j]]$intensity[idx], method = "pearson")
+  }
+}
+
+test <- which(df_split_mq[[2]]$intensity != 0 | df_split_mq[[6]]$intensity != 0)
+
+for (i in 1:length(df_split_msf)) {
+  for (j in 1:length(df_split_msf)) {
+    idx <- which(df_split_mq[[i]]$intensity != 0 | df_split_mq[[j]]$intensity != 0)
+    pearson_matrix_msf[i,j] <- cor(df_split_msf[[i]]$intensity[idx], df_split_msf[[j]]$intensity[idx], method = "pearson")
+  }
+}
+
+diag(pearson_matrix_mq) <- NA
+diag(pearson_matrix_msf) <- NA
+```
+
+```{r fig.height=5, fig.width=5}
+pdf(file = "figures/SI_pearson_mq.pdf", width = 5, height = 5)
+
+corrplot(pearson_matrix_mq, method = "color",  
+         type = "lower", #order = "hclust", #hclust.method = "complete",
+         addCoef.col = "black", number.cex = 0.8, # Add coefficient of correlation
+         tl.col = "black", tl.srt = 45, tl.offset = 0.4, #Text label color and rotation
+         cl.pos = "n", # No legend
+         # Combine with significance
+         #p.mat = p.mat, sig.level = 0.01, insig = "blank", 
+         # hide correlation coefficient on the principal diagonal
+         diag = FALSE )
+
+dev.off()
+```
+
+```{r fig.height=5, fig.width=5}
+pdf(file = "figures/SI_pearson_msf.pdf", width = 5, height = 5)
+
+corrplot(pearson_matrix_msf, method = "color",  
+         type = "upper", #order = "hclust", #hclust.method = "complete",
+         addCoef.col = "black", number.cex = 0.8, # Add coefficient of correlation
+         tl.col = "black", tl.srt = 45, tl.offset = 0.4, #Text label color and rotation
+         cl.pos = "n", # No legend
+         # Combine with significance
+         #p.mat = p.mat, sig.level = 0.01, insig = "blank", 
+         # hide correlation coefficient on the principal diagonal
+         diag = FALSE )
+
+dev.off()
+```
+
+```{r}
+# Custom function to calculate correlation excluding (0,0) pairs
+cor_without_zeros <- function(data){
+  df_filtered <- data[!(data[,1] == 0 & data[,2] == 0), ]
+  cor(df_filtered[, 1], df_filtered[, 2], method = "pearson")
+}
+```
+
+
+```{r fig.height=20, fig.width=20}
+# Scatterplot of a few examples to check the correlation values
+ggpairs(as.data.frame(t(df_complete_mat_mq)), 
+        #upper = list(continuous = cor_without_zeros)
+        ) +
+  xlim(1, max(df_complete_mat_mq)) +
+  ylim(1, max(df_complete_mat_mq)) +
+  theme_bw()
+```
+
+```{r fig.height=20, fig.width=20}
+# Scatterplot of a few examples to check the correlation values
+ggpairs(as.data.frame(t(df_complete_mat_msf))) +
+  theme_bw()
+```
+
+# Panel C: PCA of signal intensities
+```{r}
+# Create row labels from Sample, Sequence, Protease and column labels from run, replicate
+df_complete_mat <- df_complete
+df_complete_mat$Sample_Sequence_Protease <- paste(df_complete_mat$Sample,
+                                                  df_complete_mat$Sequence,
+                                                  df_complete_mat$Protease,
+                                                  sep = "_")
+df_complete_mat$run_replicate <- paste(df_complete_mat$run,
+                                       df_complete_mat$replicate,
+                                       sep = "_")
+
+df_complete_mat_mq <- df_complete_mat %>% filter(tool == "MaxQuant")
+df_complete_mat_msf <- df_complete_mat %>% filter(tool == "MSFragger")
+
+# Create a matrix where each run_replicate is a variable
+df_complete_mat_mq <- as.matrix(df_complete_mat_mq %>% pivot_wider(names_from = Sample_Sequence_Protease, id_cols = run_replicate, values_from = intensity, values_fn = mean) %>% column_to_rownames(var = "run_replicate"))
+df_complete_mat_msf <- as.matrix(df_complete_mat_msf %>% pivot_wider(names_from = Sample_Sequence_Protease, id_cols = run_replicate, values_from = intensity, values_fn = mean) %>% column_to_rownames(var = "run_replicate"))
+
+# Remove columns that have all 0 values (peptides only in MQ or MSF)
+df_complete_mat_mq <- df_complete_mat_mq[,apply(df_complete_mat_mq, 2, function(x) any(x != 0))]
+df_complete_mat_msf <- df_complete_mat_msf[,apply(df_complete_mat_msf, 2, function(x) any(x != 0))]
+
+```
+
+```{r}
+pc_mq <- prcomp(df_complete_mat_mq, center = TRUE, scale. = TRUE)
+print(pc_mq)
+summary(pc_mq)
+
+pc_msf <- prcomp(df_complete_mat_msf, center = TRUE, scale. = TRUE)
+print(pc_msf)
+summary(pc_msf)
+
+# Create a df to coloring the pca biplot
+color_df <- tibble(run_replicate = unique(df_complete_mat$run_replicate),
+                   color = rep(c("#90E0EF", "#00B4D8", "#0077B6", "#03045E"), each = 3))
+```
+
+```{r fig.height=4, fig.width=4}
+pdf(file = "figures/SI_pca_mq.pdf", width = 4, height = 4)
+
+autoplot(pc_mq, label = TRUE, data = color_df, colour = "run_replicate", label.size = 3, label.repel = TRUE, label.vjust = 0.2) +
+  theme_bw() +
+  scale_color_manual(values = color_df$color) +
+  theme(legend.position = "none")
+
+dev.off()
+```
+
+```{r fig.height=4, fig.width=4}
+pdf(file = "figures/SI_pca_msf.pdf", width = 4, height = 4)
+
+autoplot(pc_msf, label = TRUE, data = color_df, colour = "run_replicate", label.size = 3, label.repel = TRUE, label.vjust = 0.1) +
+  theme_bw() +
+  scale_color_manual(values = color_df$color) +
+  theme(legend.position = "none")
+
+dev.off()
+```

@@ -69,8 +69,8 @@ print(nrow(df))
 ```{r fig.height=4, fig.width=7}
 ggplot(data = df, aes(x = search_engine_score)) +
   geom_histogram(fill = "#6a3e37", color = "black", binwidth = 0.1, boundary = -1.0) +
-  scale_x_continuous(breaks = seq(-1.0, 1.0, by = 0.1)) +
-  theme_classic() +
+  scale_x_continuous(breaks = seq(-1.0, 1.0, by = 0.2)) +
+  theme_classic(base_size = 16) +
   labs(x = "Casanovo prediction score", y = "Peptide count")
 
 #ggsave("./Casanovo_score_dist.pdf", height = 4, width = 7, dpi = 600)
@@ -147,9 +147,12 @@ ggplot(data = threshold_count, aes(y = n_ab_peptides, x = n_peptides)) +
   geom_line(color = "#6a3e37") +
   geom_point(aes(color = score_threshold), size = 3) +
   geom_vline(xintercept = 1038994, linetype = 2) +
+  geom_text(aes(label = n_ab_peptides), vjust = -0.3) +
   scale_color_brewer(type = "seq", palette = 6, direction = 1) +
-  theme_bw() +
-  labs(x = "Number of peptides", y = "Number of antibody peptides", color = "Score threshold")
+  theme_bw(base_size = 16) +
+  theme(legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"),
+        legend.box.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")) +
+  labs(x = "Number of peptides", y = "Number of antibody peptides", color = "Threshold")
 
 #ggsave("./Casanovo_score_cutoff.pdf", height = 4, width = 7, dpi = 600)
 ```

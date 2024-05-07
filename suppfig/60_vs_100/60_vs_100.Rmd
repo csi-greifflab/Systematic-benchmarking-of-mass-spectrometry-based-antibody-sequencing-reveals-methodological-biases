@@ -187,17 +187,17 @@ df_count$Enzyme <- factor(df_count$Enzyme, levels = c("Ct", "Tryp", "Ct+Tryp"))
 ```
 
 ```{r fig.height=6, fig.width=6}
-p_count <- ggplot(df_count, aes(x = factor(Match, levels = c("PGDM1400_HC", "PGDM1400_LC", "IMGT", "immuneSIM", "IGoR", "UniProt")), y = Count)) +
+ggplot(df_count, aes(x = factor(Match, levels = c("PGDM1400_HC", "PGDM1400_LC", "IMGT", "immuneSIM", "IGoR", "UniProt")), y = Count)) +
   geom_col(aes(fill = Samples_per_day), position = "dodge", color = "black") +
   geom_text(aes(label = Count, group = Samples_per_day), position = position_dodge(width = .9), vjust = -0.3, size = 2.5) +
   scale_fill_manual(values = c("#FDBF6F", "#FF7F00")) +
   scale_y_log10(limits = c(1, 1500)) +
-  facet_grid(factor(Enzyme, levels = c("Ct+Tryp", "Tryp", "Ct")) ~ Tool) +
+  facet_grid(factor(Enzyme, levels = c("Tryp", "Ct", "Ct+Tryp")) ~ Tool) +
   labs(x = "Database match", y = "Number of peptides", fill = "Throughput (samples per day)") +
   theme_classic() +
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 90, hjust = 0.95, vjust = 0.2),
         strip.text.y = element_text(angle = 270))
 
-p_count
-#ggsave("./figures/p_count_60_vs_100.pdf", p_count,  dpi = 600, height = 6, width = 6)
+
+#ggsave("./figures/p_count_60_vs_100.pdf",  dpi = 600, height = 6, width = 6)
 ```

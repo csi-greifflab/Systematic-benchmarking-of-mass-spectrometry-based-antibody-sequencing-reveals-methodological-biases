@@ -14,7 +14,10 @@ library(ggbeeswarm)
 library(circlize)
 library(combinat)
 library(tidyverse)
+library(rstatix)
+library(ggpubr)
 
+#project_path <- "D:/Dropbox (UiO)/CSI/datasets/csi_datasets/ms_benchmarking/msms_figures"
 project_path <- "/Users/khangl/UiO Dropbox/Khang Le Quy/CSI/datasets/csi_datasets/ms_benchmarking/msms_figures"
 
 source(file.path(project_path, "data/preprocessing_functions.R"))

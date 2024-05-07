@@ -1,11 +1,12 @@
 ---
-title: "Figure 3"
+title: "MS benchmarking Figure 3"
 output: pdf_document
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
-source("../my_config.R")
-library(ggbeeswarm)
+source("../Khang_config.R")
 ```
 
 ```{r include=FALSE}
@@ -21,6 +22,7 @@ replicate_subsets <- unlist(lapply(1:4, combn, x = paste0("run", 1:4), simplify 
 ```
 
 ```{r}
+# Calculate VDJ and CDR3 coverage for each sample for every combination of exp replicates
 res <- data.frame()
 # Calculate coverage for each sample, iterate by rep combn
 for (i in 1:length(replicate_subsets)) {
@@ -31,7 +33,7 @@ for (i in 1:length(replicate_subsets)) {
     # choose the correct runs and filter for the correct sample
     subset <- replicate_subsets[[i]]
     df_tmp <- df[df$run %in% subset & df$Sample == sample, ]
-    
+    # Calculate the coverage
     if (length(abs_ref)) {
       coverage <- sapply(X = abs_ref, FUN = get_coverage_percent, 
                        peptides_vector = df_tmp$Sequence, annotation = cdr3, mode = "both")
@@ -43,12 +45,13 @@ for (i in 1:length(replicate_subsets)) {
     }
   }
 }
-
+# Convert the subset into factors
 res$subset <- factor(res$subset,
     levels = unlist(lapply(replicate_subsets, function(x) {paste0(x, collapse = " ")})) ,ordered = TRUE)
 ```
 
 ```{r}
+# Add metadata about mAb input
 concentrations <- data.frame(read_tsv(file.path(metadata_path, "concentration_matrix.tsv")))
 concentrations$sample <- 1:70
 colnames(concentrations)[1:2] <- c("h9C12-Q97A", "h9C12-WT")
@@ -59,7 +62,10 @@ res <- merge(res, concentrations, by = c("sample", "sequence_name"), all.x = T)
 # Count the number of runs merged
 res$subset_count <- str_count(res$subset, "run")
 res$sequence_name <- factor(res$sequence_name, levels = HC_names)
+```
 
+# Panel A,B: coverage of individual replicates and all replicates combined
+```{r}
 # Filter for only 1 run and all 4 runs combined
 res_2 <- res %>% filter(subset_count == 1 | subset_count == 4)
 res_2$subset <- factor(res_2$subset, levels = c("run1", "run2", "run3", "run4", "run1 run2 run3 run4"))
@@ -70,35 +76,56 @@ res_2_med$sequence_name <- factor(res_2_med$sequence_name, levels = HC_names)
 
 res_2_med_range <- res_2_med %>% group_by(value, sequence_name) %>% summarise(med_vdj_range = max(med_vdj) - min(med_vdj), med_cdr3_range = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, med_cdr3_range)
 
-res_2_iqr <- res_2 %>%  group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
+res_2_iqr <- res_2 %>% group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
 
-res_2_iqr_mean <- res_2_iqr %>% group_by(sequence_name, value) %>% summarise(mean_iqr_vdj = mean(iqr_vdj), mean_iqr_cdr3 = mean(iqr_cdr3)) %>% arrange(value, mean_iqr_cdr3)
+res_2_iqr_med <- res_2_iqr %>% group_by(sequence_name, value) %>% summarise(med_iqr_vdj = median(iqr_vdj), med_iqr_cdr3 = median(iqr_cdr3)) %>% arrange(value, med_iqr_cdr3)
 
 color_x_tick <- ifelse(res_2$subset == "run3", "#e6007e", "black")
 ```
 
-# Panel A,B: coverage of individual replicates and all replicates combined
+```{r}
+# Exclude the 4 reps merged subset
+res_3 <- res_2 %>% filter(subset_count == 1)
+res_3$subset <- factor(res_3$subset, levels = c("run1", "run2", "run3", "run4"))
+
+# Kruskal Wallis test on the vdj coverage rank of the replicates (exclude 4 merged)
+#kruskal_vdj <- res_3 %>% group_by(value, sequence_name) %>% kruskal_test(vdj~subset)
+##kruskal_vdj_signif <- kruskal_vdj %>% filter(p <= 0.05)
+#group_keys_df <- kruskal_vdj_signif %>% group_by(value, sequence_name) %>% group_keys()
+
+# In the groups with difference, pairwise comparison with multiple testing correction
+#rep_pwc_vdj <- res_3 %>% semi_join(group_keys_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% wilcox_test(vdj~subset, p.adjust.method = "fdr")
+
+
+# Auto add coordinates for plotting
+#rep_pwc_vdj <- rep_pwc_vdj %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.05)
+
+#rep_pwc_vdj
+```
+
+
 ```{r fig.height=7, fig.width=6}
-p_vdj <- ggplot(res_2, aes(x = subset, y = vdj, fill = subset)) +
-  geom_boxplot(width = 0.5, outlier.shape = NA) +
+ggplot(res_2, aes(x = subset, y = vdj)) +
+  geom_boxplot(aes(fill = subset), width = 0.5, outlier.shape = NA) +
   scale_x_discrete(labels = c("1", "2", "3", "4", "Σ")) +
+  scale_y_continuous(breaks = seq (0,100, by = 25), limits = c(-10,150)) +
   scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff", "#e6007e")) +
   facet_grid(sequence_name ~ value) +
   geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
   geom_text(data = res_2_med, aes(y = -10, label = round(med_vdj, 2)), size = 2) +
+  #stat_kruskal_test(data = res_3, group.by = c("value", "sequence_name"), p.adjust.method = "BH", label.y = 140, size = 2, hjust = -0.05) +
+  #stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5, color = color_x_tick),
         legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()) +
   labs(x = "Experimental replicate", y = "VDJ coverage (%)")
 
-p_vdj
-
-#ggsave("./figure/HC_vdj.png", p_vdj, height = 7, width = 6, dpi = 600)
+#ggsave("./figure/HC_vdj.png", height = 7, width = 6, dpi = 600)
 ```
 
 ```{r fig.height=7, fig.width=6}
-p_cdr3 <- ggplot(res_2, aes(x = subset, y = cdr3, fill = subset)) +
+ggplot(res_2, aes(x = subset, y = cdr3, fill = subset)) +
   geom_boxplot(width = 0.5, outlier.shape = NA) +
   scale_x_discrete(labels = c("1", "2", "3", "4", "Σ")) +
   scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff", "#e6007e")) +
@@ -111,9 +138,7 @@ p_cdr3 <- ggplot(res_2, aes(x = subset, y = cdr3, fill = subset)) +
         strip.text.x = element_blank(), strip.text.y = element_blank()) +
   labs(x = "Experimental replicate", y = "CDRH3 coverage (%)")
 
-p_cdr3
-
-#ggsave("./figure/HC_cdr3.png", p_cdr3, height = 7, width = 6, dpi = 600)
+#ggsave("./figure/HC_cdr3.png", height = 7, width = 6, dpi = 600)
 ```
 
 # Panel C,D: coverage of cumulatively merged replicates
@@ -128,43 +153,81 @@ res_med_range <- res_med %>% group_by(value, sequence_name) %>% summarise(med_vd
 
 res_med_step <- res_med %>% group_by(sequence_name, value) %>% summarise(med_vdj_diff = diff(med_vdj), med_cdr3_diff = diff(med_cdr3)) %>% group_by(sequence_name, value) %>% summarise(avg_med_vdj_diff = mean(med_vdj_diff), avg_med_cdr3_diff = mean(med_cdr3_diff)) %>% arrange(value, avg_med_vdj_diff)
 
-res_iqr <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
+#res_iqr <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
 
-res_iqr_mean <- res_iqr %>% group_by(sequence_name, value) %>% summarise(mean_iqr_vdj = mean(iqr_vdj), mean_iqr_cdr3 = mean(iqr_cdr3)) %>% arrange(value, mean_iqr_cdr3)
+#res_iqr_mean <- res_iqr %>% group_by(sequence_name, value) %>% summarise(mean_iqr_vdj = mean(iqr_vdj), mean_iqr_cdr3 = mean(iqr_cdr3)) %>% arrange(value, mean_iqr_cdr3)
 ```
 
+
+```{r}
+# Kruskal Wallis test on the vdj coverage rank of the replicates (exclude 4 merged)
+kruskal_vdj <- res %>% group_by(value, sequence_name) %>% kruskal_test(vdj~subset_count)
+
+# Adjust p-value for multiple testing
+kruskal_vdj$p <- p.adjust(kruskal_vdj$p, method = "BH")
+kruskal_vdj_signif <- kruskal_vdj %>% filter(p <= 0.05)
+
+# Retain the group keys for significant p-values
+group_keys_df <- kruskal_vdj_signif %>% group_by(value, sequence_name) %>% group_keys()
+
+# In the groups with difference, pairwise comparison with multiple testing correction (only between 1, 2, 3 merged vs 4 merged)
+rep_pwc_vdj <- res %>% semi_join(group_keys_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% wilcox_test(vdj~subset_count, comparisons = list(c(1, 4), c(2, 4), c(3, 4)), p.adjust.method = "BH")
+
+# Auto add coordinates for plotting
+rep_pwc_vdj <- rep_pwc_vdj %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
+rep_pwc_vdj$y.position <- rep_pwc_vdj$y.position+5
+
+# Kruskal Wallis test on the cdr3 coverage rank of the replicates (exclude 4 merged)
+kruskal_cdr3 <- res %>% group_by(value, sequence_name) %>% kruskal_test(cdr3~subset_count)
+
+# Adjust p-value for multiple testing
+kruskal_cdr3$p <- p.adjust(kruskal_cdr3$p, method = "BH")
+kruskal_cdr3_signif <- kruskal_cdr3 %>% filter(p <= 0.05)
+
+# Retain the group keys for significant p-values
+group_keys_df <- kruskal_cdr3_signif %>% group_by(value, sequence_name) %>% group_keys()
+
+# In the groups with difference, pairwise comparison with multiple testing correction (only between 1, 2, 3 merged vs 4 merged)
+rep_pwc_cdr3 <- res %>% semi_join(group_keys_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% wilcox_test(cdr3~subset_count, comparisons = list(c(1, 4), c(2, 4)), p.adjust.method = "BH")
+
+# Auto add coordinates for plotting
+rep_pwc_cdr3 <- rep_pwc_cdr3 %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
+rep_pwc_cdr3$y.position <- rep_pwc_cdr3$y.position+5
+```
+
+
 ```{r fig.height=7, fig.width=6}
-p_vdj_merged <- ggplot(res, aes(x = as.factor(subset_count), y = vdj, fill = as.factor(subset_count))) +
-  geom_boxplot(width = 0.5, outlier.shape = NA) +
+ggplot(res, aes(x = as.factor(subset_count), y = vdj)) +
+  geom_boxplot(aes(fill = as.factor(subset_count)), width = 0.5, outlier.shape = NA) +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
   geom_text(data = res_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
+  stat_kruskal_test(data = res, group.by = c("value", "sequence_name"), p.adjust.method = "BH", label = "KW, p.adj = {p.adj}", label.y = 125, size = 2, hjust = -0.3, vjust = 0.3) +
+  stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
   theme_bw() +
   scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()) +
   labs(x = "Number of experimental replicates merged", y = "VDJ coverage (%)")
 
-p_vdj_merged
-
-#ggsave("./figure/HC_vdj_merged.png", p_vdj_merged, height = 7, width = 6, dpi = 600)
+#ggsave("./figure/HC_vdj_merged.png", height = 7, width = 6, dpi = 600)
 ```
 
 ```{r fig.height=7, fig.width=6}
-p_cdr3_merged <- ggplot(res, aes(x = as.factor(subset_count), y = cdr3, fill = as.factor(subset_count))) +
-  geom_boxplot(width = 0.5, outlier.shape = NA) +
+ggplot(res, aes(x = as.factor(subset_count), y = cdr3)) +
+  geom_boxplot(aes(fill = as.factor(subset_count)), width = 0.5, outlier.shape = NA) +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
   geom_text(data = res_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
+  stat_kruskal_test(data = res, group.by = c("value", "sequence_name"), p.adjust.method = "BH", label = "KW, p.adj = {p.adj}", label.y = 125, size = 2, hjust = -0.3, vjust = 0.4) +
+  stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
   theme_bw() +
   scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()) +
   labs(x = "Number of experimental replicates merged", y = "CDRH3 coverage (%)")
 
-p_cdr3_merged
-
-#ggsave("./figure/HC_CDR3_merged.png", p_cdr3_merged, height = 7, width = 6, dpi = 600)
+#ggsave("./figure/HC_CDR3_merged.png", height = 7, width = 6, dpi = 600)
 ```
 
 # Light chain supp figure
@@ -279,36 +342,72 @@ res_iqr <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequen
 res_iqr_mean <- res_iqr %>% group_by(sequence_name, value) %>% summarise(mean_iqr_vdj = mean(iqr_vdj), mean_iqr_cdr3 = mean(iqr_cdr3)) %>% arrange(value, mean_iqr_cdr3)
 ```
 
+```{r}
+# Kruskal Wallis test on the vdj coverage rank of the replicates (exclude 4 merged)
+kruskal_vdj <- res %>% group_by(value, sequence_name) %>% kruskal_test(vdj~subset_count)
+
+# Adjust p-value for multiple testing
+kruskal_vdj$p <- p.adjust(kruskal_vdj$p, method = "BH")
+kruskal_vdj_signif <- kruskal_vdj %>% filter(p <= 0.05)
+
+# Retain the group keys for significant p-values
+group_keys_df <- kruskal_vdj_signif %>% group_by(value, sequence_name) %>% group_keys()
+
+# In the groups with difference, pairwise comparison with multiple testing correction (only between 1, 2, 3 merged vs 4 merged)
+rep_pwc_vdj <- res %>% semi_join(group_keys_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% wilcox_test(vdj~subset_count, comparisons = list(c(1, 4), c(2, 4)), p.adjust.method = "BH")
+
+# Auto add coordinates for plotting
+rep_pwc_vdj <- rep_pwc_vdj %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
+rep_pwc_vdj$y.position <- rep_pwc_vdj$y.position+5
+
+# Kruskal Wallis test on the cdr3 coverage rank of the replicates (exclude 4 merged)
+kruskal_cdr3 <- res %>% group_by(value, sequence_name) %>% kruskal_test(cdr3~subset_count)
+
+# Adjust p-value for multiple testing
+kruskal_cdr3$p <- p.adjust(kruskal_cdr3$p, method = "BH")
+kruskal_cdr3_signif <- kruskal_cdr3 %>% filter(p <= 0.05)
+
+# Retain the group keys for significant p-values
+group_keys_df <- kruskal_cdr3_signif %>% group_by(value, sequence_name) %>% group_keys()
+
+# In the groups with difference, pairwise comparison with multiple testing correction (only between 1, 2, 3 merged vs 4 merged)
+rep_pwc_cdr3 <- res %>% semi_join(group_keys_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% wilcox_test(cdr3~subset_count, comparisons = list(c(1, 4), c(2, 4)), p.adjust.method = "BH")
+
+# Auto add coordinates for plotting
+rep_pwc_cdr3 <- rep_pwc_cdr3 %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
+rep_pwc_cdr3$y.position <- rep_pwc_cdr3$y.position+5
+```
+
 ```{r fig.height=7, fig.width=6}
-p_vdj_merged <- ggplot(res, aes(x = as.factor(subset_count), y = vdj, fill = as.factor(subset_count))) +
-  geom_boxplot(width = 0.5, outlier.shape = NA) +
+ggplot(res, aes(x = as.factor(subset_count), y = vdj)) +
+  geom_boxplot(aes(fill = as.factor(subset_count)), width = 0.5, outlier.shape = NA) +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
   geom_text(data = res_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
+  stat_kruskal_test(data = res, group.by = c("value", "sequence_name"), p.adjust.method = "BH", label = "KW, p.adj = {p.adj}", label.y = 125, size = 2, hjust = -0.3, vjust = 0.3) +
+  stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
   theme_bw() +
   scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()) +
   labs(x = "Number of experimental replicates merged", y = "VJ coverage (%)")
 
-p_vdj_merged
-
-#ggsave("./figure/LC_vdj_merged.png", p_vdj_merged, height = 7, width = 6, dpi = 600)
+#ggsave("./figure/LC_vdj_merged.png", height = 7, width = 6, dpi = 600)
 ```
 
 ```{r fig.height=7, fig.width=6}
-p_cdr3_merged <- ggplot(res, aes(x = as.factor(subset_count), y = cdr3, fill = as.factor(subset_count))) +
-  geom_boxplot(width = 0.5, outlier.shape = NA) +
+ggplot(res, aes(x = as.factor(subset_count), y = cdr3)) +
+  geom_boxplot(aes(fill = as.factor(subset_count)), width = 0.5, outlier.shape = NA) +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
   geom_text(data = res_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
+  stat_kruskal_test(data = res, group.by = c("value", "sequence_name"), p.adjust.method = "BH", label = "KW, p.adj = {p.adj}", label.y = 125, size = 2, hjust = -0.3, vjust = 0.4) +
+  stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
   theme_bw() +
   scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()) +
   labs(x = "Number of experimental replicates merged", y = "CDRL3 coverage (%)")
 
-p_cdr3_merged
-
-#ggsave("./figure/LC_CDR3_merged.png", p_cdr3_merged, height = 7, width = 6, dpi = 600)
+#ggsave("./figure/LC_CDR3_merged.png", height = 7, width = 6, dpi = 600)
 ```

@@ -33,11 +33,11 @@ blood_ann <- tibble(Sample = 1:70,
 blood_ann$blood[c(36:64,66)] <- FALSE
 df <- left_join(df, blood_ann, by = "Sample")
 
-# Create a df that compare two peptides with the same sequence, protease, tool, and mAb, but different sample number in an experimental replicate
+# Create a df that compare two peptides with the same sequence, protease, tool, and mAb, but different sample number in THE SAME experimental replicate
 # Create 3 categories for pairs of samples: 1 for both samples with blood, 2 for both samples without blood, 3 for one sample with and the other without blood
 res_ratio <- df %>%
   left_join(df, by = c("Sequence", "Protease", "tool", "match_ig_type"), relationship = "many-to-many") %>% 
-  subset(Rawfilenumber.x != Rawfilenumber.y) %>%
+  subset(Rawfilenumber.x != Rawfilenumber.y) %>% subset(run.x == run.y) %>% 
   summarise(Sequence = Sequence, 
             Protease = Protease, 
             tool = tool, 
@@ -143,14 +143,15 @@ MedianCI <- function (x, conf.level = 0.95, sides = c("two.sided", "left",
 
 # SIR on the heavy chain
 ```{r}
-res_ratio_hc <- res_ratio %>% filter(str_detect(match_ig_type, "_HC"))
-res_ratio_hc_med_blood <- res_ratio_hc %>% filter(blood_state == "blood") %>% group_by(match_ig_type, Protease, conc_ratio, blood_state) %>% summarise(sir_med_vdj = median(intensity_ratio))
-res_ratio_hc_med_noblood <- res_ratio_hc %>% filter(blood_state == "no blood") %>% group_by(match_ig_type, Protease, conc_ratio, blood_state) %>% summarise(sir_med_vdj = median(intensity_ratio))
-res_ratio_hc_med_mixed <- res_ratio_hc %>% filter(blood_state == "mixed") %>% group_by(match_ig_type, Protease, conc_ratio, blood_state) %>% summarise(sir_med_vdj = median(intensity_ratio))
+res_ratio_hc <- res_ratio %>% filter(str_detect(match_ig_type, "_HC")) %>% filter(Protease != "AspN")
+
+res_ratio_hc_med_blood <- res_ratio_hc %>% filter(blood_state == "blood") %>% group_by(match_ig_type, Protease, conc_ratio, blood_state, run1) %>% summarise(sir_med_vdj = median(intensity_ratio))
+res_ratio_hc_med_noblood <- res_ratio_hc %>% filter(blood_state == "no blood") %>% group_by(match_ig_type, Protease, conc_ratio, blood_state, run1) %>% summarise(sir_med_vdj = median(intensity_ratio))
+res_ratio_hc_med_mixed <- res_ratio_hc %>% filter(blood_state == "mixed") %>% group_by(match_ig_type, Protease, conc_ratio, blood_state, run1) %>% summarise(sir_med_vdj = median(intensity_ratio))
 
 # Calculate the confidence interval for the median signal intensity on the heavy chain peptides
 ci_hc <- res_ratio_hc %>%
-  group_by(match_ig_type, Protease, conc_ratio, blood_state) %>%
+  group_by(match_ig_type, Protease, conc_ratio, blood_state, run1) %>%
   summarize(lwr.ci = MedianCI(intensity_ratio)[2], med = MedianCI(intensity_ratio)[1], upr.ci = MedianCI(intensity_ratio)[3])
 
 pd <- position_dodge(0.5)
@@ -193,27 +194,52 @@ ggplot(res_ratio_hc %>% filter(blood_state == 1), aes(x = factor(conc_ratio), y 
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 ```
 
-# SIR of all samples by present of blood in each sample pair: blood (1), non-blood (2) or mixed (3)
-```{r fig.height=8, fig.width=10}
-ggplot(res_ratio_hc, aes(x = factor(conc_ratio), y = intensity_ratio)) +
-  #geom_violin(aes(color = blood_state), width = 0.9, lwd = 0.3, outlier.shape = NA) +
-  geom_point(aes(color = blood_state), shape = 21, size = 0.1, stroke = 0.1, position = position_jitterdodge()) +
-  geom_boxplot(aes(color = blood_state), width = 0.8, lwd = 0.3, outlier.shape = NA) +
+# SIR of all samples by presence of blood in each sample pair: non-blood or blood
+```{r fig.height=8, fig.width=12}
+ggplot(res_ratio_hc %>% filter(blood_state == "blood"), aes(x = factor(conc_ratio), y = intensity_ratio)) +
+  #geom_violin(aes(color = run1), width = 0.9, lwd = 0.3, outlier.shape = NA) +
+  geom_point(aes(color = run1), shape = 21, size = 0.1, stroke = 0.05, position = position_jitterdodge()) +
+  geom_boxplot(aes(color = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
   scale_y_log10(breaks = 10^(-3:4), labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
   geom_hline(yintercept=1, linetype="dotted", color = "#909090") +
   geom_hline(yintercept=10, linetype="dotted", color = "#909090") +
   geom_hline(yintercept=100, linetype="dotted", color = "#909090") +
   geom_hline(yintercept=1000, linetype="dotted", color = "#909090") +
-  scale_color_manual(values = c("#DE4328", "#DE9E28","#000000")) +
-  #scale_fill_manual(values = c("#DE4328", "#DE9E28","#000000")) +
-  geom_text(data = res_ratio_hc_med_blood, aes(x = factor(conc_ratio), y = 0.00001, label = round(sir_med_vdj,1)), color = "#DE4328", size = 2) +
- geom_text(data = res_ratio_hc_med_mixed, aes(x = factor(conc_ratio), y = 0.00001, label = round(sir_med_vdj,1)), color = "#DE9E28", size = 2) +
-  geom_text(data = res_ratio_hc_med_noblood, aes(x = factor(conc_ratio), y = 0.00001, label = round(sir_med_vdj,1)), color = "#000000", size = 2) +
-  facet_grid(factor(match_ig_type, levels = HC_names) ~ Protease + blood_state) +
+  scale_color_manual(values = c("#48cae4", "#0096c7", "#0077B6", "#03045E")) +
+  geom_text(data = res_ratio_hc_med_blood, aes(x = factor(conc_ratio), y = 0.0001, label = round(sir_med_vdj,1), color = run1), size = 2) +
+  facet_grid(factor(match_ig_type, levels = HC_names) ~ factor(Protease, levels = c("Tryp", "Ct", "Ct+Tryp")) + run1) +
   theme_classic() +
-  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90), strip.text.y = element_blank()) +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90), 
+        strip.text.x = element_blank(), strip.text.y = element_blank()
+        ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
+
+#ggsave("./figures/sir_blood.png", height = 8, width = 12, dpi = 600)
 ```
+
+```{r fig.height=8, fig.width=12}
+ggplot(res_ratio_hc %>% filter(blood_state == "no blood"), aes(x = factor(conc_ratio), y = intensity_ratio)) +
+  #geom_violin(aes(color = run1), width = 0.9, lwd = 0.3, outlier.shape = NA) +
+  geom_point(aes(color = run1), shape = 21, size = 0.1, stroke = 0.05, position = position_jitterdodge()) +
+  geom_boxplot(aes(color = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
+  scale_y_log10(breaks = 10^(-3:4), labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
+  geom_hline(yintercept=1, linetype="dotted", color = "#909090") +
+  geom_hline(yintercept=10, linetype="dotted", color = "#909090") +
+  geom_hline(yintercept=100, linetype="dotted", color = "#909090") +
+  geom_hline(yintercept=1000, linetype="dotted", color = "#909090") +
+  scale_color_manual(values = c("#48cae4", "#0096c7", "#0077B6", "#03045E")) +
+  geom_text(data = res_ratio_hc_med_noblood, aes(x = factor(conc_ratio), y = 0.0001, label = round(sir_med_vdj,1), color = run1), size = 2) +
+  facet_grid(factor(match_ig_type, levels = HC_names) ~ factor(Protease, levels = c("Tryp", "Ct", "Ct+Tryp")) + run1) +
+  theme_classic() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90), 
+        strip.text.x = element_blank(), strip.text.y = element_blank()
+        ) +
+  labs(x = "mAb input ratio", y = "MS signal intensity ratio")
+
+#ggsave("./figures/sir_noblood.png", height = 8, width = 12, dpi = 600)
+```
+
+# Unused
 
 ```{r fig.height=10, fig.width=10}
 ggplot(res_ratio_hc, aes(x = factor(conc_ratio), y = intensity_ratio)) +
@@ -249,24 +275,70 @@ ggplot(res_ratio_hc, aes(x = factor(conc_ratio), y = intensity_ratio)) +
 #ggsave("./figures/sir_blood_nolabel.png", height = 10, width = 10, dpi = 600)
 ```
 
-# Unused
-```{r fig.height=8, fig.width=10}
-ggplot(data = ci_hc, aes(x = conc_ratio, y = med, colour = blood_state)) + 
+```{r fig.height=10, fig.width=14}
+ggplot(data = ci_hc %>% filter(blood_state == "no blood"), aes(x = conc_ratio, y = med, colour = run1)) + 
   geom_errorbar(aes(ymin = lwr.ci, ymax = upr.ci), width = 0.1, position = pd) +
   geom_line(aes(x = as.numeric(conc_ratio), y = med), position = pd) +
   geom_point(position = pd) +
-  facet_grid(factor(match_ig_type, levels = HC_names) ~ Protease + blood_state) +
+  facet_grid(factor(match_ig_type, levels = HC_names) ~ Protease + run1) +
   geom_hline(yintercept = 1, linetype = "dotted", color = "#909090") +
   geom_hline(yintercept = 10, linetype = "dotted", color = "#909090") +
   geom_hline(yintercept = 100, linetype = "dotted", color = "#909090") +
   geom_hline(yintercept = 1000, linetype = "dotted", color = "#909090") +
-  geom_text(aes(x = conc_ratio, y = lwr.ci, label = round(lwr.ci,1), color = blood_state), size = 2, vjust = 1.5, position = pd) +
-  geom_text(aes(x = conc_ratio, y = upr.ci, label = round(upr.ci,1), color = blood_state), size = 2, vjust = -0.5, position = pd) +
+  geom_text(aes(x = conc_ratio, y = lwr.ci, label = round(lwr.ci,1), color = run1), size = 2, vjust = 1.5, position = pd) +
+  geom_text(aes(x = conc_ratio, y = upr.ci, label = round(upr.ci,1), color = run1), size = 2, vjust = -0.5, position = pd) +
   #scale_y_continuous(breaks=-2:4) +
   scale_x_discrete(labels = c("1:1", "10:1", "100:1", "1000:1"), drop = FALSE) +
   scale_y_log10(breaks = 10^(-3:4), labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio") +
-  scale_color_manual(values = c("#DE4328", "#DE9E28","#000000")) +
+  #scale_color_manual(values = c("#DE4328", "#DE9E28","#000000")) +
   theme_classic() +
-  theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 0.95), strip.text.y = element_blank())
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 0.95),
+        #strip.text.y = element_blank()
+        )
+```
+```{r fig.height=10, fig.width=14}
+ggplot(data = ci_hc %>% filter(blood_state == "blood"), aes(x = conc_ratio, y = med, colour = run1)) + 
+  geom_errorbar(aes(ymin = lwr.ci, ymax = upr.ci), width = 0.1, position = pd) +
+  geom_line(aes(x = as.numeric(conc_ratio), y = med), position = pd) +
+  geom_point(position = pd) +
+  facet_grid(factor(match_ig_type, levels = HC_names) ~ Protease + run1) +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "#909090") +
+  geom_hline(yintercept = 10, linetype = "dotted", color = "#909090") +
+  geom_hline(yintercept = 100, linetype = "dotted", color = "#909090") +
+  geom_hline(yintercept = 1000, linetype = "dotted", color = "#909090") +
+  geom_text(aes(x = conc_ratio, y = lwr.ci, label = round(lwr.ci,1), color = run1), size = 2, vjust = 1.5, position = pd) +
+  geom_text(aes(x = conc_ratio, y = upr.ci, label = round(upr.ci,1), color = run1), size = 2, vjust = -0.5, position = pd) +
+  #scale_y_continuous(breaks=-2:4) +
+  scale_x_discrete(labels = c("1:1", "10:1", "100:1", "1000:1"), drop = FALSE) +
+  scale_y_log10(breaks = 10^(-3:4), labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
+  labs(x = "mAb input ratio", y = "MS signal intensity ratio") +
+  #scale_color_manual(values = c("#DE4328", "#DE9E28","#000000")) +
+  theme_classic() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 0.95), 
+        #strip.text.y = element_blank()
+        )
+```
+
+```{r fig.height=8, fig.width=10}
+ggplot(data = ci_hc, aes(x = conc_ratio, y = med, colour = run1)) + 
+  geom_errorbar(aes(ymin = lwr.ci, ymax = upr.ci), width = 0.1, position = pd) +
+  geom_line(aes(x = as.numeric(conc_ratio), y = med), position = pd) +
+  geom_point(position = pd) +
+  facet_grid(factor(match_ig_type, levels = HC_names) ~ Protease + run1) +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "#909090") +
+  geom_hline(yintercept = 10, linetype = "dotted", color = "#909090") +
+  geom_hline(yintercept = 100, linetype = "dotted", color = "#909090") +
+  geom_hline(yintercept = 1000, linetype = "dotted", color = "#909090") +
+  #geom_text(aes(x = conc_ratio, y = lwr.ci, label = round(lwr.ci,1), color = run1), size = 2, vjust = 1.5, position = pd) +
+  #geom_text(aes(x = conc_ratio, y = upr.ci, label = round(upr.ci,1), color = run1), size = 2, vjust = -0.5, position = pd) +
+  #scale_y_continuous(breaks=-2:4) +
+  scale_x_discrete(labels = c("1:1", "10:1", "100:1", "1000:1"), drop = FALSE) +
+  scale_y_log10(breaks = 10^(-3:4), labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
+  labs(x = "mAb input ratio", y = "MS signal intensity ratio") +
+  #scale_color_manual(values = c("#DE4328", "#DE9E28","#000000")) +
+  theme_classic() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 0.95), 
+        #strip.text.y = element_blank()
+        )
 ```
