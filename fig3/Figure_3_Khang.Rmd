@@ -290,6 +290,18 @@ res_2_med$sequence_name <- factor(res_2_med$sequence_name, levels = LC_names)
 
 color_x_tick <- ifelse(res_2$subset == "run3", "#e6007e", "black")
 ```
+```{r}
+# calculate the median and iqr range
+res_2_med <- res_2 %>%  group_by(sequence_name, subset, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
+res_2_med$sequence_name <- factor(res_2_med$sequence_name, levels = LC_names)
+
+res_2_med_range <- res_2_med %>% group_by(value, sequence_name) %>% summarise(med_vdj_range = max(med_vdj) - min(med_vdj), med_cdr3_range = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, med_cdr3_range)
+
+res_2_iqr <- res_2 %>% group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
+
+res_2_iqr_med <- res_2_iqr %>% group_by(sequence_name, value) %>% summarise(med_iqr_vdj = median(iqr_vdj), med_iqr_cdr3 = median(iqr_cdr3)) %>% arrange(value, med_iqr_cdr3)
+```
+
 
 ```{r fig.height=7, fig.width=6}
 p_vdj <- ggplot(res_2, aes(x = subset, y = vdj, fill = subset)) +
@@ -339,7 +351,7 @@ res_med_range <- res_med %>% group_by(value, sequence_name) %>% summarise(med_vd
 
 res_iqr <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
 
-res_iqr_mean <- res_iqr %>% group_by(sequence_name, value) %>% summarise(mean_iqr_vdj = mean(iqr_vdj), mean_iqr_cdr3 = mean(iqr_cdr3)) %>% arrange(value, mean_iqr_cdr3)
+res_iqr_med <- res_iqr %>% group_by(sequence_name, value) %>% summarise(med_iqr_vdj = median(iqr_vdj), med_iqr_cdr3 = median(iqr_cdr3)) %>% arrange(value, med_iqr_cdr3)
 ```
 
 ```{r}
