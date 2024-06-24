@@ -68,7 +68,7 @@ res_ratio$conc_ratio <- factor(res_ratio$conc_ratio)
 
 # Calculate the 95% CI and draw lineplots
 ```{r}
-# Functions to calculate the confidenec interval of the medians
+# Functions to calculate the confidence interval of the medians
 StripAttr <- function(x, attr_names = NULL) 
 {
     if (is.null(attr_names)) 

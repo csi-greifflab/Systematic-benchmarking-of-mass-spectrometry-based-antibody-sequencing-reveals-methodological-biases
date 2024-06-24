@@ -5,10 +5,10 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 source("../Khang_config.R")
-#library(smmr)
+library(RVAideMemoire)
 ```
 
-```{r}
+```{r include=FALSE}
 # Read the filtered data and removed peptides labelled contaminations
 df <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
 df <- df[df$is_not_contamination, ]
@@ -73,13 +73,15 @@ res$complexity_lvl <- ifelse(res$complexity > 1, "multiple", "single")
 res$sequence_name <- factor(res$sequence_name, levels = HC_names)
 ```
 
-# Panel A,B: blood vs non-blood: paired plot CDRH3 coverage comparison from sample pairs of exact same input amount and composition, facet by mAb and concentration (x: blood or non-blood, y: coverage %)
+# Panel B,C: blood vs non-blood: paired plot CDRH3 coverage comparison from sample pairs of exact same input amount and composition, facet by mAb and concentration (x: blood or non-blood, y: coverage %)
 
 ```{r}
 res_blood_med <- res %>% group_by(sequence_name, value, blood) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3))
 ```
 
 ```{r}
+## OBSOLETE, USE MOOD'S MEDIAN TEST INSTEAD
+
 # In the groups with difference, pairwise comparison with multiple testing correction (blood vs non-blood)
 rep_pwc_vdj <- res %>% group_by(value, sequence_name) %>% wilcox_test(vdj~blood, p.adjust.method = "BH")
 rep_pwc_vdj$p.adj <- p.adjust(rep_pwc_vdj$p, method = "BH")
@@ -88,13 +90,54 @@ rep_pwc_vdj$p.adj <- p.adjust(rep_pwc_vdj$p, method = "BH")
 rep_pwc_vdj <- rep_pwc_vdj %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
 #rep_pwc_vdj$y.position <- rep_pwc_vdj$y.position+5
 
-
 # In the groups with difference, pairwise comparison with multiple testing correction (blood vs non-blood)
 rep_pwc_cdr3 <- res %>% group_by(value, sequence_name) %>% wilcox_test(cdr3~blood, p.adjust.method = "BH")
 rep_pwc_cdr3$p.adj <- p.adjust(rep_pwc_cdr3$p, method = "BH")# Auto add coordinates for plotting
 rep_pwc_cdr3 <- rep_pwc_cdr3 %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
 #rep_pwc_cdr3$y.position <- rep_pwc_cdr3$y.position+5
 ```
+
+```{r}
+res_split <- res %>% group_by(value, sequence_name) %>% group_split()
+```
+
+
+```{r}
+# Wrap around the mood test to not stop if it encounters an error
+safe.mood.medtest <- function(...) {
+       obj<-try(mood.medtest(...), silent=TRUE)
+       if (is(obj, "try-error")) return(NA)
+       else 
+         return(obj$p.value)
+}
+```
+
+
+```{r}
+# Mood's median test for vdj and cdr3 coverage
+safe.mood.medtest(vdj~blood, data = res_split[[22]], exact = TRUE)
+
+mood_test_vdj_pvalue <- c()
+for (i in (1:length(res_split))){
+  mood_test_vdj_pvalue[i] <- safe.mood.medtest(vdj~blood, data = res_split[[i]], exact = TRUE)
+}
+mood_test_vdj_pvalue_adjusted <- p.adjust(mood_test_vdj_pvalue, method = "BH")
+
+# Replace the values used in the KW table with values from Mood test
+rep_pwc_vdj$p <- round(mood_test_vdj_pvalue, 4)
+rep_pwc_vdj$p.adj <- round(mood_test_vdj_pvalue_adjusted, 4)
+
+mood_test_cdr3_pvalue <- c()
+for (i in (1:length(res_split))){
+  mood_test_cdr3_pvalue[i] <- safe.mood.medtest(cdr3~blood, data = res_split[[i]], exact = TRUE)
+}
+mood_test_cdr3_pvalue_adjusted <- p.adjust(mood_test_cdr3_pvalue, method = "BH")
+
+# Replace the values used in the KW table with values from Mood test
+rep_pwc_cdr3$p <- round(mood_test_cdr3_pvalue, 4)
+rep_pwc_cdr3$p.adj <- round(mood_test_cdr3_pvalue_adjusted, 4)
+```
+
 
 ```{r fig.height=7, fig.width=5}
 ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = vdj)) +
@@ -132,19 +175,21 @@ ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = cdr3)) +
 #ggsave("./figures/blood_cdrh3.pdf", height = 7, width = 5, dpi = 600)
 ```
 
-# Suppfig A, B: Non-blood only, paired plot CDRH3 coverage comparison between pairs of sample of same mAb but different complexity lvl (1, 6 equal, or 6 unequal), facet by mAb and input amount (x: complexity lvl, y: coverage %).
+# Panel D, E: Non-blood only, paired plot CDRH3 coverage comparison between pairs of sample of same mAb but different complexity lvl (1, 6 equal, or 6 unequal), facet by mAb and input amount (x: complexity lvl, y: coverage %).
 ```{r}
 # Filter for non-blood samples
-res_noblood <- res %>% filter(sample %in% c(36:64,66))
+res_noblood <- res %>% filter(sample %in% c(36:47,55:58))
 # Select for only h9C12WT, Umab, and PGDM1400 (only those have single mab samples)
 res_noblood <- res_noblood %>% filter(sequence_name %in% c("h9C12-WT_HC", "Umab_HC", "PGDM1400_HC"))
+
+# create a
 
 res_noblood_med <- res_noblood %>% group_by(sequence_name, value, complexity_lvl) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3))
 
 #label_value <- c("1" = "1 ng", "10" =  "10 ng", "100" = "100 ng", "1000" = "1000 ng")
 
-# Wilcoxon test for coverage between single and multiple (not significant)
-res_noblood_pwc_vdj <- res_noblood %>% group_by(value, sequence_name) %>% wilcox_test(vdj~complexity_lvl, p.adjust.method = "BH")
+# Sign test for coverage between single and multiple
+res_noblood_pwc_vdj <- res_noblood %>% group_by(value, sequence_name) %>% sign_test(vdj~complexity_lvl, p.adjust.method = "BH")
 res_noblood_pwc_vdj$p.adj <- p.adjust(res_noblood_pwc_vdj$p, method = "BH")
 # Auto add coordinates for plotting
 res_noblood_pwc_vdj <- res_noblood_pwc_vdj %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
@@ -157,11 +202,12 @@ res_noblood_pwc_vdj <- res_noblood_pwc_vdj %>% add_xy_position(fun = "max", scal
 
 ```{r fig.height=4.5, fig.width=5}
 ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multiple")), y = vdj, color = complexity_lvl)) +
-  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  #geom_boxplot(width = 0.5, outlier.shape = NA) +
+  geom_line(aes(group = subset), color = "grey50") +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(pch = 1, size = 1, cex = 3) +
   geom_text(data = res_noblood_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
-  scale_color_manual(values = c("grey40","black")) +
+  scale_color_manual(values = c("#008080","#252525")) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()
@@ -173,11 +219,12 @@ ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multipl
 
 ```{r fig.height=4.5, fig.width=5}
 ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multiple")), y = cdr3, color = complexity_lvl)) +
-  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  #geom_boxplot(width = 0.5, outlier.shape = NA) +
+  geom_line(aes(group = subset), color = "grey50") +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(pch = 1, size = 1, cex = 3) +
   geom_text(data = res_noblood_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
-  scale_color_manual(values = c("grey40","black")) +
+  scale_color_manual(values = c("#008080","#252525")) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()
@@ -187,7 +234,7 @@ ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multipl
 #ggsave("./figures/noblood_cdrh3.pdf", height = 4.5, width = 5, dpi = 600)
 ```
 
-# Panel C, D, same thing for light chain
+# Suppfigre: same thing for light chain
 ```{r}
 res <- data.frame()
 
@@ -242,92 +289,118 @@ res$sequence_name <- factor(res$sequence_name, levels = LC_names)
 res_blood_med <- res %>% group_by(sequence_name, value, blood) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3))
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
+## OBSOLETE, USE MOOD'S MEDIAN TEST INSTEAD
+
 # In the groups with difference, pairwise comparison with multiple testing correction (blood vs non-blood)
-res_pwc_vdj <- res %>% group_by(value, sequence_name) %>% wilcox_test(vdj~blood, p.adjust.method = "BH")
-res_pwc_vdj$p.adj <- p.adjust(res_pwc_vdj$p, method = "BH")
+rep_pwc_vdj <- res %>% group_by(value, sequence_name) %>% wilcox_test(vdj~blood, p.adjust.method = "BH")
+rep_pwc_vdj$p.adj <- p.adjust(rep_pwc_vdj$p, method = "BH")
 
 # Auto add coordinates for plotting
-res_pwc_vdj <- res_pwc_vdj %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
-#res_pwc_vdj$y.position <- res_pwc_vdj$y.position+5
-
+rep_pwc_vdj <- rep_pwc_vdj %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
+#rep_pwc_vdj$y.position <- rep_pwc_vdj$y.position+5
 
 # In the groups with difference, pairwise comparison with multiple testing correction (blood vs non-blood)
-res_pwc_cdr3 <- res %>% group_by(value, sequence_name) %>% wilcox_test(cdr3~blood, p.adjust.method = "BH")
-res_pwc_cdr3$p.adj <- p.adjust(res_pwc_cdr3$p, method = "BH")# Auto add coordinates for plotting
-res_pwc_cdr3 <- res_pwc_cdr3 %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
-#res_pwc_cdr3$y.position <- res_pwc_cdr3$y.position+5
+rep_pwc_cdr3 <- res %>% group_by(value, sequence_name) %>% wilcox_test(cdr3~blood, p.adjust.method = "BH")
+rep_pwc_cdr3$p.adj <- p.adjust(rep_pwc_cdr3$p, method = "BH")# Auto add coordinates for plotting
+rep_pwc_cdr3 <- rep_pwc_cdr3 %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
+#rep_pwc_cdr3$y.position <- rep_pwc_cdr3$y.position+5
 ```
 
-```{r fig.height=5.75, fig.width=5}
+```{r}
+res_split <- res %>% group_by(value, sequence_name) %>% group_split()
+```
+
+```{r}
+# Mood's median test for vdj and cdr3 coverage
+safe.mood.medtest(vdj~blood, data = res_split[[22]], exact = TRUE)
+
+mood_test_vdj_pvalue <- c()
+for (i in (1:length(res_split))){
+  mood_test_vdj_pvalue[i] <- safe.mood.medtest(vdj~blood, data = res_split[[i]], exact = TRUE)
+}
+mood_test_vdj_pvalue_adjusted <- p.adjust(mood_test_vdj_pvalue, method = "BH")
+
+# Replace the values used in the KW table with values from Mood test
+rep_pwc_vdj$p <- round(mood_test_vdj_pvalue, 4)
+rep_pwc_vdj$p.adj <- round(mood_test_vdj_pvalue_adjusted, 4)
+
+mood_test_cdr3_pvalue <- c()
+for (i in (1:length(res_split))){
+  mood_test_cdr3_pvalue[i] <- safe.mood.medtest(cdr3~blood, data = res_split[[i]], exact = TRUE)
+}
+mood_test_cdr3_pvalue_adjusted <- p.adjust(mood_test_cdr3_pvalue, method = "BH")
+
+# Replace the values used in the KW table with values from Mood test
+rep_pwc_cdr3$p <- round(mood_test_cdr3_pvalue, 4)
+rep_pwc_cdr3$p.adj <- round(mood_test_cdr3_pvalue_adjusted, 4)
+```
+
+
+```{r fig.height=7, fig.width=5}
 ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = vdj)) +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_boxplot(aes(color = blood), width = 0.5, outlier.shape = NA, alpha = 0.5) +
   geom_beeswarm(aes(color = blood), pch = 1, size = 0.8, cex = 3, corral = "wrap", corral.width = 0.9) +
   scale_color_manual(values = c("black","red3")) +
-  geom_text(data = res_blood_med, aes(y = -10, label = round(med_vdj,2), color = blood), size = 2) +
   scale_y_continuous(breaks = seq (0, 100, by = 25), limits = c(-10,110)) +
-  stat_pvalue_manual(data = res_pwc_vdj, hide.ns = TRUE, label = "p.adj", label.size = 2) +
+  stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj", label.size = 2) +
+  geom_text(data = res_blood_med, aes(y = -10, label = round(med_vdj,2), color = blood), size = 2) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()
         ) +
   labs(x = "Presence of blood IgG", y = "VJ coverage (%)")
 
-#ggsave("./figures/blood_vj.pdf", height = 5.75, width = 5, dpi = 600)
+#ggsave("./figures/blood_vj.pdf", height = 7, width = 5, dpi = 600)
 ```
 
-```{r fig.height=5.75, fig.width=5}
+```{r fig.height=7, fig.width=5}
 ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = cdr3)) +
   geom_boxplot(aes(color = blood), width = 0.5, outlier.shape = NA) +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(aes(color = blood), pch = 1, size = 0.8, cex = 3, corral = "wrap", corral.width = 0.9) +
   scale_color_manual(values = c("black","red3")) +
-  geom_text(data = res_blood_med, aes(y = -10, label = round(med_cdr3,2), color = blood), size = 2) +
   scale_y_continuous(breaks = seq (0, 100, by = 25), limits = c(-10,110)) +
-  stat_pvalue_manual(data = res_pwc_cdr3, hide.ns = TRUE, label = "p.adj", label.size = 2) +
+  stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.adj", label.size = 2) +
+  geom_text(data = res_blood_med, aes(y = -10, label = round(med_cdr3,2), color = blood), size = 2) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()
         ) +
   labs(x = "Presence of blood IgG", y = "CDRL3 coverage (%)")
 
-#ggsave("./figures/blood_cdrl3.pdf", height = 5.75, width = 5, dpi = 600)
+#ggsave("./figures/blood_cdrl3.pdf", height = 7, width = 5, dpi = 600)
 ```
 
-# Supp figure C,D same for light chain
 ```{r}
 # Filter for non-blood samples
-res_noblood <- res %>% filter(sample %in% c(36:64,66))
+res_noblood <- res %>% filter(sample %in% c(36:47,55:58))
 # Select for only h9C12WT, Umab, and PGDM1400 (only those have single mab samples)
 res_noblood <- res_noblood %>% filter(sequence_name %in% c("h9C12_LC", "Umab_LC", "PGDM1400_LC"))
 
 res_noblood_med <- res_noblood %>% group_by(sequence_name, value, complexity_lvl) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3))
 
-# Wilcoxon test for coverage between single and multiple (not significant)
-res_noblood_pwc_vdj <- res_noblood %>% group_by(value, sequence_name) %>% wilcox_test(vdj~complexity_lvl, p.adjust.method = "BH")
+# Sign test for coverage between single and multiple
+res_noblood_pwc_vdj <- res_noblood %>% group_by(value, sequence_name) %>% sign_test(vdj~complexity_lvl, p.adjust.method = "BH")
 res_noblood_pwc_vdj$p.adj <- p.adjust(res_noblood_pwc_vdj$p, method = "BH")
 # Auto add coordinates for plotting
 res_noblood_pwc_vdj <- res_noblood_pwc_vdj %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
-
-res_noblood_pwc_cdr3 <- res_noblood %>% group_by(value, sequence_name) %>% wilcox_test(cdr3~complexity_lvl, p.adjust.method = "BH")
-res_noblood_pwc_cdr3$p.adj <- p.adjust(res_noblood_pwc_cdr3$p, method = "BH")
-# Auto add coordinates for plotting
-res_noblood_pwc_cdr3 <- res_noblood_pwc_cdr3 %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
 ```
 
 ```{r fig.height=4.5, fig.width=5}
 ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multiple")), y = vdj, color = complexity_lvl)) +
   geom_boxplot(width = 0.5, outlier.shape = NA) +
+  geom_line(aes(group = subset), color = "grey50") +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(pch = 1, size = 1, cex = 3) +
   geom_text(data = res_noblood_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
-  scale_color_manual(values = c("grey40","black")) +
+  scale_color_manual(values = c("#008080","#252525")) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()
         ) +
-  labs(x = "Number of spike-in mAbs in sample", y = "VJ coverage (%)")
+  labs(x = "Number of spike-in mAbs in sample", y = "VD coverage (%)")
 
 #ggsave("./figures/noblood_vj.pdf", height = 4.5, width = 5, dpi = 600)
 ```
@@ -335,10 +408,11 @@ ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multipl
 ```{r fig.height=4.5, fig.width=5}
 ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multiple")), y = cdr3, color = complexity_lvl)) +
   geom_boxplot(width = 0.5, outlier.shape = NA) +
+  geom_line(aes(group = subset), color = "grey50") +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(pch = 1, size = 1, cex = 3) +
   geom_text(data = res_noblood_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
-  scale_color_manual(values = c("grey40","black")) +
+  scale_color_manual(values = c("#008080","#252525")) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()

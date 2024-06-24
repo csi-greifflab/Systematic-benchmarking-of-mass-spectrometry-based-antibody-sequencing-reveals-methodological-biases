@@ -1,0 +1,729 @@
+---
+title: "MS benchmarking Figure 3 v2"
+output: pdf_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+source("../Khang_config.R")
+library(DescTools)
+library(rcompanion)
+```
+
+```{r include=FALSE}
+#Read the filtered data and removed peptides labelled contaminations
+df <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
+df <- df[df$is_not_contamination, ]
+
+cdr3 <- read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv"))
+sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
+
+# Create combinations of replicates
+replicate_subsets <- unlist(lapply(1:4, combn, x = paste0("run", 1:4), simplify = FALSE), recursive = FALSE)
+```
+
+```{r}
+# Calculate VDJ and CDR3 coverage for each sample for every combination of exp replicates
+res <- data.frame()
+# Calculate coverage for each sample, iterate by rep combn
+for (i in 1:length(replicate_subsets)) {
+  for (sample in 1:70) {
+    abs_all <- c("h9C12-Q97A_HC", "h9C12-WT_HC", "Brimab_HC", "PGDM1400_HC", "PGT121_HC", "Umab_HC")
+    # Use only the mAb that should be in that sample as ref
+    abs_ref <- abs_all[unlist(sample_info[sample, abs_all])]
+    # choose the correct runs and filter for the correct sample
+    subset <- replicate_subsets[[i]]
+    df_tmp <- df[df$run %in% subset & df$Sample == sample, ]
+    # Calculate the coverage
+    if (length(abs_ref)) {
+      coverage <- sapply(X = abs_ref, FUN = get_coverage_percent, 
+                       peptides_vector = df_tmp$Sequence, annotation = cdr3, mode = "both")
+      coverage <- data.frame(t(coverage))
+      coverage$subset <- paste0(subset, collapse = " ")
+      coverage$sequence_name <- rownames(coverage)
+      coverage$sample <- sample
+      res <- rbind(res, coverage)
+    }
+  }
+}
+# Convert the subset into factors
+res$subset <- factor(res$subset,
+    levels = unlist(lapply(replicate_subsets, function(x) {paste0(x, collapse = " ")})) ,ordered = TRUE)
+```
+
+```{r include=FALSE}
+# Add metadata about mAb input
+concentrations <- data.frame(read_tsv(file.path(metadata_path, "concentration_matrix.tsv")))
+concentrations$sample <- 1:70
+colnames(concentrations)[1:2] <- c("h9C12-Q97A", "h9C12-WT")
+concentrations <- melt(concentrations, id.vars = "sample")
+concentrations$sequence_name <- paste0(concentrations$variable, "_HC")
+
+res <- merge(res, concentrations, by = c("sample", "sequence_name"), all.x = T)
+# Count the number of runs merged
+res$subset_count <- str_count(res$subset, "run")
+res$sequence_name <- factor(res$sequence_name, levels = HC_names)
+```
+
+```{r}
+# Wrap around the Median CI calculation to not stop if it encounters an error
+safe.MedianCI <- function(...) {
+       obj<-try(MedianCI(...), silent=TRUE)
+       if (is(obj, "try-error")) return(data.frame(median = NA,
+                                                   lwr.ci = NA,
+                                                   upr.ci = NA))
+       else 
+         return(obj)
+}
+```
+
+# Panel B,C: coverage of cumulatively merged replcates
+```{r}
+# Calculate the confidence interval for the median coverage on the heavy chain peptides
+res_med_vdj <- res %>%
+  group_by(sequence_name, value, subset_count) %>%
+  summarize(median = MedianCI(vdj, sides = "two.sided", method = "exact")[1],
+            lwr.ci = MedianCI(vdj, sides = "two.sided", method = "exact")[2],
+            upr.ci = MedianCI(vdj, sides = "two.sided", method = "exact")[3]
+            )
+# For every case that is undefined CI, use bootstrap values instead
+res_med_vdj$lwr.ci[40] <- res %>% filter(sequence_name == "Brimab_HC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[40] <- res %>% filter(sequence_name == "Brimab_HC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_vdj$lwr.ci[44] <- res %>% filter(sequence_name == "Brimab_HC", value == 100, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[44] <- res %>% filter(sequence_name == "Brimab_HC", value == 100, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_vdj$lwr.ci[56] <- res %>% filter(sequence_name == "Umab_HC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[56] <- res %>% filter(sequence_name == "Umab_HC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_vdj$lwr.ci[68] <- res %>% filter(sequence_name == "PGT121_HC", value == 1, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[68] <- res %>% filter(sequence_name == "PGT121_HC", value == 1, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_vdj$lwr.ci[72] <- res %>% filter(sequence_name == "PGT121_HC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[72] <- res %>% filter(sequence_name == "PGT121_HC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_vdj$lwr.ci[76] <- res %>% filter(sequence_name == "PGT121_HC", value == 100, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[76] <- res %>% filter(sequence_name == "PGT121_HC", value == 100, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_vdj$lwr.ci[88] <- res %>% filter(sequence_name == "PGDM1400_HC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[88] <- res %>% filter(sequence_name == "PGDM1400_HC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_vdj$lwr.ci[92] <- res %>% filter(sequence_name == "PGDM1400_HC", value == 100, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[92] <- res %>% filter(sequence_name == "PGDM1400_HC", value == 100, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+
+# Replace any values larger than 100 or smaller than 0
+res_med_vdj$lwr.ci <- ifelse(res_med_vdj$lwr.ci < 0, 0, res_med_vdj$lwr.ci)
+res_med_vdj$upr.ci <- ifelse(res_med_vdj$upr.ci > 100, 100, res_med_vdj$upr.ci)
+
+res_med_cdr3 <- res %>%
+  group_by(sequence_name, value, subset_count) %>%
+  summarize(median = MedianCI(cdr3, sides = "two.sided", method = "exact")[1],
+            lwr.ci = MedianCI(cdr3, sides = "two.sided", method = "exact")[2],
+            upr.ci = MedianCI(cdr3, sides = "two.sided", method = "exact")[3]
+            )
+
+# For every case that is undefined CI, use bootstrap values instead
+res_med_cdr3$lwr.ci[40] <- res %>% filter(sequence_name == "Brimab_HC", value == 10, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_cdr3$upr.ci[40] <- res %>% filter(sequence_name == "Brimab_HC", value == 10, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_cdr3$lwr.ci[44] <- res %>% filter(sequence_name == "Brimab_HC", value == 100, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_cdr3$upr.ci[44] <- res %>% filter(sequence_name == "Brimab_HC", value == 100, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_cdr3$lwr.ci[56] <- res %>% filter(sequence_name == "Umab_HC", value == 10, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_cdr3$upr.ci[56] <- res %>% filter(sequence_name == "Umab_HC", value == 10, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_cdr3$lwr.ci[68] <- res %>% filter(sequence_name == "PGT121_HC", value == 1, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_cdr3$upr.ci[68] <- res %>% filter(sequence_name == "PGT121_HC", value == 1, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_cdr3$lwr.ci[72] <- NA
+res_med_cdr3$upr.ci[72] <- NA
+res_med_cdr3$lwr.ci[76] <- NA
+res_med_cdr3$upr.ci[76] <- NA
+res_med_cdr3$lwr.ci[88] <- res %>% filter(sequence_name == "PGDM1400_HC", value == 10, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_cdr3$upr.ci[88] <- res %>% filter(sequence_name == "PGDM1400_HC", value == 10, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_cdr3$lwr.ci[92] <- res %>% filter(sequence_name == "PGDM1400_HC", value == 100, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_cdr3$upr.ci[92] <- res %>% filter(sequence_name == "PGDM1400_HC", value == 100, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+
+# Replace any values larger than 100 or smaller than 0
+res_med_cdr3$lwr.ci <- ifelse(res_med_cdr3$lwr.ci < 0, 0, res_med_cdr3$lwr.ci)
+res_med_cdr3$upr.ci <- ifelse(res_med_cdr3$upr.ci > 100, 100, res_med_cdr3$upr.ci)
+```
+
+```{r}
+res %>% filter(sequence_name == "Brimab_HC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+```
+
+
+```{r}
+#res_split <- res %>% group_by(value, sequence_name) %>% group_split()
+
+# Mood's median test of vdj coverage to test for difference between groups
+#mood_test_vdj <- c()
+#for (i in (1:length(res_split))){
+#  mood_test_vdj[i] <- mood.medtest(vdj~subset_count, data = res_split[[i]], exact = FALSE)[5]
+#}
+
+#mood_test_vdj_adjusted <- p.adjust(mood_test_vdj, method = "BH")
+
+# Extract the groups where the p-value is significant
+#group_keys_vdj_df <- res %>% group_by(value, sequence_name) %>% group_keys() %>% .[grep(TRUE, mood_test_vdj_adjusted < 0.05),]
+
+#res_split_vdj <- res %>% semi_join(group_keys_vdj_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% group_split()
+
+#res_split_vdj <- res_split[grep(TRUE, mood_test_vdj_adjusted < 0.05)]
+
+# In the groups with difference, pairwise comparison with multiple testing correction (only between 1, 2, 3 merged vs 4 merged)
+#pwc_mood_test_vdj <- list()
+#for (i in (1:length(res_split_vdj))){
+#  pwc_mood_test_vdj[[i]] <- pairwiseMedianTest(vdj~subset_count, data = res_split[[i]], exact = TRUE, method = "BH")[2][c(3,5,6),]
+#  pwc_mood_test_vdj[[i]] <- p.adjust(pwc_mood_test_vdj[[i]], method = "BH")
+#}
+
+#pwc_mood_test_vdj <- unlist(pwc_mood_test_vdj)
+#pwc_mood_test_vdj[is.nan(pwc_mood_test_vdj)] <- 1
+
+#table(pwc_mood_test_vdj < 0.05)
+#table(rep_pwc_vdj$p.adj < 0.05)
+#pairwiseMedianTest(vdj~subset_count, data = res_split[[8]], exact = TRUE, method = "BH")
+#pairwiseMedianTest(vdj~subset_count, data = res_split[[8]], exact = TRUE, method = "BH")[2][c(3,5,6),]
+```
+
+
+```{r}
+# Kruskal Wallis test on the vdj coverage rank of the replicates (exclude 4 merged)
+kruskal_vdj <- res %>% group_by(value, sequence_name) %>% kruskal_test(vdj~subset_count)
+
+# Adjust p-value for multiple testing
+kruskal_vdj$p <- p.adjust(kruskal_vdj$p, method = "BH")
+kruskal_vdj_signif <- kruskal_vdj %>% filter(p <= 0.05)
+
+# Retain the group keys for significant p-values
+group_keys_df <- kruskal_vdj_signif %>% group_by(value, sequence_name) %>% group_keys()
+
+# Wilcox test for pairwise difference, but only compare with 4 merged
+rep_pwc_vdj <- res %>% semi_join(group_keys_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% wilcox_test(vdj~subset_count, comparisons = list(c(1, 4), c(2, 4), c(3, 4)), p.adjust.method = "BH")
+
+# Replace the p.adjust value from wilcox test from the one from mood test
+#rep_pwc_vdj$p.adj <- pwc_mood_test_vdj
+#rep_pwc_vdj$p.adj.signif <- ifelse(rep_pwc_vdj$p.adj > 0.05, "ns",
+#                            ifelse(rep_pwc_vdj$p.adj > 0.01, "*",
+#                            ifelse(rep_pwc_vdj$p.adj > 0.001, "**",
+#                            "***")))
+
+# Auto add coordinates for plotting
+rep_pwc_vdj <- rep_pwc_vdj %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
+#rep_pwc_vdj$y.position <- rep_pwc_vdj$y.position+5
+
+# Kruskal Wallis test on the cdr3 coverage rank of the replicates (exclude 4 merged)
+kruskal_cdr3 <- res %>% group_by(value, sequence_name) %>% kruskal_test(cdr3~subset_count)
+
+# Adjust p-value for multiple testing
+kruskal_cdr3$p <- p.adjust(kruskal_cdr3$p, method = "BH")
+kruskal_cdr3_signif <- kruskal_cdr3 %>% filter(p <= 0.05)
+
+# Retain the group keys for significant p-values
+group_keys_df <- kruskal_cdr3_signif %>% group_by(value, sequence_name) %>% group_keys()
+
+# In the groups with difference, pairwise comparison with multiple testing correction (only between 1, 2, 3 merged vs 4 merged)
+rep_pwc_cdr3 <- res %>% semi_join(group_keys_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% wilcox_test(cdr3~subset_count, comparisons = list(c(1, 4), c(2, 4)), p.adjust.method = "BH")
+
+# Auto add coordinates for plotting
+rep_pwc_cdr3 <- rep_pwc_cdr3 %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
+rep_pwc_cdr3$y.position <- rep_pwc_cdr3$y.position+5
+```
+
+```{r fig.height=7, fig.width=5}
+ggplot(data = res_med_vdj, aes(x = subset_count, y = median)) + 
+geom_ribbon(aes(ymax = upr.ci, ymin = lwr.ci, fill = as.factor(value)), alpha = 0.25) +
+geom_line(aes(color = as.factor(value)), linewidth = 1) +
+geom_point(aes(color = as.factor(value)), size = 2) +
+geom_text(aes(x = subset_count, y = 2, label = round(median, 1)), size = 2) +
+stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+facet_grid(sequence_name~value) +
+scale_fill_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) + 
+scale_color_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) +
+scale_x_continuous(limits = c(0.75,4.25)) +
+scale_y_continuous(limits = c(0,112), breaks = c(0,25,50,75,100)) +
+labs(x = "Number of experimental replicates merged", y = "Median VDJ coverage (%)") +
+theme_bw() +
+theme(legend.position = "none",
+      strip.text = element_blank()
+      )
+
+#ggsave("./figure/HC_vdj_merged.png", dpi = 600, height = 7, width = 5)
+```
+
+
+```{r fig.height=7, fig.width=5}
+ggplot(data = res_med_cdr3, aes(x = subset_count, y = median)) + 
+geom_ribbon(aes(ymax = upr.ci, ymin = lwr.ci, fill = as.factor(value)), alpha = 0.25) +
+geom_line(aes(color = as.factor(value)), linewidth = 1) +
+geom_point(aes(color = as.factor(value)), size = 2) +
+geom_text(aes(x = subset_count, y = 2, label = round(median, 1)), size = 2) +
+stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+facet_grid(sequence_name~value) +
+scale_fill_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) + 
+scale_color_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) +
+scale_x_continuous(limits = c(0.75,4.25)) +
+scale_y_continuous(limits = c(0,112), breaks = c(0,25,50,75,100)) +
+labs(x = "Number of experimental replicates merged", y = "Median CDRH3 coverage (%)") +
+theme_bw() +
+theme(legend.position = "none",
+      strip.text = element_blank()
+      )
+
+#ggsave("./figure/HC_cdr3_merged.png", dpi = 600, height = 7, width = 5)
+```
+
+```{r}
+# Filter for only 1 run and all 4 runs combined
+res_2 <- res %>% filter(subset_count == 1 | subset_count == 4)
+res_2$subset <- factor(res_2$subset, levels = c("run1", "run2", "run3", "run4", "run1 run2 run3 run4"))
+
+# calculate the median and iqr range
+res_2_med <- res_2 %>%  group_by(sequence_name, subset, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
+res_2_med$sequence_name <- factor(res_2_med$sequence_name, levels = HC_names)
+
+res_2_med_range <- res_2_med %>% group_by(value, sequence_name) %>% summarise(med_vdj_range = max(med_vdj) - min(med_vdj), med_cdr3_range = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, med_cdr3_range)
+
+res_2_iqr <- res_2 %>% group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
+
+res_2_iqr_med <- res_2_iqr %>% group_by(sequence_name, value) %>% summarise(med_iqr_vdj = median(iqr_vdj), med_iqr_cdr3 = median(iqr_cdr3)) %>% arrange(value, med_iqr_cdr3)
+
+color_x_tick <- ifelse(res_2$subset == "run3", "#e6007e", "black")
+```
+
+```{r}
+# Exclude the 4 reps merged subset
+res_3 <- res_2 %>% filter(subset_count == 1)
+res_3$subset <- factor(res_3$subset, levels = c("run1", "run2", "run3", "run4"))
+
+# Kruskal Wallis test on the vdj coverage rank of the replicates (exclude 4 merged)
+#kruskal_vdj <- res_3 %>% group_by(value, sequence_name) %>% kruskal_test(vdj~subset)
+##kruskal_vdj_signif <- kruskal_vdj %>% filter(p <= 0.05)
+#group_keys_df <- kruskal_vdj_signif %>% group_by(value, sequence_name) %>% group_keys()
+
+# In the groups with difference, pairwise comparison with multiple testing correction
+#rep_pwc_vdj <- res_3 %>% semi_join(group_keys_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% wilcox_test(vdj~subset, p.adjust.method = "fdr")
+
+
+# Auto add coordinates for plotting
+#rep_pwc_vdj <- rep_pwc_vdj %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.05)
+
+#rep_pwc_vdj
+```
+
+
+```{r fig.height=7, fig.width=6}
+ggplot(res_2, aes(x = subset, y = vdj)) +
+  geom_boxplot(aes(fill = subset), width = 0.5, outlier.shape = NA) +
+  scale_x_discrete(labels = c("1", "2", "3", "4", "Σ")) +
+  scale_y_continuous(breaks = seq (0,100, by = 25), limits = c(-10,150)) +
+  scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff", "#e6007e")) +
+  facet_grid(sequence_name ~ value) +
+  geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
+  geom_text(data = res_2_med, aes(y = -10, label = round(med_vdj, 2)), size = 2) +
+  #stat_kruskal_test(data = res_3, group.by = c("value", "sequence_name"), p.adjust.method = "BH", label.y = 140, size = 2, hjust = -0.05) +
+  #stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, color = color_x_tick),
+        legend.position = "none",
+        strip.text.x = element_blank(), strip.text.y = element_blank()) +
+  labs(x = "Experimental replicate", y = "VDJ coverage (%)")
+
+#ggsave("./figure/HC_vdj.png", height = 7, width = 6, dpi = 600)
+```
+
+```{r fig.height=7, fig.width=6}
+ggplot(res_2, aes(x = subset, y = cdr3, fill = subset)) +
+  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  scale_x_discrete(labels = c("1", "2", "3", "4", "Σ")) +
+  scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff", "#e6007e")) +
+  facet_grid(sequence_name ~ value) +
+  geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
+  geom_text(data = res_2_med, aes(y = -10, label = round(med_cdr3, 2)), size = 2) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, color = color_x_tick),
+        legend.position = "none",
+        strip.text.x = element_blank(), strip.text.y = element_blank()) +
+  labs(x = "Experimental replicate", y = "CDRH3 coverage (%)")
+
+#ggsave("./figure/HC_cdr3.png", height = 7, width = 6, dpi = 600)
+```
+
+# Panel C,D: coverage of cumulatively merged replicates
+```{r}
+# calculate the median and iqr range
+res_med <- res %>%  group_by(sequence_name, subset_count, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
+res_med$sequence_name <- factor(res_med$sequence_name, levels = HC_names)
+
+res_med_gap <- res_med %>% filter(subset_count == 1 | subset_count == 4) %>% group_by(sequence_name, value) %>% summarise(gap_med_vdj = max(med_vdj) - min(med_vdj), gap_med_cdr3 = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, gap_med_vdj)
+
+res_med_range <- res_med %>% group_by(value, sequence_name) %>% summarise(med_vdj_range = max(med_vdj) - min(med_vdj), med_cdr3_range = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, med_cdr3_range)
+
+res_med_step <- res_med %>% group_by(sequence_name, value) %>% summarise(med_vdj_diff = diff(med_vdj), med_cdr3_diff = diff(med_cdr3)) %>% group_by(sequence_name, value) %>% summarise(avg_med_vdj_diff = mean(med_vdj_diff), avg_med_cdr3_diff = mean(med_cdr3_diff)) %>% arrange(value, avg_med_vdj_diff)
+
+#res_iqr <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
+
+#res_iqr_mean <- res_iqr %>% group_by(sequence_name, value) %>% summarise(mean_iqr_vdj = mean(iqr_vdj), mean_iqr_cdr3 = mean(iqr_cdr3)) %>% arrange(value, mean_iqr_cdr3)
+```
+
+
+```{r}
+# Kruskal Wallis test on the vdj coverage rank of the replicates (exclude 4 merged)
+kruskal_vdj <- res %>% group_by(value, sequence_name) %>% kruskal_test(vdj~subset_count)
+
+# Adjust p-value for multiple testing
+kruskal_vdj$p <- p.adjust(kruskal_vdj$p, method = "BH")
+kruskal_vdj_signif <- kruskal_vdj %>% filter(p <= 0.05)
+
+# Retain the group keys for significant p-values
+group_keys_df <- kruskal_vdj_signif %>% group_by(value, sequence_name) %>% group_keys()
+
+# In the groups with difference, pairwise comparison with multiple testing correction (only between 1, 2, 3 merged vs 4 merged)
+rep_pwc_vdj <- res %>% semi_join(group_keys_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% wilcox_test(vdj~subset_count, comparisons = list(c(1, 4), c(2, 4), c(3, 4)), p.adjust.method = "BH")
+
+# Auto add coordinates for plotting
+rep_pwc_vdj <- rep_pwc_vdj %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
+rep_pwc_vdj$y.position <- rep_pwc_vdj$y.position+5
+
+# Kruskal Wallis test on the cdr3 coverage rank of the replicates (exclude 4 merged)
+kruskal_cdr3 <- res %>% group_by(value, sequence_name) %>% kruskal_test(cdr3~subset_count)
+
+# Adjust p-value for multiple testing
+kruskal_cdr3$p <- p.adjust(kruskal_cdr3$p, method = "BH")
+kruskal_cdr3_signif <- kruskal_cdr3 %>% filter(p <= 0.05)
+
+# Retain the group keys for significant p-values
+group_keys_df <- kruskal_cdr3_signif %>% group_by(value, sequence_name) %>% group_keys()
+
+# In the groups with difference, pairwise comparison with multiple testing correction (only between 1, 2, 3 merged vs 4 merged)
+rep_pwc_cdr3 <- res %>% semi_join(group_keys_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% wilcox_test(cdr3~subset_count, comparisons = list(c(1, 4), c(2, 4)), p.adjust.method = "BH")
+
+# Auto add coordinates for plotting
+rep_pwc_cdr3 <- rep_pwc_cdr3 %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
+rep_pwc_cdr3$y.position <- rep_pwc_cdr3$y.position+5
+```
+
+
+```{r fig.height=7, fig.width=6}
+ggplot(res, aes(x = as.factor(subset_count), y = vdj)) +
+  #geom_boxplot(aes(fill = as.factor(subset_count)), width = 0.5, outlier.shape = NA) +
+  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
+  geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
+  #geom_point(pch = 21, size = 0.5, cex = 2) +
+  #geom_text(data = res_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
+  #stat_kruskal_test(data = res, group.by = c("value", "sequence_name"), p.adjust.method = "BH", label = "KW, p.adj = {p.adj}", label.y = 125, size = 2, hjust = -0.3, vjust = 0.3) +
+  #stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+  theme_bw() +
+  scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
+        #strip.text.x = element_blank(), strip.text.y = element_blank()
+        ) +
+  labs(x = "Number of experimental replicates merged", y = "VDJ coverage (%)")
+
+#ggsave("./figure/HC_vdj_merged.png", height = 7, width = 6, dpi = 600)
+```
+
+```{r fig.height=7, fig.width=6}
+ggplot(res, aes(x = as.factor(subset_count), y = cdr3)) +
+  #geom_boxplot(aes(fill = as.factor(subset_count)), width = 0.5, outlier.shape = NA) +
+  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
+  geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
+  #geom_text(data = res_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
+  #stat_kruskal_test(data = res, group.by = c("value", "sequence_name"), p.adjust.method = "BH", label = "KW, p.adj = {p.adj}", label.y = 125, size = 2, hjust = -0.3, vjust = 0.4) +
+  #stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+  theme_bw() +
+  scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
+        strip.text.x = element_blank(), strip.text.y = element_blank()) +
+  labs(x = "Number of experimental replicates merged", y = "CDRH3 coverage (%)")
+
+#ggsave("./figure/HC_CDR3_merged.png", height = 7, width = 6, dpi = 600)
+```
+
+# Light chain supp figure
+
+```{r}
+res <- data.frame()
+
+for (i in 1:length(replicate_subsets)) {
+  for (sample in 1:70) {
+    abs_all <- c("h9C12_LC", "Brimab_LC", "PGDM1400_LC", "PGT121_LC", "Umab_LC")
+    abs_ref <- abs_all[unlist(sample_info[sample, abs_all])]
+    
+    subset <- replicate_subsets[[i]]
+    df_tmp <- df[df$run %in% subset & df$Sample == sample, ]
+    
+    if (length(abs_ref)) {
+      coverage <- sapply(X = abs_ref, FUN = get_coverage_percent, 
+                       peptides_vector = df_tmp$Sequence, annotation = cdr3, mode = "both")
+      coverage <- data.frame(t(coverage))
+      coverage$subset <- paste0(subset, collapse = " ")
+      coverage$sequence_name <- rownames(coverage)
+      coverage$sample <- sample
+      res <- rbind(res, coverage)
+    }
+  }
+}
+
+res$subset <- factor(res$subset,
+    levels = unlist(lapply(replicate_subsets, function(x) {paste0(x, collapse = " ")})) ,ordered = TRUE)
+```
+
+```{r}
+concentrations <- data.frame(read_tsv(file.path(metadata_path, "concentration_matrix.tsv")))
+# For the light chain, since h9C12-WT and h9C12-Q97 are the same, take the higher value of the two cols
+concentrations <- concentrations %>% mutate(h9C12 = pmax(concentrations$h9C12.Q97A, concentrations$h9C12.WT)) %>%
+  select(-c(1:2)) %>% relocate(h9C12)
+concentrations$sample <- 1:70
+concentrations <- melt(concentrations, id.vars = "sample")
+concentrations$sequence_name <- paste0(concentrations$variable, "_LC")
+
+# Fix the concentration in the concentration matrix for h9C12
+concentrations$value[c(2,36)] <- 1
+concentrations$value[c(10,37)] <- 10
+concentrations$value[c(18,38)] <- 100
+concentrations$value[c(26,39)] <- 1000
+
+res <- merge(res, concentrations, by = c("sample", "sequence_name"), all.x = T)
+
+# Count the number of runs merged
+res$subset_count <- str_count(res$subset, "run")
+res$sequence_name <- factor(res$sequence_name, levels = LC_names)
+
+# Filter for only 1 run and all 4 runs combined
+res_2 <- res %>% filter(subset_count == 1 | subset_count == 4)
+res_2$subset <- factor(res_2$subset, levels = c("run1", "run2", "run3", "run4", "run1 run2 run3 run4"))
+
+# calculate the median and iqr range
+res_2_med <- res_2 %>%  group_by(sequence_name, subset, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
+res_2_med$sequence_name <- factor(res_2_med$sequence_name, levels = LC_names)
+
+color_x_tick <- ifelse(res_2$subset == "run3", "#e6007e", "black")
+```
+
+```{r}
+# Calculate the confidence interval for the median coverage on the light chain peptides
+res_med_vdj <- res %>%
+  group_by(sequence_name, value, subset_count) %>%
+  summarize(median = MedianCI(vdj, sides = "two.sided", method = "exact")[1],
+            lwr.ci = MedianCI(vdj, sides = "two.sided", method = "exact")[2],
+            upr.ci = MedianCI(vdj, sides = "two.sided", method = "exact")[3]
+            )
+# For every case that is undefined CI, use bootstrap values instead
+res_med_vdj$lwr.ci[24] <- res %>% filter(sequence_name == "Brimab_LC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[24] <- res %>% filter(sequence_name == "Brimab_LC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_vdj$lwr.ci[28] <- res %>% filter(sequence_name == "Brimab_LC", value == 100, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[28] <- res %>% filter(sequence_name == "Brimab_LC", value == 100, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_vdj$lwr.ci[40] <- res %>% filter(sequence_name == "Umab_LC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[40] <- res %>% filter(sequence_name == "Umab_LC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_vdj$lwr.ci[52] <- res %>% filter(sequence_name == "PGT121_LC", value == 1, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[52] <- res %>% filter(sequence_name == "PGT121_LC", value == 1, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_vdj$lwr.ci[56] <- 100
+res_med_vdj$upr.ci[56] <- 100
+res_med_vdj$lwr.ci[60] <- 100
+res_med_vdj$upr.ci[60] <- 100
+res_med_vdj$lwr.ci[72] <- res %>% filter(sequence_name == "PGDM1400_LC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_vdj$upr.ci[72] <- res %>% filter(sequence_name == "PGDM1400_LC", value == 10, subset_count == 4) %>% pull(vdj) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_vdj$lwr.ci[76] <- 100
+res_med_vdj$upr.ci[76] <- 100
+
+# Replace any values larger than 100 or smaller than 0
+res_med_vdj$lwr.ci <- ifelse(res_med_vdj$lwr.ci < 0, 0, res_med_vdj$lwr.ci)
+res_med_vdj$upr.ci <- ifelse(res_med_vdj$upr.ci > 100, 100, res_med_vdj$upr.ci)
+
+res_med_cdr3 <- res %>%
+  group_by(sequence_name, value, subset_count) %>%
+  summarize(median = MedianCI(cdr3, sides = "two.sided", method = "exact")[1],
+            lwr.ci = MedianCI(cdr3, sides = "two.sided", method = "exact")[2],
+            upr.ci = MedianCI(cdr3, sides = "two.sided", method = "exact")[3]
+            )
+
+# For every case that is undefined CI, use bootstrap values instead
+res_med_cdr3$lwr.ci[24] <- res %>% filter(sequence_name == "Brimab_LC", value == 10, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_cdr3$upr.ci[24] <- res %>% filter(sequence_name == "Brimab_LC", value == 10, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_cdr3$lwr.ci[28] <- res %>% filter(sequence_name == "Brimab_LC", value == 100, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_cdr3$upr.ci[28] <- res %>% filter(sequence_name == "Brimab_LC", value == 100, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_cdr3$lwr.ci[40] <- res %>% filter(sequence_name == "Umab_LC", value == 10, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_cdr3$upr.ci[40] <- res %>% filter(sequence_name == "Umab_LC", value == 10, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_cdr3$lwr.ci[52] <- res %>% filter(sequence_name == "PGT121_LC", value == 1, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[2]
+res_med_cdr3$upr.ci[52] <- res %>% filter(sequence_name == "PGT121_LC", value == 1, subset_count == 4) %>% pull(cdr3) %>% MedianCI(sides = "two.sided", method = "boot") %>% .[3]
+res_med_cdr3$lwr.ci[56] <- 100
+res_med_cdr3$upr.ci[56] <- 100
+res_med_cdr3$lwr.ci[60] <- 100
+res_med_cdr3$upr.ci[60] <- 100
+res_med_cdr3$lwr.ci[72] <- 100
+res_med_cdr3$upr.ci[72] <- 100
+res_med_cdr3$lwr.ci[76] <- 100
+res_med_cdr3$upr.ci[76] <- 100
+
+# Replace any values larger than 100 or smaller than 0
+res_med_cdr3$lwr.ci <- ifelse(res_med_cdr3$lwr.ci < 0, 0, res_med_cdr3$lwr.ci)
+res_med_cdr3$upr.ci <- ifelse(res_med_cdr3$upr.ci > 100, 100, res_med_cdr3$upr.ci)
+```
+
+```{r}
+# calculate the median and iqr range
+res_med <- res %>% group_by(sequence_name, subset_count, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
+res_med$sequence_name <- factor(res_med$sequence_name, levels = LC_names)
+
+res_med_range <- res_med %>% group_by(value, sequence_name) %>% summarise(med_vdj_range = max(med_vdj) - min(med_vdj), med_cdr3_range = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, med_cdr3_range)
+
+res_iqr <- res %>% filter(!subset == "run1 run2 run3 run4") %>%  group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
+
+res_iqr_med <- res_iqr %>% group_by(sequence_name, value) %>% summarise(med_iqr_vdj = median(iqr_vdj), med_iqr_cdr3 = median(iqr_cdr3)) %>% arrange(value, med_iqr_cdr3)
+```
+```{r}
+# Kruskal Wallis test on the vdj coverage rank of the replicates (exclude 4 merged)
+kruskal_vdj <- res %>% group_by(value, sequence_name) %>% kruskal_test(vdj~subset_count)
+
+# Adjust p-value for multiple testing
+kruskal_vdj$p <- p.adjust(kruskal_vdj$p, method = "BH")
+kruskal_vdj_signif <- kruskal_vdj %>% filter(p <= 0.05)
+
+# Retain the group keys for significant p-values
+group_keys_df <- kruskal_vdj_signif %>% group_by(value, sequence_name) %>% group_keys()
+
+# In the groups with difference, pairwise comparison with multiple testing correction (only between 1, 2, 3 merged vs 4 merged)
+rep_pwc_vdj <- res %>% semi_join(group_keys_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% wilcox_test(vdj~subset_count, comparisons = list(c(1, 4), c(2, 4)), p.adjust.method = "BH")
+
+# Auto add coordinates for plotting
+rep_pwc_vdj <- rep_pwc_vdj %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
+rep_pwc_vdj$y.position <- rep_pwc_vdj$y.position+5
+
+# Kruskal Wallis test on the cdr3 coverage rank of the replicates (exclude 4 merged)
+kruskal_cdr3 <- res %>% group_by(value, sequence_name) %>% kruskal_test(cdr3~subset_count)
+
+# Adjust p-value for multiple testing
+kruskal_cdr3$p <- p.adjust(kruskal_cdr3$p, method = "BH")
+kruskal_cdr3_signif <- kruskal_cdr3 %>% filter(p <= 0.05)
+
+# Retain the group keys for significant p-values
+group_keys_df <- kruskal_cdr3_signif %>% group_by(value, sequence_name) %>% group_keys()
+
+# In the groups with difference, pairwise comparison with multiple testing correction (only between 1, 2, 3 merged vs 4 merged)
+rep_pwc_cdr3 <- res %>% semi_join(group_keys_df, join_by(value, sequence_name)) %>% group_by(value, sequence_name) %>% wilcox_test(cdr3~subset_count, comparisons = list(c(1, 4), c(2, 4)), p.adjust.method = "BH")
+
+# Auto add coordinates for plotting
+rep_pwc_cdr3 <- rep_pwc_cdr3 %>% add_xy_position(fun = "max", scales = "fixed", step.increase = 0.075)
+rep_pwc_cdr3$y.position <- rep_pwc_cdr3$y.position+5
+```
+
+```{r fig.height=7, fig.width=5}
+ggplot(data = res_med_vdj, aes(x = subset_count, y = median)) + 
+geom_ribbon(aes(ymax = upr.ci, ymin = lwr.ci, fill = as.factor(value)), alpha = 0.25) +
+geom_line(aes(color = as.factor(value)), linewidth = 1) +
+geom_point(aes(color = as.factor(value)), size = 2) +
+geom_text(aes(x = subset_count, y = 2, label = round(median, 1)), size = 2) +
+stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+facet_grid(sequence_name~value) +
+scale_fill_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) + 
+scale_color_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) +
+scale_x_continuous(limits = c(0.75,4.25)) +
+scale_y_continuous(limits = c(0,112), breaks = c(0,25,50,75,100)) +
+labs(x = "Number of experimental replicates merged", y = "Median VJ coverage (%)") +
+theme_bw() +
+theme(legend.position = "none",
+      strip.text = element_blank()
+      )
+
+#ggsave("./figure/LC_vdj_merged.png", dpi = 600, height = 7, width = 5)
+```
+
+```{r fig.height=7, fig.width=5}
+ggplot(data = res_med_cdr3, aes(x = subset_count, y = median)) + 
+geom_ribbon(aes(ymax = upr.ci, ymin = lwr.ci, fill = as.factor(value)), alpha = 0.25) +
+geom_line(aes(color = as.factor(value)), linewidth = 1) +
+geom_point(aes(color = as.factor(value)), size = 2) +
+geom_text(aes(x = subset_count, y = 2, label = round(median, 1)), size = 2) +
+stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+facet_grid(sequence_name~value) +
+scale_fill_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) + 
+scale_color_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) +
+scale_x_continuous(limits = c(0.75,4.25)) +
+scale_y_continuous(limits = c(0,112), breaks = c(0,25,50,75,100)) +
+labs(x = "Number of experimental replicates merged", y = "Median CDRL3 coverage (%)") +
+theme_bw() +
+theme(legend.position = "none",
+      strip.text = element_blank()
+      )
+
+#ggsave("./figure/LC_cdr3_merged.png", dpi = 600, height = 7, width = 5)
+```
+
+```{r eval=FALSE, fig.height=7, fig.width=6, include=FALSE}
+ggplot(res, aes(x = as.factor(subset_count), y = vdj)) +
+  geom_boxplot(aes(fill = as.factor(subset_count)), width = 0.5, outlier.shape = NA) +
+  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
+  geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
+  geom_text(data = res_med, aes(y = -10, label = round(med_vdj,2)), size = 2) +
+  stat_kruskal_test(data = res, group.by = c("value", "sequence_name"), p.adjust.method = "BH", label = "KW, p.adj = {p.adj}", label.y = 125, size = 2, hjust = -0.3, vjust = 0.3) +
+  stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+  theme_bw() +
+  scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
+        strip.text.x = element_blank(), strip.text.y = element_blank()) +
+  labs(x = "Number of experimental replicates merged", y = "VJ coverage (%)")
+
+#ggsave("./figure/LC_vdj_merged.png", height = 7, width = 6, dpi = 600)
+```
+
+```{r eval=FALSE, fig.height=7, fig.width=6, include=FALSE}
+ggplot(res, aes(x = as.factor(subset_count), y = cdr3)) +
+  geom_boxplot(aes(fill = as.factor(subset_count)), width = 0.5, outlier.shape = NA) +
+  facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
+  geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
+  geom_text(data = res_med, aes(y = -10, label = round(med_cdr3,2)), size = 2) +
+  stat_kruskal_test(data = res, group.by = c("value", "sequence_name"), p.adjust.method = "BH", label = "KW, p.adj = {p.adj}", label.y = 125, size = 2, hjust = -0.3, vjust = 0.4) +
+  stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+  theme_bw() +
+  scale_fill_manual(values = hcl.colors(n = 7, palette = "PuRd", rev = TRUE)[2:5]) +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
+        strip.text.x = element_blank(), strip.text.y = element_blank()) +
+  labs(x = "Number of experimental replicates merged", y = "CDRL3 coverage (%)")
+
+#ggsave("./figure/LC_CDR3_merged.png", height = 7, width = 6, dpi = 600)
+```
+
+```{r}
+# calculate the median and iqr range
+res_2_med <- res_2 %>%  group_by(sequence_name, subset, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
+res_2_med$sequence_name <- factor(res_2_med$sequence_name, levels = LC_names)
+
+res_2_med_range <- res_2_med %>% group_by(value, sequence_name) %>% summarise(med_vdj_range = max(med_vdj) - min(med_vdj), med_cdr3_range = max(med_cdr3) - min(med_cdr3)) %>% arrange(value, med_cdr3_range)
+
+res_2_iqr <- res_2 %>% group_by(sequence_name, subset, value) %>% summarise(iqr_vdj = IQR(vdj), iqr_cdr3 = IQR(cdr3)) %>% arrange(subset, value)
+
+res_2_iqr_med <- res_2_iqr %>% group_by(sequence_name, value) %>% summarise(med_iqr_vdj = median(iqr_vdj), med_iqr_cdr3 = median(iqr_cdr3)) %>% arrange(value, med_iqr_cdr3)
+```
+
+
+```{r fig.height=7, fig.width=6}
+p_vdj <- ggplot(res_2, aes(x = subset, y = vdj, fill = subset)) +
+  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  scale_x_discrete(labels = c("1", "2", "3", "4", "Σ")) +
+  scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff", "#e6007e")) +
+  facet_grid(sequence_name ~ value) +
+  geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
+  geom_text(data = res_2_med, aes(y = -10, label = round(med_vdj, 2)), size = 2) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, color = color_x_tick),
+        legend.position = "none",
+        strip.text.x = element_blank(), strip.text.y = element_blank()
+        ) +
+  labs(x = "Experimental replicate", y = "VJ coverage (%)")
+
+p_vdj
+
+#ggsave("./figure/LC_vdj.png", p_vdj, height = 7, width = 6, dpi = 600)
+```
+
+```{r fig.height=7, fig.width=6}
+p_cdr3 <- ggplot(res_2, aes(x = subset, y = cdr3, fill = subset)) +
+  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  scale_x_discrete(labels = c("1", "2", "3", "4", "Σ")) +
+  scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff", "#e6007e")) +
+  facet_grid(sequence_name ~ value) +
+  geom_beeswarm(pch = 21, size = 0.5, cex = 2, corral = "wrap", corral.width = 0.9) +
+  geom_text(data = res_2_med, aes(y = -10, label = round(med_cdr3, 2)), size = 2) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, color = color_x_tick),
+        legend.position = "none",
+        strip.text.x = element_blank(), strip.text.y = element_blank()) +
+  labs(x = "Experimental replicate", y = "CDRL3 coverage (%)")
+
+p_cdr3
+
+#ggs
+```
