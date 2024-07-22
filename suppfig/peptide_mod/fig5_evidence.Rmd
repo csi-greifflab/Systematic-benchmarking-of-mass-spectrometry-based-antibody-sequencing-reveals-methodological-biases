@@ -1,0 +1,189 @@
+---
+title: "Intensity_ratio_from_evidence.txt"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = FALSE)
+#source("/storage/mariiac/msms_figures/my_config.R")
+source("/Users/khangl/UiO Dropbox/Khang Le Quy/CSI/datasets/csi_datasets/ms_benchmarking/msms_figures/Khang_config.R")
+```
+
+# Download the peptides.txt files for each run and enzyme from google drive
+
+```{r eval=FALSE, include=FALSE}
+# this chunk was run locally because googledrive connection did not work properly with an Rstudio Server
+
+options(httr_oob_default=TRUE)
+drive_auth()
+
+path <- paste0("~/MSMS_raw_data_cleaned/MQv2.1.3.0_output_by_Khang",
+       outer(paste0("/run", 1:4, "/"),
+             c("aspn", "ct", "tryp", "ct+tryp"),
+             paste0),
+       "/combined/txt/evidence.txt")
+
+mq_gfiles <- drive_get(path)
+
+path_out <- "~/bioinf/MSMS/igor_MQ_2130_MSF/MQ_output_evidence/"
+
+for (i in 1:nrow(mq_gfiles)) {
+  fpath <- mq_gfiles[i, ]$path
+  fid <- mq_gfiles[i, ]$id
+  run <- unlist(strsplit(fpath, "/"))[4]
+  enzyme <- unlist(strsplit(fpath, "/"))[5]
+  drive_download(file = fid,
+                 overwrite = T,
+                 path = paste0(path_out, run, "_", enzyme, "_evidence.txt"))
+```
+
+# Combine into one file
+
+```{r eval=FALSE, message=FALSE, include=FALSE}
+peptides_files <- list.files(path = file.path(data_path, "MQ_raw_evidence"), 
+                             full.names = T, pattern = ".txt")
+
+df <- data.frame()
+for (i in 1:length(peptides_files)) {
+  pfile <- peptides_files[i]
+  df_tmp <- data.frame(read_tsv(pfile, guess_max = 100000))
+  df_tmp$Protease <- unlist(strsplit(basename(pfile), "_"))[2]
+  df_tmp <- df_tmp[, c("Sequence", "Protease", "Modifications", "Experiment", "Charge", "Intensity")]
+  colnames(df_tmp) <-c("Sequence", "Protease", "Modifications", "Rawfilenumber", "Charge", "intensity")
+  df_tmp$run <- unlist(strsplit(basename(pfile), "_"))[1]
+  df_tmp <- df_tmp[df_tmp$intensity > 0 & !is.na(df_tmp$intensity), ]
+  df <- rbind(df, df_tmp)
+}
+
+df <- as.data.frame(df)
+df <- rename_enzymes(df) 
+
+write_tsv(df, file.path(data_path, "MQ_raw_evidence/mq_evidence_merged.tsv"))
+```
+
+# Preprocess
+
+```{r eval=FALSE, message=FALSE, include=FALSE}
+df <- read_tsv(file.path(data_path, "MQ_raw_evidence/mq_evidence_merged.tsv"))
+
+cdr3 <- data.frame(read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv")))
+df_res <- preprocess(df, cdr3, cdr3_min_overlap=3)
+
+write_tsv(df_res, file.path(data_path, "MQ_raw_evidence/mq_evidence_preprocessed.tsv"))
+
+df <- read_tsv(file.path(data_path, "MQ_raw_evidence/mq_evidence_preprocessed.tsv"), guess_max = 1e5)
+blanks <- df[df$Sample == "blank", ]
+df <- df[df$Sample != "blank", ]
+df <- annotate_contaminations(df)
+
+write_tsv(df, file.path(data_path, "MQ_raw_evidence/mq_evidence_preprocessed_annotated.tsv"))
+```
+
+```{r}
+df <- read_tsv("./mq_evidence_preprocessed_annotated.tsv")
+
+modifs <- df %>% group_by(Protease, run) %>% count(Modifications) %>% as.data.frame()
+
+print(modifs)
+```
+
+```{r, fig.width = 10}
+ggplot(modifs[modifs$Modifications != "Unmodified",], aes(x = run, y = n, fill=run)) +
+  geom_col(position = "dodge") +
+  facet_grid(Protease~Modifications, labeller = label_wrap_gen(width=25)) +
+  geom_text(aes(label = n, y = n, color = run), position = position_dodge(0.9), vjust = -0.5, size=3) +
+  theme_bw()
+```
+
+```{r}
+ggplot(modifs[modifs$Modifications == "Unmodified",], aes(x = run, y = n, fill=run)) +
+  geom_col(position = "dodge") +
+  facet_grid(Protease~., labeller = label_wrap_gen(width=25)) +
+  geom_text(aes(label = n, y = n, color = run), position = position_dodge(0.9), vjust = -0.5, size=3) +
+  theme_bw()
+```
+
+```{r fig.height=4, fig.width=6}
+ggplot(modifs, aes(x = run, y = n, fill=run)) +
+  geom_col(position = "dodge", width = 0.75) +
+  facet_grid(factor(Protease, levels = c("Tryp","Ct","Ct+Tryp","AspN"))~Modifications, labeller = label_wrap_gen(width=25)) +
+  geom_text(aes(label = n, y = n, color = run), position = position_dodge(0.9), vjust = -0.2, size = 3) +
+  labs(x = "Experimental replicate", y = "Peptide count") +
+  scale_x_discrete(labels = c(1,2,3,4)) +
+  scale_y_continuous(limits = c(0,10000)) +
+  scale_color_manual(values = c("#48cae4", "#0096c7", "#0077B6", "#03045E")) +
+  scale_fill_manual(values = c("#48cae4", "#0096c7", "#0077B6", "#03045E")) +
+  theme_bw() +
+  theme(legend.position = "none", #strip.text = element_blank()
+        )
+#ggsave("./figures/peptide_mod.pdf", height = 4, width = 6, dpi = 600)
+```
+
+```{r}
+df <- read_tsv("./mq_evidence_preprocessed_annotated.tsv")
+
+df <- df[(df$Sample >= 36) & (df$Sample <= 47), ]
+
+df <- df[df$is_not_contamination, ]
+
+df <- df[df$match_ig_type!="h9C12_LC" & df$match_ig_type!="h9C12-WT_HC" & 
+           df$match_ig_type!="h9C12-Q97A_HC",]
+ 
+df$concentration <- NA
+df$concentration[df$match_ig_type == "Brimab_HC" |  df$match_ig_type == "Brimab_LC"] <- df$concentration_Brimab[df$match_ig_type == "Brimab_HC" |  df$match_ig_type == "Brimab_LC"]
+df$concentration[df$match_ig_type == "Umab_HC" |  df$match_ig_type == "Umab_LC"] <- df$concentration_Umab[df$match_ig_type == "Umab_HC" |  df$match_ig_type == "Umab_LC"]
+df$concentration[df$match_ig_type == "PGT121_HC" |  df$match_ig_type == "PGT121_LC"] <- df$concentration_PGT121[df$match_ig_type == "PGT121_HC" |  df$match_ig_type == "PGT121_LC"]
+df$concentration[df$match_ig_type == "PGDM1400_HC" |  df$match_ig_type == "PGDM1400_LC"] <- df$concentration_PGDM1400[df$match_ig_type == "PGDM1400_HC" |  df$match_ig_type == "PGDM1400_LC"]
+ 
+df <- df[df$concentration > 0,]
+df$ab <- unlist(strsplit(as.character(df$match_ig_type), "_"))[c(T, F)]
+
+
+res_ratio <- df %>%
+  left_join(df, by = c("Sequence", "Protease", "Charge", "Modifications", "match_ig_type"), 
+            relationship = "many-to-many") %>% 
+  subset(Rawfilenumber.x != Rawfilenumber.y) %>%
+  summarise(Sequence = Sequence, 
+            Protease = Protease, 
+            Charge = Charge,
+            Modifications = Modifications,
+            match_ig_type = match_ig_type, 
+            intensity1 = intensity.x, 
+            intensity2 = intensity.y, 
+            concentration1 = concentration.x,
+            concentration2 = concentration.y,
+            conc_ratio = concentration.x/concentration.y,
+            ab = ab.x,
+            run1 = run.x, 
+            run2 = run.y, 
+            is_cdr3_related = is_cdr3_related.x, 
+            intensity_ratio = intensity.x/intensity.y)
+
+idx <- res_ratio$conc_ratio < 1
+res_ratio$conc_ratio[idx] <- 1/res_ratio$conc_ratio[idx]
+res_ratio$intensity_ratio[idx] <- 1/res_ratio$intensity_ratio[idx]
+```
+
+```{r, fig.width=10, fig.height=8}
+ggplot(res_ratio[str_detect(res_ratio$match_ig_type, "HC",), ], 
+       aes(x=factor(conc_ratio), y=log10(intensity_ratio), fill=Modifications) ) +
+  geom_boxplot(position = position_dodge2(preserve = 'single'), outlier.shape=NA) +
+  #geom_jitter(size = 0.01, alpha=0.9) +
+  #geom_violin() +
+  facet_grid(match_ig_type~Protease, scales='free') +
+  scale_y_continuous(breaks=-5:5, labels = 10^(-5:5)) +
+  scale_x_discrete(labels = c("1:1", "10:1", "100:1", "1000:1"), drop = FALSE) +
+  labs(x="Concentration ratio",
+      y = "log10(Intensity ratio)") +
+  geom_hline(yintercept=0, linetype="dashed", color = "red") +
+  geom_hline(yintercept=1, linetype="dashed", color = "red") +
+  geom_hline(yintercept=2, linetype="dashed", color = "red") +
+  geom_hline(yintercept=3, linetype="dashed", color = "red") +
+  scale_fill_brewer(palette="Pastel2") +
+  scale_color_brewer(palette="Pastel2") +
+  theme(text = element_text(size=20), legend.position = "none") +
+  #guides(fill = guide_legend(nrow = 1, title="Modification")) +
+  #ggtitle("Samples 36-47 (non-blood, 1ab per sample)") +
+  theme_bw()
+```
+

@@ -1,0 +1,11 @@
+Rawfilenumber 	Sample	Protease	Replicate	Comment	Sample complexity
+EH3420	2	Tryp	1	1 Ab in the lowest concentration (1ng) +  blood IgG background (1000ng)	hard
+EH3428	4	Tryp	1	1 Ab in the lowest concentration (1ng) +  blood IgG background (1000ng)	hard
+EH3438	6	Tryp	1	1 Ab in the lowest concentration (1ng) +  blood IgG background (1000ng)	hard
+EH3525	26	Tryp	1	1 Ab in the highest concentration (1000ng) +  blood IgG background (1000ng)	medium
+EH3537	28	Tryp	1	1 Ab in the highest concentration (1000ng) +  blood IgG background (1000ng)	medium
+EH3549	30	Tryp	1	1 Ab in the highest concentration (1000ng) +  blood IgG background (1000ng)	medium
+EH3594	39	Tryp	1	"1 Ab in the highest concentration (1000ng), no blood background"	easy
+EH3608	43	Tryp	1	"1 Ab in the highest concentration (1000ng), no blood background"	easy
+EH3621	47	Tryp	1	"1 Ab in the highest concentration (1000ng), no blood background"	easy
+EH3741	70	Tryp	1	all 6 Abs in the highest concentration (1000ng) + blood IgG background (1000ng)	hard
