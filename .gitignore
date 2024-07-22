@@ -57,3 +57,4 @@ data/MSF_raw/
 # dotfiles
 .*
 !.gitignore
+fig6/casanovo_score_cutoff/casanovo_merged.tsv
