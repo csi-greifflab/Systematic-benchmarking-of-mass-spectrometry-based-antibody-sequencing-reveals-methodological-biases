@@ -80,7 +80,7 @@ res_blood_med <- res %>% group_by(sequence_name, value, blood) %>% summarise(med
 ```
 
 ```{r}
-## OBSOLETE, USE MOOD'S MEDIAN TEST INSTEAD
+## OBSOLETE, USE MOOD'S MEDIAN TEST INSTEAD, BUT STILL RUN THIS CODE
 
 # In the groups with difference, pairwise comparison with multiple testing correction (blood vs non-blood)
 rep_pwc_vdj <- res %>% group_by(value, sequence_name) %>% wilcox_test(vdj~blood, p.adjust.method = "BH")
@@ -126,6 +126,10 @@ mood_test_vdj_pvalue_adjusted <- p.adjust(mood_test_vdj_pvalue, method = "BH")
 # Replace the values used in the KW table with values from Mood test
 rep_pwc_vdj$p <- round(mood_test_vdj_pvalue, 4)
 rep_pwc_vdj$p.adj <- round(mood_test_vdj_pvalue_adjusted, 4)
+rep_pwc_vdj$p.signif <- ifelse(rep_pwc_vdj$p.adj > 0.05, "ns",
+                            ifelse(rep_pwc_vdj$p.adj > 0.01, "*",
+                            ifelse(rep_pwc_vdj$p.adj > 0.001, "**",
+                           "***")))
 
 mood_test_cdr3_pvalue <- c()
 for (i in (1:length(res_split))){
@@ -136,6 +140,10 @@ mood_test_cdr3_pvalue_adjusted <- p.adjust(mood_test_cdr3_pvalue, method = "BH")
 # Replace the values used in the KW table with values from Mood test
 rep_pwc_cdr3$p <- round(mood_test_cdr3_pvalue, 4)
 rep_pwc_cdr3$p.adj <- round(mood_test_cdr3_pvalue_adjusted, 4)
+rep_pwc_cdr3$p.signif <- ifelse(rep_pwc_cdr3$p.adj > 0.05, "ns",
+                            ifelse(rep_pwc_cdr3$p.adj > 0.01, "*",
+                            ifelse(rep_pwc_cdr3$p.adj > 0.001, "**",
+                           "***")))
 ```
 
 
@@ -146,13 +154,13 @@ ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = vdj)) +
   geom_beeswarm(aes(color = blood), pch = 1, size = 0.8, cex = 3, corral = "wrap", corral.width = 0.9) +
   scale_color_manual(values = c("black","red3")) +
   scale_y_continuous(breaks = seq (0, 100, by = 25), limits = c(-10,110)) +
-  stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj", label.size = 2) +
+  stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.signif", label.size = 4) +
   geom_text(data = res_blood_med, aes(y = -10, label = round(med_vdj,2), color = blood), size = 2) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()
         ) +
-  labs(x = "Presence of blood IgG", y = "VDJ coverage (%)")
+  labs(x = "Presence of blood IgG", y = "VDJ coverage, %")
 
 #ggsave("./figures/blood_vdj.pdf", height = 7, width = 5, dpi = 600)
 ```
@@ -234,7 +242,8 @@ ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multipl
 #ggsave("./figures/noblood_cdrh3.pdf", height = 4.5, width = 5, dpi = 600)
 ```
 
-# Suppfigre: same thing for light chain
+
+# Suppfigure: same thing for light chain
 ```{r}
 res <- data.frame()
 
@@ -324,6 +333,10 @@ mood_test_vdj_pvalue_adjusted <- p.adjust(mood_test_vdj_pvalue, method = "BH")
 # Replace the values used in the KW table with values from Mood test
 rep_pwc_vdj$p <- round(mood_test_vdj_pvalue, 4)
 rep_pwc_vdj$p.adj <- round(mood_test_vdj_pvalue_adjusted, 4)
+rep_pwc_vdj$p.signif <- ifelse(rep_pwc_vdj$p.adj > 0.05, "ns",
+                            ifelse(rep_pwc_vdj$p.adj > 0.01, "*",
+                            ifelse(rep_pwc_vdj$p.adj > 0.001, "**",
+                           "***")))
 
 mood_test_cdr3_pvalue <- c()
 for (i in (1:length(res_split))){
@@ -334,6 +347,10 @@ mood_test_cdr3_pvalue_adjusted <- p.adjust(mood_test_cdr3_pvalue, method = "BH")
 # Replace the values used in the KW table with values from Mood test
 rep_pwc_cdr3$p <- round(mood_test_cdr3_pvalue, 4)
 rep_pwc_cdr3$p.adj <- round(mood_test_cdr3_pvalue_adjusted, 4)
+rep_pwc_cdr3$p.signif <- ifelse(rep_pwc_cdr3$p.adj > 0.05, "ns",
+                            ifelse(rep_pwc_cdr3$p.adj > 0.01, "*",
+                            ifelse(rep_pwc_cdr3$p.adj > 0.001, "**",
+                           "***")))
 ```
 
 
@@ -344,13 +361,13 @@ ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = vdj)) +
   geom_beeswarm(aes(color = blood), pch = 1, size = 0.8, cex = 3, corral = "wrap", corral.width = 0.9) +
   scale_color_manual(values = c("black","red3")) +
   scale_y_continuous(breaks = seq (0, 100, by = 25), limits = c(-10,110)) +
-  stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj", label.size = 2) +
+  stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.signif", label.size = 4) +
   geom_text(data = res_blood_med, aes(y = -10, label = round(med_vdj,2), color = blood), size = 2) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()
         ) +
-  labs(x = "Presence of blood IgG", y = "VJ coverage (%)")
+  labs(x = "Presence of blood IgG", y = "VJ coverage, %")
 
 #ggsave("./figures/blood_vj.pdf", height = 7, width = 5, dpi = 600)
 ```
@@ -362,13 +379,13 @@ ggplot(res, aes(x = factor(blood, levels = c("TRUE", "FALSE")), y = cdr3)) +
   geom_beeswarm(aes(color = blood), pch = 1, size = 0.8, cex = 3, corral = "wrap", corral.width = 0.9) +
   scale_color_manual(values = c("black","red3")) +
   scale_y_continuous(breaks = seq (0, 100, by = 25), limits = c(-10,110)) +
-  stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.adj", label.size = 2) +
+  stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.signif", label.size = 4) +
   geom_text(data = res_blood_med, aes(y = -10, label = round(med_cdr3,2), color = blood), size = 2) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()
         ) +
-  labs(x = "Presence of blood IgG", y = "CDRL3 coverage (%)")
+  labs(x = "Presence of blood IgG", y = "CDRL3 coverage, %")
 
 #ggsave("./figures/blood_cdrl3.pdf", height = 7, width = 5, dpi = 600)
 ```
@@ -400,7 +417,7 @@ ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multipl
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()
         ) +
-  labs(x = "Number of spike-in mAbs in sample", y = "VD coverage (%)")
+  labs(x = "# of spike-in mAbs", y = "VJ coverage, %")
 
 #ggsave("./figures/noblood_vj.pdf", height = 4.5, width = 5, dpi = 600)
 ```
@@ -417,7 +434,7 @@ ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multipl
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5), legend.position = "none",
         strip.text.x = element_blank(), strip.text.y = element_blank()
         ) +
-  labs(x = "Number of spike-in mAbs in sample", y = "CDRL3 coverage (%)")
+  labs(x = "# of spike-in mAbs", y = "CDRL3 coverage, %")
 
 #ggsave("./figures/noblood_cdrl3.pdf", height = 4.5, width = 5, dpi = 600)
 ```

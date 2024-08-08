@@ -16,7 +16,7 @@ library(gridExtra)
 ```
 
 # Read in the filtered peptide list from the main dataset and the reference sequences
-```{r}
+```{r include=FALSE}
 cdr3 <- data.frame(read_tsv("./antibodies_cdr3_variable_full.tsv"))
 cdr3$cdr3_start <- str_locate(cdr3$amino_acid_sequence_Vregion, cdr3$amino_acid_sequence_cdr3)[,1]
 cdr3$cdr3_end <- str_locate(cdr3$amino_acid_sequence_Vregion, cdr3$amino_acid_sequence_cdr3)[,2]
@@ -107,10 +107,19 @@ make_coverage_plot <- function(ab_name, df) {
 ```
 
 # Panel C: show coverage plot of only Casanovo peptides, with CDR3 coverage and CDR3 coverage on top
-
 ```{r fig.height=6, fig.width=8}
 make_coverage_plot("PGDM1400_HC", Sum_peptides[Sum_peptides$match_ig_type == "PGDM1400_HC", ])
 make_coverage_plot("PGT121_HC", Sum_peptides[Sum_peptides$match_ig_type == "PGT121_HC", ])
+make_coverage_plot("Umab_HC", Sum_peptides[Sum_peptides$match_ig_type == "Umab_HC", ])
+make_coverage_plot("Brimab_HC", Sum_peptides[Sum_peptides$match_ig_type == "Brimab_HC", ])
+make_coverage_plot("h9C12-WT_HC", Sum_peptides[Sum_peptides$match_ig_type == "h9C12-WT_HC", ])
+make_coverage_plot("h9C12-Q97A_HC", Sum_peptides[Sum_peptides$match_ig_type == "h9C12-Q97A_HC", ])
+
+make_coverage_plot("PGDM1400_LC", Sum_peptides[Sum_peptides$match_ig_type == "PGDM1400_LC", ])
+make_coverage_plot("PGT121_LC", Sum_peptides[Sum_peptides$match_ig_type == "PGT121_LC", ])
+make_coverage_plot("Umab_LC", Sum_peptides[Sum_peptides$match_ig_type == "Umab_LC", ])
+make_coverage_plot("Brimab_LC", Sum_peptides[Sum_peptides$match_ig_type == "Brimab_LC", ])
+make_coverage_plot("h9C12_LC", Sum_peptides[Sum_peptides$match_ig_type == "h9C12_LC", ])
 ```
 
 ```{r}
@@ -118,6 +127,14 @@ make_coverage_plot("PGT121_HC", Sum_peptides[Sum_peptides$match_ig_type == "PGT1
 coverage_PGDM1400 <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "PGDM1400_HC", cdr3, "both"),
                             type = str_to_upper(names(coverage)))
 coverage_PGT121 <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "PGT121_HC", cdr3, "both"),
+                          type = str_to_upper(names(coverage)))
+coverage_Umab <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "Umab_HC", cdr3, "both"),
+                          type = str_to_upper(names(coverage)))
+coverage_Brimab <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "Brimab_HC", cdr3, "both"),
+                          type = str_to_upper(names(coverage)))
+coverage_h9C12_WT <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "h9C12-WT_HC", cdr3, "both"),
+                          type = str_to_upper(names(coverage)))
+coverage_h9C12_Q97A <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "h9C12-Q97A_HC", cdr3, "both"),
                           type = str_to_upper(names(coverage)))
 ```
 
@@ -132,6 +149,7 @@ ggplot(data = coverage_PGDM1400, aes(x = coverage, y = type)) +
 
 ggsave("./figures/coverage_PGDM1400_HC.pdf", height = 1.5, width = 8, dpi = 600)
 ```
+
 ```{r fig.height=1.5, fig.width=8}
 ggplot(data = coverage_PGT121, aes(x = coverage, y = type)) +
   geom_col(fill = "#6a3e37") +
@@ -143,3 +161,129 @@ ggplot(data = coverage_PGT121, aes(x = coverage, y = type)) +
 
 ggsave("./figures/coverage_PGT121_HC.pdf", height = 1.5, width = 8, dpi = 600)
 ```
+
+```{r fig.height=1.5, fig.width=8}
+ggplot(data = coverage_Umab, aes(x = coverage, y = type)) +
+  geom_col(fill = "#6a3e37") +
+  scale_x_continuous(limits = c(0,100)) +
+  geom_text(aes(label = round(coverage,2), hjust = -0.2)) +
+  theme_classic() +
+  theme(text = element_text(size = 16)) +
+  labs(x = "Sequence coverage (%)", y = "")
+
+ggsave("./figures/coverage_Umab_HC.pdf", height = 1.5, width = 8, dpi = 600)
+```
+
+```{r fig.height=1.5, fig.width=8}
+ggplot(data = coverage_Brimab, aes(x = coverage, y = type)) +
+  geom_col(fill = "#6a3e37") +
+  scale_x_continuous(limits = c(0,100)) +
+  geom_text(aes(label = round(coverage,2), hjust = -0.2)) +
+  theme_classic() +
+  theme(text = element_text(size = 16)) +
+  labs(x = "Sequence coverage (%)", y = "")
+
+ggsave("./figures/coverage_Brimab_HC.pdf", height = 1.5, width = 8, dpi = 600)
+```
+
+```{r fig.height=1.5, fig.width=8}
+ggplot(data = coverage_h9C12_WT, aes(x = coverage, y = type)) +
+  geom_col(fill = "#6a3e37") +
+  scale_x_continuous(limits = c(0,100)) +
+  geom_text(aes(label = round(coverage,2), hjust = -0.2)) +
+  theme_classic() +
+  theme(text = element_text(size = 16)) +
+  labs(x = "Sequence coverage (%)", y = "")
+
+ggsave("./figures/coverage_h9C12-WT_HC.pdf", height = 1.5, width = 8, dpi = 600)
+```
+
+```{r fig.height=1.5, fig.width=8}
+ggplot(data = coverage_h9C12_Q97A, aes(x = coverage, y = type)) +
+  geom_col(fill = "#6a3e37") +
+  scale_x_continuous(limits = c(0,100)) +
+  geom_text(aes(label = round(coverage,2), hjust = -0.2)) +
+  theme_classic() +
+  theme(text = element_text(size = 16)) +
+  labs(x = "Sequence coverage (%)", y = "")
+
+ggsave("./figures/coverage_h9C12-Q97A_HC.pdf", height = 1.5, width = 8, dpi = 600)
+```
+
+# For light chain
+```{r}
+# Calculate CDRL3 and VJ coverage
+coverage_PGDM1400 <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "PGDM1400_LC", cdr3, "both"),
+                            type = str_to_upper(names(coverage)))
+coverage_PGT121 <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "PGT121_LC", cdr3, "both"),
+                          type = str_to_upper(names(coverage)))
+coverage_Umab <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "Umab_LC", cdr3, "both"),
+                          type = str_to_upper(names(coverage)))
+coverage_Brimab <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "Brimab_LC", cdr3, "both"),
+                          type = str_to_upper(names(coverage)))
+coverage_h9C12 <- tibble(coverage = get_coverage_percent(Sum_peptides$Sequence, "h9C12_LC", cdr3, "both"),
+                          type = str_to_upper(names(coverage)))
+
+```
+
+```{r fig.height=1.5, fig.width=8}
+ggplot(data = coverage_PGDM1400, aes(x = coverage, y = type)) +
+  geom_col(fill = "#6a3e37") +
+  scale_x_continuous(limits = c(0,100)) +
+  geom_text(aes(label = round(coverage,2), hjust = -0.2)) +
+  theme_classic() +
+  theme(text = element_text(size = 16)) +
+  labs(x = "Sequence coverage (%)", y = "")
+
+ggsave("./figures/coverage_PGDM1400_LC.pdf", height = 1.5, width = 8, dpi = 600)
+```
+
+```{r fig.height=1.5, fig.width=8}
+ggplot(data = coverage_PGT121, aes(x = coverage, y = type)) +
+  geom_col(fill = "#6a3e37") +
+  scale_x_continuous(limits = c(0,100)) +
+  geom_text(aes(label = round(coverage,2), hjust = -0.2)) +
+  theme_classic() +
+  theme(text = element_text(size = 16)) +
+  labs(x = "Sequence coverage (%)", y = "")
+
+ggsave("./figures/coverage_PGT121_LC.pdf", height = 1.5, width = 8, dpi = 600)
+```
+
+```{r fig.height=1.5, fig.width=8}
+ggplot(data = coverage_Umab, aes(x = coverage, y = type)) +
+  geom_col(fill = "#6a3e37") +
+  scale_x_continuous(limits = c(0,100)) +
+  geom_text(aes(label = round(coverage,2), hjust = -0.2)) +
+  theme_classic() +
+  theme(text = element_text(size = 16)) +
+  labs(x = "Sequence coverage (%)", y = "")
+
+ggsave("./figures/coverage_Umab_LC.pdf", height = 1.5, width = 8, dpi = 600)
+```
+
+```{r fig.height=1.5, fig.width=8}
+ggplot(data = coverage_Brimab, aes(x = coverage, y = type)) +
+  geom_col(fill = "#6a3e37") +
+  scale_x_continuous(limits = c(0,100)) +
+  geom_text(aes(label = round(coverage,2), hjust = -0.2)) +
+  theme_classic() +
+  theme(text = element_text(size = 16)) +
+  labs(x = "Sequence coverage (%)", y = "")
+
+ggsave("./figures/coverage_Brimab_LC.pdf", height = 1.5, width = 8, dpi = 600)
+```
+
+```{r fig.height=1.5, fig.width=8}
+ggplot(data = coverage_h9C12, aes(x = coverage, y = type)) +
+  geom_col(fill = "#6a3e37") +
+  scale_x_continuous(limits = c(0,100)) +
+  geom_text(aes(label = round(coverage,2), hjust = -0.2)) +
+  theme_classic() +
+  theme(text = element_text(size = 16)) +
+  labs(x = "Sequence coverage (%)", y = "")
+
+ggsave("./figures/coverage_h9C12_LC.pdf", height = 1.5, width = 8, dpi = 600)
+```
+
+# Casanovo coverage in mono vs polyclonal samples

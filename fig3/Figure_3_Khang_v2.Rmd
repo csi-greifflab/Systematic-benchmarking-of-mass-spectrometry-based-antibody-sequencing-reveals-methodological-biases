@@ -180,7 +180,7 @@ res %>% filter(sequence_name == "Brimab_HC", value == 10, subset_count == 4) %>%
 
 
 ```{r}
-# Kruskal Wallis test on the vdj coverage rank of the replicates (exclude 4 merged)
+# Kruskal Wallis test on the vdj coverage rank of the replicates
 kruskal_vdj <- res %>% group_by(value, sequence_name) %>% kruskal_test(vdj~subset_count)
 
 # Adjust p-value for multiple testing
@@ -228,13 +228,13 @@ geom_ribbon(aes(ymax = upr.ci, ymin = lwr.ci, fill = as.factor(value)), alpha = 
 geom_line(aes(color = as.factor(value)), linewidth = 1) +
 geom_point(aes(color = as.factor(value)), size = 2) +
 geom_text(aes(x = subset_count, y = 2, label = round(median, 1)), size = 2) +
-stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj.signif", label.size = 4) +
 facet_grid(sequence_name~value) +
 scale_fill_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) + 
 scale_color_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) +
 scale_x_continuous(limits = c(0.75,4.25)) +
 scale_y_continuous(limits = c(0,112), breaks = c(0,25,50,75,100)) +
-labs(x = "Number of experimental replicates merged", y = "Median VDJ coverage (%)") +
+labs(x = "# of merged experimental replicates", y = "Median VDJ coverage, %") +
 theme_bw() +
 theme(legend.position = "none",
       strip.text = element_blank()
@@ -250,13 +250,13 @@ geom_ribbon(aes(ymax = upr.ci, ymin = lwr.ci, fill = as.factor(value)), alpha = 
 geom_line(aes(color = as.factor(value)), linewidth = 1) +
 geom_point(aes(color = as.factor(value)), size = 2) +
 geom_text(aes(x = subset_count, y = 2, label = round(median, 1)), size = 2) +
-stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.adj.signif", label.size = 4) +
 facet_grid(sequence_name~value) +
 scale_fill_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) + 
 scale_color_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) +
 scale_x_continuous(limits = c(0.75,4.25)) +
 scale_y_continuous(limits = c(0,112), breaks = c(0,25,50,75,100)) +
-labs(x = "Number of experimental replicates merged", y = "Median CDRH3 coverage (%)") +
+labs(x = "# of merged experimental replicates", y = "Median CDRH3 coverage, %") +
 theme_bw() +
 theme(legend.position = "none",
       strip.text = element_blank()
@@ -341,7 +341,7 @@ ggplot(res_2, aes(x = subset, y = cdr3, fill = subset)) +
 #ggsave("./figure/HC_cdr3.png", height = 7, width = 6, dpi = 600)
 ```
 
-# Panel C,D: coverage of cumulatively merged replicates
+# Panel C,D: coverage of cumulatively merged replicates (obsolete)
 ```{r}
 # calculate the median and iqr range
 res_med <- res %>%  group_by(sequence_name, subset_count, value) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3)) %>% arrange(sequence_name, value)
@@ -606,13 +606,13 @@ geom_ribbon(aes(ymax = upr.ci, ymin = lwr.ci, fill = as.factor(value)), alpha = 
 geom_line(aes(color = as.factor(value)), linewidth = 1) +
 geom_point(aes(color = as.factor(value)), size = 2) +
 geom_text(aes(x = subset_count, y = 2, label = round(median, 1)), size = 2) +
-stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+stat_pvalue_manual(data = rep_pwc_vdj, hide.ns = TRUE, label = "p.adj.signif", label.size = 4) +
 facet_grid(sequence_name~value) +
 scale_fill_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) + 
 scale_color_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) +
 scale_x_continuous(limits = c(0.75,4.25)) +
 scale_y_continuous(limits = c(0,112), breaks = c(0,25,50,75,100)) +
-labs(x = "Number of experimental replicates merged", y = "Median VJ coverage (%)") +
+labs(x = "# of merged experimental replicates", y = "Median VJ coverage, %") +
 theme_bw() +
 theme(legend.position = "none",
       strip.text = element_blank()
@@ -627,13 +627,13 @@ geom_ribbon(aes(ymax = upr.ci, ymin = lwr.ci, fill = as.factor(value)), alpha = 
 geom_line(aes(color = as.factor(value)), linewidth = 1) +
 geom_point(aes(color = as.factor(value)), size = 2) +
 geom_text(aes(x = subset_count, y = 2, label = round(median, 1)), size = 2) +
-stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.adj.signif", label.size = 2) +
+stat_pvalue_manual(data = rep_pwc_cdr3, hide.ns = TRUE, label = "p.adj.signif", label.size = 4) +
 facet_grid(sequence_name~value) +
 scale_fill_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) + 
 scale_color_manual(values = c("#90E0EF", "#00B4D8", "#0077B6", "#03045E")) +
 scale_x_continuous(limits = c(0.75,4.25)) +
 scale_y_continuous(limits = c(0,112), breaks = c(0,25,50,75,100)) +
-labs(x = "Number of experimental replicates merged", y = "Median CDRL3 coverage (%)") +
+labs(x = "# of merged experimental replicates", y = "Median CDRL3 coverage, %") +
 theme_bw() +
 theme(legend.position = "none",
       strip.text = element_blank()

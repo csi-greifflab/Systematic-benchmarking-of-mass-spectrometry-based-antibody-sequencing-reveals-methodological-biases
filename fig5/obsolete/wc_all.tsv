@@ -1,0 +1,307 @@
+Protease	match_ig_type	conc_ratio	run1	blood_state	.y.	group1	group2	n	statistic	p	p.adj
+Ct	Brimab_HC	1	run1	blood	intensity_ratio	1	null model	902	239447	4.73e-6	3.4055999999999995e-4
+Ct+Tryp	Brimab_HC	1	run1	blood	intensity_ratio	1	null model	1442	617119	4.6e-10	3.312e-8
+Tryp	Brimab_HC	1	run1	blood	intensity_ratio	1	null model	1222	422697	6.98e-5	0.0050256
+Ct	PGDM1400_HC	1	run1	blood	intensity_ratio	1	null model	976	266276	0.00155	0.11159999999999999
+Ct+Tryp	PGDM1400_HC	1	run1	blood	intensity_ratio	1	null model	4252	5488704	1.21e-33	8.712e-32
+Tryp	PGDM1400_HC	1	run1	blood	intensity_ratio	1	null model	5024	7447134	2.28e-28	1.6416e-26
+Ct	PGT121_HC	1	run1	blood	intensity_ratio	1	null model	948	264657	2.44e-6	1.7568e-4
+Ct+Tryp	PGT121_HC	1	run1	blood	intensity_ratio	1	null model	1204	428977	3.98e-8	2.8656e-6
+Tryp	PGT121_HC	1	run1	blood	intensity_ratio	1	null model	6450	12803041	5.44e-58	3.9168e-56
+Ct	Umab_HC	1	run1	blood	intensity_ratio	1	null model	226	15670	0.00385	0.2772
+Ct+Tryp	Umab_HC	1	run1	blood	intensity_ratio	1	null model	1838	1034318	8.92e-17	6.4223999999999996e-15
+Tryp	Umab_HC	1	run1	blood	intensity_ratio	1	null model	2634	2032146	2.77e-14	1.9944e-12
+Ct+Tryp	Brimab_HC	1	run1	no blood	intensity_ratio	1	null model	172	8561	0.0864	1
+Tryp	Brimab_HC	1	run1	no blood	intensity_ratio	1	null model	312	27023	0.102	1
+Ct	PGDM1400_HC	1	run1	no blood	intensity_ratio	1	null model	614	110337	2.91e-4	0.020952000000000002
+Ct+Tryp	PGDM1400_HC	1	run1	no blood	intensity_ratio	1	null model	1176	420143	2e-10	1.44e-8
+Tryp	PGDM1400_HC	1	run1	no blood	intensity_ratio	1	null model	3988	4962863	7.16e-42	5.1552e-40
+Ct	PGT121_HC	1	run1	no blood	intensity_ratio	1	null model	514	85562	8.72e-9	6.2784e-7
+Ct+Tryp	PGT121_HC	1	run1	no blood	intensity_ratio	1	null model	1436	644037	3.53e-16	2.5416e-14
+Tryp	PGT121_HC	1	run1	no blood	intensity_ratio	1	null model	3130	2945238	1.19e-22	8.568e-21
+Ct	Umab_HC	1	run1	no blood	intensity_ratio	1	null model	678	131924	9.69e-4	0.069768
+Ct+Tryp	Umab_HC	1	run1	no blood	intensity_ratio	1	null model	2966	2753128	1.9499999999999998e-32	1.4039999999999999e-30
+Tryp	Umab_HC	1	run1	no blood	intensity_ratio	1	null model	5660	9942014	1.2399999999999998e-55	8.927999999999999e-54
+Ct	Brimab_HC	10	run1	blood	intensity_ratio	1	null model	1086	154341	3.1699999999999997e-42	2.2823999999999998e-40
+Ct+Tryp	Brimab_HC	10	run1	blood	intensity_ratio	1	null model	1004	34883	1.1199999999999998e-123	8.063999999999999e-122
+Tryp	Brimab_HC	10	run1	blood	intensity_ratio	1	null model	1032	12896	1.5999999999999997e-154	1.1519999999999997e-152
+Ct	PGDM1400_HC	10	run1	blood	intensity_ratio	1	null model	630	33065	1.04e-47	7.487999999999999e-46
+Ct+Tryp	PGDM1400_HC	10	run1	blood	intensity_ratio	1	null model	64	253	1.44e-7	1.0368e-5
+Tryp	PGDM1400_HC	10	run1	blood	intensity_ratio	1	null model	1574	621937	0.904	1
+Ct	PGT121_HC	10	run1	blood	intensity_ratio	1	null model	620	53791	1.78e-21	1.2816000000000002e-19
+Ct+Tryp	PGT121_HC	10	run1	blood	intensity_ratio	1	null model	306	5222	4.3899999999999996e-32	3.1608e-30
+Tryp	PGT121_HC	10	run1	blood	intensity_ratio	1	null model	3676	4723494	6.56e-97	4.7232e-95
+Ct	Umab_HC	10	run1	blood	intensity_ratio	1	null model	180	1065	4.83e-24	3.4775999999999998e-22
+Ct+Tryp	Umab_HC	10	run1	blood	intensity_ratio	1	null model	1920	479142	2.9299999999999995e-74	2.1095999999999997e-72
+Tryp	Umab_HC	10	run1	blood	intensity_ratio	1	null model	1538	348562	2.74e-44	1.9728e-42
+Ct	PGDM1400_HC	10	run1	no blood	intensity_ratio	1	null model	514	3087	2.9699999999999996e-78	2.1383999999999997e-76
+Ct+Tryp	PGDM1400_HC	10	run1	no blood	intensity_ratio	1	null model	258	1607	2.58e-36	1.8576e-34
+Tryp	PGDM1400_HC	10	run1	no blood	intensity_ratio	1	null model	900	269926	7.02e-18	5.0544e-16
+Ct+Tryp	PGT121_HC	10	run1	no blood	intensity_ratio	1	null model	36	37	3.43e-6	2.4696e-4
+Tryp	PGT121_HC	10	run1	no blood	intensity_ratio	1	null model	180	12851	1.79e-11	1.2888000000000001e-9
+Ct	Umab_HC	10	run1	no blood	intensity_ratio	1	null model	668	237	1.39e-110	1.0008e-108
+Ct+Tryp	Umab_HC	10	run1	no blood	intensity_ratio	1	null model	2558	372018	4.039999999999998e-251	2.9087999999999986e-249
+Tryp	Umab_HC	10	run1	no blood	intensity_ratio	1	null model	4650	1405749	0	0
+Ct	Brimab_HC	100	run1	blood	intensity_ratio	1	null model	806	27444	6.889999999999999e-93	4.960799999999999e-91
+Ct+Tryp	Brimab_HC	100	run1	blood	intensity_ratio	1	null model	746	1528	4.069999999999999e-121	2.9303999999999994e-119
+Tryp	Brimab_HC	100	run1	blood	intensity_ratio	1	null model	838	0	8.789999999999998e-139	6.328799999999998e-137
+Ct	PGT121_HC	100	run1	blood	intensity_ratio	1	null model	246	6945	1.58e-13	1.1376e-11
+Ct+Tryp	PGT121_HC	100	run1	blood	intensity_ratio	1	null model	144	0	2.24e-25	1.6128e-23
+Tryp	PGT121_HC	100	run1	blood	intensity_ratio	1	null model	3306	411781	0	0
+Ct	Umab_HC	100	run1	blood	intensity_ratio	1	null model	18	0	2.11e-4	0.015192
+Ct+Tryp	Umab_HC	100	run1	blood	intensity_ratio	1	null model	1068	7303	1.7199999999999996e-167	1.2383999999999996e-165
+Tryp	Umab_HC	100	run1	blood	intensity_ratio	1	null model	1110	6011	3.7799999999999985e-176	2.721599999999999e-174
+Ct+Tryp	Brimab_HC	100	run1	no blood	intensity_ratio	1	null model	72	0	1.69e-13	1.2168e-11
+Tryp	Brimab_HC	100	run1	no blood	intensity_ratio	1	null model	44	113	8.47e-6	6.098400000000001e-4
+Ct	PGT121_HC	100	run1	no blood	intensity_ratio	1	null model	22	135	0.795	1
+Ct+Tryp	PGT121_HC	100	run1	no blood	intensity_ratio	1	null model	342	16572	3.16e-12	2.2751999999999998e-10
+Tryp	PGT121_HC	100	run1	no blood	intensity_ratio	1	null model	1462	257659	5.239999999999999e-66	3.7727999999999995e-64
+Ct	Umab_HC	100	run1	no blood	intensity_ratio	1	null model	530	0	1.5999999999999998e-88	1.1519999999999998e-86
+Ct+Tryp	Umab_HC	100	run1	no blood	intensity_ratio	1	null model	1406	15461	2.7499999999999983e-217	1.9799999999999987e-215
+Tryp	Umab_HC	100	run1	no blood	intensity_ratio	1	null model	3534	130317	0	0
+Ct	Brimab_HC	1000	run1	blood	intensity_ratio	1	null model	718	0	3.319999999999999e-119	2.3903999999999992e-117
+Ct+Tryp	Brimab_HC	1000	run1	blood	intensity_ratio	1	null model	1182	0	7.009999999999998e-195	5.047199999999998e-193
+Tryp	Brimab_HC	1000	run1	blood	intensity_ratio	1	null model	822	0	3.579999999999999e-136	2.577599999999999e-134
+Ct+Tryp	PGDM1400_HC	1000	run1	blood	intensity_ratio	1	null model	550	0	8.699999999999999e-92	6.263999999999999e-90
+Ct+Tryp	PGT121_HC	1000	run1	blood	intensity_ratio	1	null model	28	0	3.97e-6	2.8584e-4
+Tryp	PGT121_HC	1000	run1	blood	intensity_ratio	1	null model	796	106047	5.54e-16	3.9888e-14
+Ct+Tryp	Umab_HC	1000	run1	blood	intensity_ratio	1	null model	900	0	6.779999999999999e-149	4.8815999999999995e-147
+Tryp	Umab_HC	1000	run1	blood	intensity_ratio	1	null model	916	3	1.6799999999999993e-151	1.2095999999999995e-149
+Ct+Tryp	PGT121_HC	1000	run1	no blood	intensity_ratio	1	null model	100	643	9.84e-11	7.0848e-9
+Tryp	PGT121_HC	1000	run1	no blood	intensity_ratio	1	null model	72	154	7.66e-11	5.5152e-9
+Ct	Umab_HC	1000	run1	no blood	intensity_ratio	1	null model	256	0	9.69e-44	6.9768e-42
+Tryp	Umab_HC	1000	run1	no blood	intensity_ratio	1	null model	1632	0	3.0799999999999985e-268	2.217599999999999e-266
+Ct	Brimab_HC	1	run2	blood	intensity_ratio	1	null model	436	59306	9.26e-6	7.685799999999999e-4
+Ct+Tryp	Brimab_HC	1	run2	blood	intensity_ratio	1	null model	572	92227	0.00928	0.77024
+Tryp	Brimab_HC	1	run2	blood	intensity_ratio	1	null model	2222	1422090	6.03e-10	5.0049e-8
+Ct	PGDM1400_HC	1	run2	blood	intensity_ratio	1	null model	106	3752	0.00389	0.32287
+Ct+Tryp	PGDM1400_HC	1	run2	blood	intensity_ratio	1	null model	348	37407	1.77e-4	0.014691
+Tryp	PGDM1400_HC	1	run2	blood	intensity_ratio	1	null model	598	103266	0.00118	0.09794
+Ct	PGT121_HC	1	run2	blood	intensity_ratio	1	null model	1336	599613	1.97e-27	1.6351e-25
+Ct+Tryp	PGT121_HC	1	run2	blood	intensity_ratio	1	null model	5570	9576756	6.799999999999999e-52	5.643999999999999e-50
+Tryp	PGT121_HC	1	run2	blood	intensity_ratio	1	null model	7034	15039602	2.4999999999999994e-55	2.0749999999999994e-53
+Ct	Umab_HC	1	run2	blood	intensity_ratio	1	null model	352	40613	5.8e-7	4.8139999999999996e-5
+Ct+Tryp	Umab_HC	1	run2	blood	intensity_ratio	1	null model	1540	716091	1.98e-12	1.6434e-10
+Tryp	Umab_HC	1	run2	blood	intensity_ratio	1	null model	3344	3456660	2.9e-32	2.407e-30
+Ct	Brimab_HC	1	run2	no blood	intensity_ratio	1	null model	32	309	0.41	1
+Ct+Tryp	Brimab_HC	1	run2	no blood	intensity_ratio	1	null model	424	51744	0.00802	0.6656599999999999
+Tryp	Brimab_HC	1	run2	no blood	intensity_ratio	1	null model	2630	2080265	2.33e-19	1.9339e-17
+Ct	PGDM1400_HC	1	run2	no blood	intensity_ratio	1	null model	580	103890	1.14e-6	9.462000000000001e-5
+Ct+Tryp	PGDM1400_HC	1	run2	no blood	intensity_ratio	1	null model	64	1188	0.324	1
+Tryp	PGDM1400_HC	1	run2	no blood	intensity_ratio	1	null model	434	59999	9.78e-7	8.1174e-5
+Ct	PGT121_HC	1	run2	no blood	intensity_ratio	1	null model	1788	968691	9.91e-15	8.2253e-13
+Ct+Tryp	PGT121_HC	1	run2	no blood	intensity_ratio	1	null model	2490	1805206	1.29e-12	1.0707e-10
+Tryp	PGT121_HC	1	run2	no blood	intensity_ratio	1	null model	4334	5617745	5.270000000000001e-29	4.374100000000001e-27
+Ct	Umab_HC	1	run2	no blood	intensity_ratio	1	null model	1258	492323	7.59e-14	6.2997e-12
+Ct+Tryp	Umab_HC	1	run2	no blood	intensity_ratio	1	null model	2056	1283965	3.78e-17	3.1374e-15
+Tryp	Umab_HC	1	run2	no blood	intensity_ratio	1	null model	6582	13202644	2.41e-53	2.0003e-51
+Ct	Brimab_HC	10	run2	blood	intensity_ratio	1	null model	588	59651	6.37e-11	5.2871e-9
+Ct+Tryp	Brimab_HC	10	run2	blood	intensity_ratio	1	null model	556	41814	5.66e-21	4.6978e-19
+Tryp	Brimab_HC	10	run2	blood	intensity_ratio	1	null model	2600	738887	1.9199999999999997e-136	1.5935999999999996e-134
+Ct	PGDM1400_HC	10	run2	blood	intensity_ratio	1	null model	58	808	0.716	1
+Ct+Tryp	PGDM1400_HC	10	run2	blood	intensity_ratio	1	null model	122	2287	1.84e-4	0.015272
+Tryp	PGDM1400_HC	10	run2	blood	intensity_ratio	1	null model	488	19242	1.8799999999999998e-38	1.5603999999999998e-36
+Ct	PGT121_HC	10	run2	blood	intensity_ratio	1	null model	884	130091	6.43e-18	5.3369e-16
+Ct+Tryp	PGT121_HC	10	run2	blood	intensity_ratio	1	null model	2340	995344	2.4599999999999998e-30	2.0417999999999997e-28
+Tryp	PGT121_HC	10	run2	blood	intensity_ratio	1	null model	4768	5667725	0.859	1
+Ct	Umab_HC	10	run2	blood	intensity_ratio	1	null model	376	22660	1.37e-9	1.1371e-7
+Ct+Tryp	Umab_HC	10	run2	blood	intensity_ratio	1	null model	1498	3152	1.1599999999999995e-243	9.627999999999996e-242
+Tryp	Umab_HC	10	run2	blood	intensity_ratio	1	null model	4182	1785063	6.239999999999997e-241	5.179199999999998e-239
+Ct+Tryp	Brimab_HC	10	run2	no blood	intensity_ratio	1	null model	396	10	1.3299999999999999e-66	1.1039e-64
+Tryp	Brimab_HC	10	run2	no blood	intensity_ratio	1	null model	1368	511812	0.00284	0.23572
+Ct	PGDM1400_HC	10	run2	no blood	intensity_ratio	1	null model	480	12912	3.7400000000000004e-49	3.1042e-47
+Ct+Tryp	PGDM1400_HC	10	run2	no blood	intensity_ratio	1	null model	10	0	0.00576	0.47808
+Tryp	PGDM1400_HC	10	run2	no blood	intensity_ratio	1	null model	454	28451	1.12e-16	9.296e-15
+Ct	PGT121_HC	10	run2	no blood	intensity_ratio	1	null model	868	266044	1.01e-25	8.383e-24
+Ct+Tryp	PGT121_HC	10	run2	no blood	intensity_ratio	1	null model	1824	665618	1.32e-13	1.0956e-11
+Tryp	PGT121_HC	10	run2	no blood	intensity_ratio	1	null model	3674	3466829	0.155	1
+Ct	Umab_HC	10	run2	no blood	intensity_ratio	1	null model	1048	53480	5.999999999999999e-113	4.979999999999999e-111
+Ct+Tryp	Umab_HC	10	run2	no blood	intensity_ratio	1	null model	1856	123097	1.839999999999999e-224	1.527199999999999e-222
+Tryp	Umab_HC	10	run2	no blood	intensity_ratio	1	null model	7590	2508076	0	0
+Ct	Brimab_HC	100	run2	blood	intensity_ratio	1	null model	446	8102	5.23e-53	4.3409e-51
+Ct+Tryp	Brimab_HC	100	run2	blood	intensity_ratio	1	null model	134	14	1.36e-23	1.1288e-21
+Tryp	Brimab_HC	100	run2	blood	intensity_ratio	1	null model	1626	18044	5.429999999999998e-253	4.506899999999998e-251
+Ct	PGDM1400_HC	100	run2	blood	intensity_ratio	1	null model	4	0	0.0947	1
+Tryp	PGDM1400_HC	100	run2	blood	intensity_ratio	1	null model	384	193	5.0899999999999995e-64	4.2247e-62
+Ct	PGT121_HC	100	run2	blood	intensity_ratio	1	null model	324	14712	5.91e-12	4.9053e-10
+Ct+Tryp	PGT121_HC	100	run2	blood	intensity_ratio	1	null model	438	41063	0.00821	0.68143
+Tryp	PGT121_HC	100	run2	blood	intensity_ratio	1	null model	2730	1410752	3.73e-28	3.0959e-26
+Ct	Umab_HC	100	run2	blood	intensity_ratio	1	null model	80	314	3.8e-10	3.1539999999999997e-8
+Ct+Tryp	Umab_HC	100	run2	blood	intensity_ratio	1	null model	460	0	4.319999999999999e-77	3.5855999999999994e-75
+Tryp	Umab_HC	100	run2	blood	intensity_ratio	1	null model	2026	47179	8.519999999999996e-303	7.071599999999996e-301
+Tryp	Brimab_HC	100	run2	no blood	intensity_ratio	1	null model	712	27196	1.02e-73	8.466e-72
+Ct	PGDM1400_HC	100	run2	no blood	intensity_ratio	1	null model	48	0	1.67e-9	1.3861e-7
+Tryp	PGDM1400_HC	100	run2	no blood	intensity_ratio	1	null model	252	0	4.38e-43	3.6354e-41
+Ct	PGT121_HC	100	run2	no blood	intensity_ratio	1	null model	72	1860	0.0022	0.1826
+Ct+Tryp	PGT121_HC	100	run2	no blood	intensity_ratio	1	null model	546	48481	1.25e-12	1.0374999999999999e-10
+Tryp	PGT121_HC	100	run2	no blood	intensity_ratio	1	null model	2568	1465169	9.59e-7	7.9597e-5
+Ct	Umab_HC	100	run2	no blood	intensity_ratio	1	null model	434	0	7.63e-73	6.3328999999999995e-71
+Ct+Tryp	Umab_HC	100	run2	no blood	intensity_ratio	1	null model	1022	21	9.149999999999996e-169	7.594499999999997e-167
+Tryp	Umab_HC	100	run2	no blood	intensity_ratio	1	null model	4512	14536	0	0
+Ct	Brimab_HC	1000	run2	blood	intensity_ratio	1	null model	340	5323	6.75e-39	5.6025000000000005e-37
+Ct+Tryp	Brimab_HC	1000	run2	blood	intensity_ratio	1	null model	188	0	1.3399999999999998e-32	1.1121999999999998e-30
+Tryp	Brimab_HC	1000	run2	blood	intensity_ratio	1	null model	848	0	2.0599999999999993e-140	1.7097999999999994e-138
+Ct	PGDM1400_HC	1000	run2	blood	intensity_ratio	1	null model	30	0	1.81e-6	1.5023e-4
+Ct+Tryp	PGDM1400_HC	1000	run2	blood	intensity_ratio	1	null model	2	0	0.346	1
+Ct+Tryp	PGT121_HC	1000	run2	blood	intensity_ratio	1	null model	96	48	8.06e-17	6.689800000000001e-15
+Tryp	PGT121_HC	1000	run2	blood	intensity_ratio	1	null model	1046	255818	0.0659	1
+Ct	Umab_HC	1000	run2	blood	intensity_ratio	1	null model	98	0	8.44e-18	7.0052e-16
+Ct+Tryp	Umab_HC	1000	run2	blood	intensity_ratio	1	null model	486	0	2.4499999999999997e-81	2.0334999999999997e-79
+Tryp	Umab_HC	1000	run2	blood	intensity_ratio	1	null model	528	0	3.399999999999999e-88	2.821999999999999e-86
+Tryp	Brimab_HC	1000	run2	no blood	intensity_ratio	1	null model	304	0	1.35e-51	1.1205e-49
+Tryp	PGDM1400_HC	1000	run2	no blood	intensity_ratio	1	null model	156	0	2.4000000000000004e-27	1.9920000000000003e-25
+Tryp	PGT121_HC	1000	run2	no blood	intensity_ratio	1	null model	1048	90228	3.8199999999999994e-79	3.1705999999999994e-77
+Ct	Umab_HC	1000	run2	no blood	intensity_ratio	1	null model	62	0	7.73e-12	6.415900000000001e-10
+Ct+Tryp	Umab_HC	1000	run2	no blood	intensity_ratio	1	null model	202	0	6.789999999999999e-35	5.6356999999999996e-33
+Tryp	Umab_HC	1000	run2	no blood	intensity_ratio	1	null model	1662	0	3.969999999999998e-273	3.2950999999999984e-271
+Ct	Brimab_HC	1	run3	blood	intensity_ratio	1	null model	696	143688	2.41e-5	0.0020485
+Ct+Tryp	Brimab_HC	1	run3	blood	intensity_ratio	1	null model	1126	383830	1.06e-9	9.01e-8
+Tryp	Brimab_HC	1	run3	blood	intensity_ratio	1	null model	632	115244	9.11e-4	0.077435
+Ct	PGDM1400_HC	1	run3	blood	intensity_ratio	1	null model	308	27525	0.0171	1
+Ct+Tryp	PGDM1400_HC	1	run3	blood	intensity_ratio	1	null model	1064	321264	1.52e-4	0.012920000000000001
+Tryp	PGDM1400_HC	1	run3	blood	intensity_ratio	1	null model	2560	1961059	7.33e-18	6.2305e-16
+Ct	PGT121_HC	1	run3	blood	intensity_ratio	1	null model	372	41716	7.1e-4	0.06035
+Ct+Tryp	PGT121_HC	1	run3	blood	intensity_ratio	1	null model	1082	344066	6.64e-7	5.644e-5
+Tryp	PGT121_HC	1	run3	blood	intensity_ratio	1	null model	4776	6477381	2.99e-16	2.5414999999999998e-14
+Ct	Umab_HC	1	run3	blood	intensity_ratio	1	null model	456	58664	0.0197	1
+Ct+Tryp	Umab_HC	1	run3	blood	intensity_ratio	1	null model	884	232392	1.25e-6	1.0625000000000001e-4
+Tryp	Umab_HC	1	run3	blood	intensity_ratio	1	null model	2782	2247013	1.98e-13	1.6829999999999998e-11
+Ct	Brimab_HC	1	run3	no blood	intensity_ratio	1	null model	50	699	0.556	1
+Ct+Tryp	Brimab_HC	1	run3	no blood	intensity_ratio	1	null model	310	29219	0.0012	0.102
+Tryp	Brimab_HC	1	run3	no blood	intensity_ratio	1	null model	800	184156	2.48e-4	0.02108
+Ct	PGDM1400_HC	1	run3	no blood	intensity_ratio	1	null model	730	157862	1.78e-5	0.001513
+Ct+Tryp	PGDM1400_HC	1	run3	no blood	intensity_ratio	1	null model	400	49662	3.59e-5	0.0030515
+Tryp	PGDM1400_HC	1	run3	no blood	intensity_ratio	1	null model	1390	576279	5.4e-10	4.59e-8
+Ct	PGT121_HC	1	run3	no blood	intensity_ratio	1	null model	154	7072	0.0464	1
+Ct+Tryp	PGT121_HC	1	run3	no blood	intensity_ratio	1	null model	376	43566	1.16e-4	0.00986
+Tryp	PGT121_HC	1	run3	no blood	intensity_ratio	1	null model	2682	2083263	1.35e-12	1.1474999999999999e-10
+Ct	Umab_HC	1	run3	no blood	intensity_ratio	1	null model	910	245470	1.45e-6	1.2325000000000001e-4
+Ct+Tryp	Umab_HC	1	run3	no blood	intensity_ratio	1	null model	592	108178	9.43e-7	8.015500000000001e-5
+Tryp	Umab_HC	1	run3	no blood	intensity_ratio	1	null model	3908	4598877	2.08e-28	1.768e-26
+Ct	Brimab_HC	10	run3	blood	intensity_ratio	1	null model	824	82481	1.67e-37	1.4194999999999998e-35
+Ct+Tryp	Brimab_HC	10	run3	blood	intensity_ratio	1	null model	1538	88002	7.299999999999998e-184	6.204999999999999e-182
+Tryp	Brimab_HC	10	run3	blood	intensity_ratio	1	null model	776	8023	1.5299999999999996e-115	1.3004999999999995e-113
+Ct	PGDM1400_HC	10	run3	blood	intensity_ratio	1	null model	126	541	3.7e-17	3.1449999999999996e-15
+Ct+Tryp	PGDM1400_HC	10	run3	blood	intensity_ratio	1	null model	1034	82382	8.279999999999998e-83	7.0379999999999985e-81
+Tryp	PGDM1400_HC	10	run3	blood	intensity_ratio	1	null model	1508	254164	2.7499999999999996e-77	2.3375e-75
+Ct	PGT121_HC	10	run3	blood	intensity_ratio	1	null model	156	592	1.3e-22	1.105e-20
+Ct+Tryp	PGT121_HC	10	run3	blood	intensity_ratio	1	null model	938	125524	3.88e-30	3.2979999999999998e-28
+Tryp	PGT121_HC	10	run3	blood	intensity_ratio	1	null model	2992	847549	1.7099999999999992e-190	1.4534999999999993e-188
+Ct	Umab_HC	10	run3	blood	intensity_ratio	1	null model	516	18931	4.08e-45	3.4679999999999998e-43
+Ct+Tryp	Umab_HC	10	run3	blood	intensity_ratio	1	null model	1158	82956	4.399999999999999e-109	3.739999999999999e-107
+Tryp	Umab_HC	10	run3	blood	intensity_ratio	1	null model	2910	292550	0	0
+Ct	Brimab_HC	10	run3	no blood	intensity_ratio	1	null model	36	0	1.74e-7	1.4789999999999999e-5
+Ct+Tryp	Brimab_HC	10	run3	no blood	intensity_ratio	1	null model	152	8104	2.54e-5	0.002159
+Tryp	Brimab_HC	10	run3	no blood	intensity_ratio	1	null model	156	6478	0.53	1
+Ct	PGDM1400_HC	10	run3	no blood	intensity_ratio	1	null model	304	1306	3.87e-46	3.2895e-44
+Ct+Tryp	PGDM1400_HC	10	run3	no blood	intensity_ratio	1	null model	142	3836	0.0116	0.986
+Tryp	PGDM1400_HC	10	run3	no blood	intensity_ratio	1	null model	1116	41101	2.9299999999999993e-139	2.4904999999999993e-137
+Ct	PGT121_HC	10	run3	no blood	intensity_ratio	1	null model	62	25	2.59e-11	2.2015e-9
+Ct+Tryp	PGT121_HC	10	run3	no blood	intensity_ratio	1	null model	224	11489	0.253	1
+Tryp	PGT121_HC	10	run3	no blood	intensity_ratio	1	null model	1268	282793	5.14e-20	4.369e-18
+Ct	Umab_HC	10	run3	no blood	intensity_ratio	1	null model	812	98	2.1999999999999992e-134	1.8699999999999993e-132
+Ct+Tryp	Umab_HC	10	run3	no blood	intensity_ratio	1	null model	326	19049	8.08e-6	6.868e-4
+Tryp	Umab_HC	10	run3	no blood	intensity_ratio	1	null model	2756	446317	4.0599999999999977e-265	3.450999999999998e-263
+Ct	Brimab_HC	100	run3	blood	intensity_ratio	1	null model	648	14	9.369999999999998e-108	7.964499999999999e-106
+Ct+Tryp	Brimab_HC	100	run3	blood	intensity_ratio	1	null model	1128	7	4.549999999999999e-186	3.867499999999999e-184
+Tryp	Brimab_HC	100	run3	blood	intensity_ratio	1	null model	408	0	1.3499999999999997e-68	1.1474999999999997e-66
+Ct	PGDM1400_HC	100	run3	blood	intensity_ratio	1	null model	6	0	0.0345	1
+Ct+Tryp	PGDM1400_HC	100	run3	blood	intensity_ratio	1	null model	298	608	5.529999999999999e-48	4.700499999999999e-46
+Tryp	PGDM1400_HC	100	run3	blood	intensity_ratio	1	null model	174	2574	3.7e-14	3.145e-12
+Ct+Tryp	PGT121_HC	100	run3	blood	intensity_ratio	1	null model	264	6741	4.9e-18	4.165e-16
+Tryp	PGT121_HC	100	run3	blood	intensity_ratio	1	null model	870	57046	2.5399999999999995e-71	2.1589999999999995e-69
+Ct	Umab_HC	100	run3	blood	intensity_ratio	1	null model	108	889	3.08e-10	2.6180000000000003e-8
+Ct+Tryp	Umab_HC	100	run3	blood	intensity_ratio	1	null model	572	7	2.3099999999999993e-95	1.9634999999999993e-93
+Tryp	Umab_HC	100	run3	blood	intensity_ratio	1	null model	564	4854	3.4899999999999994e-83	2.9664999999999996e-81
+Ct	PGDM1400_HC	100	run3	no blood	intensity_ratio	1	null model	82	0	3.72e-15	3.1619999999999996e-13
+Ct+Tryp	PGDM1400_HC	100	run3	no blood	intensity_ratio	1	null model	66	19	3.98e-12	3.3829999999999996e-10
+Tryp	PGDM1400_HC	100	run3	no blood	intensity_ratio	1	null model	198	45	6.09e-34	5.1765e-32
+Ct	PGT121_HC	100	run3	no blood	intensity_ratio	1	null model	50	0	7.75e-10	6.5875e-8
+Ct+Tryp	PGT121_HC	100	run3	no blood	intensity_ratio	1	null model	88	585	1.12e-8	9.52e-7
+Tryp	PGT121_HC	100	run3	no blood	intensity_ratio	1	null model	342	8255	1.1e-30	9.349999999999999e-29
+Ct	Umab_HC	100	run3	no blood	intensity_ratio	1	null model	428	0	7.289999999999999e-72	6.196499999999999e-70
+Tryp	Umab_HC	100	run3	no blood	intensity_ratio	1	null model	368	0	4.649999999999999e-62	3.952499999999999e-60
+Ct	Brimab_HC	1000	run3	blood	intensity_ratio	1	null model	610	0	1.3999999999999998e-101	1.1899999999999998e-99
+Ct+Tryp	Brimab_HC	1000	run3	blood	intensity_ratio	1	null model	752	0	9.409999999999999e-125	7.998499999999999e-123
+Tryp	Brimab_HC	1000	run3	blood	intensity_ratio	1	null model	256	0	9.69e-44	8.2365e-42
+Ct	PGDM1400_HC	1000	run3	blood	intensity_ratio	1	null model	22	0	4.25e-5	0.0036125000000000003
+Ct+Tryp	PGDM1400_HC	1000	run3	blood	intensity_ratio	1	null model	36	0	1.74e-7	1.4789999999999999e-5
+Ct+Tryp	PGT121_HC	1000	run3	blood	intensity_ratio	1	null model	24	57	0.00819	0.6961499999999999
+Tryp	PGT121_HC	1000	run3	blood	intensity_ratio	1	null model	34	0	3.79e-7	3.2215e-5
+Ct	Umab_HC	1000	run3	blood	intensity_ratio	1	null model	42	3	2.11e-8	1.7935e-6
+Ct+Tryp	Umab_HC	1000	run3	blood	intensity_ratio	1	null model	420	0	1.48e-70	1.2579999999999998e-68
+Tryp	Umab_HC	1000	run3	blood	intensity_ratio	1	null model	396	0	1.2299999999999998e-66	1.0454999999999998e-64
+Ct	PGDM1400_HC	1000	run3	no blood	intensity_ratio	1	null model	26	0	8.71e-6	7.4035e-4
+Ct+Tryp	PGDM1400_HC	1000	run3	no blood	intensity_ratio	1	null model	36	21	9.82e-7	8.347000000000001e-5
+Tryp	PGDM1400_HC	1000	run3	no blood	intensity_ratio	1	null model	52	0	3.59e-10	3.0515e-8
+Ct	PGT121_HC	1000	run3	no blood	intensity_ratio	1	null model	64	0	3.59e-12	3.0515e-10
+Ct+Tryp	PGT121_HC	1000	run3	no blood	intensity_ratio	1	null model	24	0	1.92e-5	0.001632
+Tryp	PGT121_HC	1000	run3	no blood	intensity_ratio	1	null model	26	0	8.72e-6	7.411999999999999e-4
+Ct	Umab_HC	1000	run3	no blood	intensity_ratio	1	null model	240	0	4.04e-41	3.434e-39
+Tryp	Umab_HC	1000	run3	no blood	intensity_ratio	1	null model	40	0	3.68e-8	3.128e-6
+Ct	Brimab_HC	1	run4	blood	intensity_ratio	1	null model	282	23840	0.00456	0.30096
+Ct+Tryp	Brimab_HC	1	run4	blood	intensity_ratio	1	null model	1090	345445	3.63e-6	2.3958e-4
+Tryp	Brimab_HC	1	run4	blood	intensity_ratio	1	null model	490	72920	4.65e-5	0.003069
+Ct	PGDM1400_HC	1	run4	blood	intensity_ratio	1	null model	520	78577	0.00156	0.10296
+Ct+Tryp	PGDM1400_HC	1	run4	blood	intensity_ratio	1	null model	2536	1765660	2.02e-5	0.0013331999999999999
+Tryp	PGDM1400_HC	1	run4	blood	intensity_ratio	1	null model	1138	386544	1.74e-8	1.1484e-6
+Ct+Tryp	PGT121_HC	1	run4	blood	intensity_ratio	1	null model	5180	7582911	4.85e-16	3.201e-14
+Tryp	PGT121_HC	1	run4	blood	intensity_ratio	1	null model	1824	962370	7.2e-9	4.752e-7
+Ct	Umab_HC	1	run4	blood	intensity_ratio	1	null model	20	118	0.648	1
+Ct+Tryp	Umab_HC	1	run4	blood	intensity_ratio	1	null model	652	113884	0.122	1
+Tryp	Umab_HC	1	run4	blood	intensity_ratio	1	null model	696	143238	3.5e-5	0.00231
+Ct+Tryp	Brimab_HC	1	run4	no blood	intensity_ratio	1	null model	90	2285	0.34	1
+Tryp	Brimab_HC	1	run4	no blood	intensity_ratio	1	null model	14	63	0.542	1
+Ct	PGDM1400_HC	1	run4	no blood	intensity_ratio	1	null model	240	16830	0.0278	1
+Ct+Tryp	PGDM1400_HC	1	run4	no blood	intensity_ratio	1	null model	624	111090	0.00256	0.16896000000000003
+Tryp	PGDM1400_HC	1	run4	no blood	intensity_ratio	1	null model	938	266321	2.74e-8	1.8084000000000001e-6
+Ct	PGT121_HC	1	run4	no blood	intensity_ratio	1	null model	2	2	1	1
+Ct+Tryp	PGT121_HC	1	run4	no blood	intensity_ratio	1	null model	2000	1164159	2.36e-10	1.5576e-8
+Tryp	PGT121_HC	1	run4	no blood	intensity_ratio	1	null model	828	214710	3.81e-10	2.5146e-8
+Ct	Umab_HC	1	run4	no blood	intensity_ratio	1	null model	42	553	0.209	1
+Ct+Tryp	Umab_HC	1	run4	no blood	intensity_ratio	1	null model	1096	355315	1.77e-7	1.1682000000000001e-5
+Tryp	Umab_HC	1	run4	no blood	intensity_ratio	1	null model	986	301035	1.08e-10	7.128e-9
+Ct	Brimab_HC	10	run4	blood	intensity_ratio	1	null model	306	14033	1.05e-9	6.93e-8
+Ct+Tryp	Brimab_HC	10	run4	blood	intensity_ratio	1	null model	576	6809	3.0899999999999995e-81	2.0393999999999997e-79
+Tryp	Brimab_HC	10	run4	blood	intensity_ratio	1	null model	594	6562	4.339999999999999e-85	2.8643999999999996e-83
+Ct+Tryp	PGDM1400_HC	10	run4	blood	intensity_ratio	1	null model	286	16011	0.00128	0.08448000000000001
+Tryp	PGDM1400_HC	10	run4	blood	intensity_ratio	1	null model	434	29198	5.81e-12	3.8346e-10
+Ct+Tryp	PGT121_HC	10	run4	blood	intensity_ratio	1	null model	1136	398234	9.73e-12	6.421799999999999e-10
+Tryp	PGT121_HC	10	run4	blood	intensity_ratio	1	null model	808	130316	6.1e-7	4.026e-5
+Ct+Tryp	Umab_HC	10	run4	blood	intensity_ratio	1	null model	262	7336	7.91e-16	5.2206e-14
+Tryp	Umab_HC	10	run4	blood	intensity_ratio	1	null model	900	31590	1.1199999999999997e-106	7.391999999999998e-105
+Tryp	Brimab_HC	10	run4	no blood	intensity_ratio	1	null model	4	0	0.0947	1
+Ct	PGDM1400_HC	10	run4	no blood	intensity_ratio	1	null model	46	0	3.62e-9	2.3891999999999997e-7
+Ct+Tryp	PGDM1400_HC	10	run4	no blood	intensity_ratio	1	null model	24	190	0.259	1
+Tryp	PGDM1400_HC	10	run4	no blood	intensity_ratio	1	null model	566	8824	3.5999999999999996e-75	2.3759999999999998e-73
+Ct+Tryp	PGT121_HC	10	run4	no blood	intensity_ratio	1	null model	746	195145	2.4900000000000004e-21	1.6434000000000003e-19
+Tryp	PGT121_HC	10	run4	no blood	intensity_ratio	1	null model	428	19335	3.2e-25	2.1120000000000002e-23
+Ct	Umab_HC	10	run4	no blood	intensity_ratio	1	null model	14	0	0.00108	0.07128
+Ct+Tryp	Umab_HC	10	run4	no blood	intensity_ratio	1	null model	568	14931	1.3999999999999996e-63	9.239999999999998e-62
+Tryp	Umab_HC	10	run4	no blood	intensity_ratio	1	null model	632	20220	1.24e-67	8.183999999999999e-66
+Ct	Brimab_HC	100	run4	blood	intensity_ratio	1	null model	278	25	3.18e-47	2.0988e-45
+Ct+Tryp	Brimab_HC	100	run4	blood	intensity_ratio	1	null model	362	0	4.4399999999999994e-61	2.9303999999999995e-59
+Tryp	Brimab_HC	100	run4	blood	intensity_ratio	1	null model	460	0	4.319999999999999e-77	2.8511999999999996e-75
+Ct+Tryp	PGDM1400_HC	100	run4	blood	intensity_ratio	1	null model	90	3596	4.7e-10	3.102e-8
+Tryp	PGDM1400_HC	100	run4	blood	intensity_ratio	1	null model	142	8073	1.05e-9	6.93e-8
+Ct+Tryp	PGT121_HC	100	run4	blood	intensity_ratio	1	null model	352	34863	0.0468	1
+Tryp	PGT121_HC	100	run4	blood	intensity_ratio	1	null model	260	20078	0.0103	0.6798
+Ct+Tryp	Umab_HC	100	run4	blood	intensity_ratio	1	null model	16	0	4.74e-4	0.031284
+Tryp	Umab_HC	100	run4	blood	intensity_ratio	1	null model	382	0	2.3899999999999996e-64	1.5773999999999999e-62
+Tryp	Brimab_HC	100	run4	no blood	intensity_ratio	1	null model	6	0	0.0345	1
+Tryp	PGDM1400_HC	100	run4	no blood	intensity_ratio	1	null model	122	0	9.33e-22	6.1578e-20
+Ct+Tryp	PGT121_HC	100	run4	no blood	intensity_ratio	1	null model	260	14837	0.0796	1
+Tryp	PGT121_HC	100	run4	no blood	intensity_ratio	1	null model	72	1193	0.499	1
+Ct+Tryp	Umab_HC	100	run4	no blood	intensity_ratio	1	null model	68	0	7.78e-13	5.1348e-11
+Tryp	Umab_HC	100	run4	no blood	intensity_ratio	1	null model	202	0	6.789999999999999e-35	4.4814e-33
+Ct	Brimab_HC	1000	run4	blood	intensity_ratio	1	null model	188	0	1.3399999999999998e-32	8.843999999999999e-31
+Ct+Tryp	Brimab_HC	1000	run4	blood	intensity_ratio	1	null model	784	0	5.659999999999998e-130	3.7355999999999985e-128
+Tryp	Brimab_HC	1000	run4	blood	intensity_ratio	1	null model	366	0	9.859999999999998e-62	6.507599999999998e-60
+Ct+Tryp	PGDM1400_HC	1000	run4	blood	intensity_ratio	1	null model	8	0	0.0138	0.9107999999999999
+Tryp	PGDM1400_HC	1000	run4	blood	intensity_ratio	1	null model	24	0	1.92e-5	0.0012672
+Tryp	PGT121_HC	1000	run4	blood	intensity_ratio	1	null model	30	115	0.0161	1
+Ct+Tryp	Umab_HC	1000	run4	blood	intensity_ratio	1	null model	140	0	1.0199999999999999e-24	6.732e-23
+Tryp	Umab_HC	1000	run4	blood	intensity_ratio	1	null model	220	0	7.619999999999999e-38	5.0291999999999995e-36
+Tryp	Brimab_HC	1000	run4	no blood	intensity_ratio	1	null model	12	0	0.00247	0.16302
+Ct+Tryp	PGT121_HC	1000	run4	no blood	intensity_ratio	1	null model	88	0	3.79e-16	2.5013999999999998e-14
+Tryp	Umab_HC	1000	run4	no blood	intensity_ratio	1	null model	54	0	1.66e-10	1.0955999999999999e-8
