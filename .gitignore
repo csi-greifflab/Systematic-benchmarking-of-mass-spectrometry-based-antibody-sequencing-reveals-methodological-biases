@@ -58,3 +58,5 @@ data/MSF_raw/
 .*
 !.gitignore
 fig6/casanovo_score_cutoff/casanovo_merged.tsv
+data.zip
+data/my_config.R
