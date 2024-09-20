@@ -1,7 +1,0 @@
-Decoy ->
-    Segment ->
-        Path: common_contaminants.fasta
-        Name: Decoy
-        Identifier: ^sp\|[\w]*\|([\w]+)_
-    <-
-<-

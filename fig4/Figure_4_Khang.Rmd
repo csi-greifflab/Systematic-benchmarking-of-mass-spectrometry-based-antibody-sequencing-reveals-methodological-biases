@@ -13,8 +13,6 @@ library(RVAideMemoire)
 df <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
 df <- df[df$is_not_contamination, ]
 
-# Calculate miscleavages and remove >2 miscleaved peptides (TO DO!!!!)
-
 cdr3 <- read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv"))
 sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
 

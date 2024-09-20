@@ -60,3 +60,6 @@ data/MSF_raw/
 fig6/casanovo_score_cutoff/casanovo_merged.tsv
 data.zip
 data/my_config.R
+/PRIDE_submission_main
+suppfig/casanovo_score_cutoff/casanovo_merged.tsv
+*.tsv
