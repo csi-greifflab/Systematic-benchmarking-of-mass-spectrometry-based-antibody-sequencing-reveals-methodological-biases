@@ -1238,8 +1238,8 @@ Casanovo ->
 
 - Template matching matches the reads defined in 'Input' to the given Templates defined in the different groups in the 'Segments'
 TemplateMatching ->
-    EnforceUnique      : 0.9
-    CutoffScore        : 15
+    EnforceUnique      : 0.9 - try reduce
+    CutoffScore        : 15 - try increase to 20
     AmbiguityThreshold : 0.9
 
     include!(/storage/khangl/MS_benchmarking/stitch-v1.5.0-linux/alphabets/mass_alphabet.txt)
@@ -1253,7 +1253,7 @@ TemplateMatching ->
 
 Recombine->
     -Pick the <n> highest scoring templates from each segment
-    N          : 1
+    N          : 1 - try change to 2
     Decoy      : True
     CutoffScore        : 10
 
