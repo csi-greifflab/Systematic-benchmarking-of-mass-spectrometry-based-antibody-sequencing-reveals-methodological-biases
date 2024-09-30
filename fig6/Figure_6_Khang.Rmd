@@ -117,26 +117,30 @@ res <- gather(res, pos_type, n_pos, -mode, -match_ig_type)
 res$n_pos <- unlist(res$n_pos) 
 ```
 
-```{r, fig.width=10, fig.height=3}
+```{r}
 res_HC <- res[res$pos_type != "not_covered" & str_detect(res$match_ig_type, "HC"), ]
 res_HC$match_ig_type <- factor(res_HC$match_ig_type, levels = HC_names)
+```
 
+
+```{r fig.height=3, fig.width=9}
 g <- ggplot(res_HC[res_HC$n_pos > 0, ], aes(y = match_ig_type, x = n_pos, fill = pos_type, label = n_pos)) +
-  facet_grid(.~mode, scales='free_x') +
+  facet_grid(.~factor(mode, levels = c("vdj","cdr3")), scales='free_x') +
   geom_col() +
   theme_minimal() +
   geom_text(position = position_stack(vjust = 0.5), size = 3, color = "#ffffff") +
-  scale_fill_manual(values=c("casanovo_only" = "#6a3e37", "covered_all" = "#909090", "ref_only" = "#e46e00")) 
+  scale_fill_manual(values=c("casanovo_only" = "#6a3e37", "covered_all" = "#909090", "ref_only" = "#e46e00")) +
+  theme(strip.text.x = element_blank(), strip.text.y = element_blank(), axis.title = element_blank(), axis.text = element_blank(), legend.position = "none")
 
 plot(g)
   
   png(file.path(fig6_path, "./figures/HC_pos_distribution.png"), 
-      width = 10, height = 3, units = 'in', res = 600)
+      width = 9, height = 3, units = 'in', res = 600)
   plot(g)
   dev.off()
 ```
 
-```{r, fig.width=10, fig.height=3}
+```{r fig.height=3, fig.width=9}
 res_LC <- res[res$pos_type != "not_covered" & str_detect(res$match_ig_type, "LC"), ]
 res_LC$match_ig_type <- factor(res_LC$match_ig_type, levels = LC_names)
 
@@ -144,13 +148,14 @@ g <- ggplot(res_LC[res_LC$n_pos > 0, ], aes(y = match_ig_type, x = n_pos, fill =
   facet_grid(.~mode, scales='free_x') +
   geom_col() +
   theme_minimal() +
+  theme(strip.text.x = element_blank(), strip.text.y = element_blank(), axis.title = element_blank(), axis.text = element_blank(), legend.position = "none") +
   geom_text(position = position_stack(vjust = 0.5), size = 3, color = "#ffffff") +
   scale_fill_manual(values=c("casanovo_only" = "#6a3e37", "covered_all" = "#909090", "ref_only" = "#e46e00")) 
 
 plot(g)
   
   png(file.path(fig6_path, "./figures/LC_pos_distribution.png"), 
-      width = 10, height = 3, units = 'in', res = 600)
+      width = 9, height = 3, units = 'in', res = 600)
   plot(g)
   dev.off()
 ```

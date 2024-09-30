@@ -1,12 +1,6 @@
 ---
-title: "Casanovo data preprocessing"
+title: "Casanovo score cutoof"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-header-includes:
-  - \usepackage{float}
-  - \floatplacement{figure}{H}
-output: 
-  bookdown::pdf_document2:
-    keep_tex: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -63,14 +57,20 @@ df$Sequence <- str_replace_all(string = df$Sequence, pattern = "[0-9.+-]", repla
 # Filter peptides shorter than 6 AA
 df <- df[sapply(df$Sequence, nchar) > 6, ]
 print(nrow(df))
+
+# Create a new variable that indicates whether the x value is 0.8 or above
+df <- df %>% mutate(fill = ifelse(search_engine_score >= 0.8, "above_0.8", "below_0.8"))  
 ```
 
 # Histogram of search engine score distribution
 ```{r fig.height=4, fig.width=7}
 ggplot(data = df, aes(x = search_engine_score)) +
-  geom_histogram(fill = "#6a3e37", color = "black", binwidth = 0.1, boundary = -1.0) +
+  geom_histogram(aes(fill = fill), color = "black", binwidth = 0.1, boundary = -1.0) +
   scale_x_continuous(breaks = seq(-1.0, 1.0, by = 0.2)) +
+  scale_fill_manual(values = c("above_0.8" = "#6a3e37", "below_0.8" = "white")) +
+  geom_vline(xintercept = 0.8, linetype = 2) +
   theme_classic(base_size = 16) +
+  theme(legend.position = "none") +
   labs(x = "Casanovo prediction score", y = "Peptide count")
 
 #ggsave("./Casanovo_score_dist.pdf", height = 4, width = 7, dpi = 600)
