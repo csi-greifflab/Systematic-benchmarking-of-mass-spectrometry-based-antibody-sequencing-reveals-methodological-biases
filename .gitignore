@@ -71,3 +71,4 @@ suppfig/casanovo_score_cutoff/casanovo_merged.tsv
 *.png
 *.pdf
 /fig6/obsolete
+/fig6/figures
