@@ -184,9 +184,8 @@ coefs_noblood_lc_gt$intercept <- 0
 coefs_noblood_lc_gt$slope <- 1
 ```
 
-
 # SIR of all samples by presence of blood in each sample pair: non-blood or blood
-```{r fig.height=8, fig.width=12}
+```{r fig.height=5, fig.width=12}
 ggplot(res_ratio_hc %>% filter(blood_state == "blood") %>% filter(Protease != "AspN"), aes(x = log_conc_ratio, y = log_intensity_ratio, color = factor(log_conc_ratio))) +
   geom_point(aes(fill = run1), color = "black", shape = 21, size = 0.1, stroke = 0.03, position = position_jitterdodge()) +
   geom_boxplot(aes(fill = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
@@ -201,16 +200,16 @@ ggplot(res_ratio_hc %>% filter(blood_state == "blood") %>% filter(Protease != "A
   scale_y_continuous(breaks = -3:4, labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
   facet_grid(factor(match_ig_type, levels = HC_names) ~ factor(Protease, levels = c("Tryp", "Ct", "Ct+Tryp")) + run1) +
   theme_bw() +
-  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust = 0.45), 
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust = 0.45), axis.text.y = element_text(size = 7),
         strip.text.x = element_blank(), strip.text.y = element_blank(),
         panel.spacing = unit(0.1, "lines")
         ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 
-#ggsave("./figures/sir_blood.png", height = 8, width = 12, dpi = 600)
+#ggsave("./figures/sir_blood.png", height = 5, width = 12, dpi = 600)
 ```
 
-```{r fig.height=8, fig.width=12}
+```{r fig.height=5, fig.width=12}
 ggplot(res_ratio_lc %>% filter(blood_state == "blood") %>% filter(Protease != "AspN"), aes(x = log_conc_ratio, y = log_intensity_ratio, color = factor(log_conc_ratio))) +
   geom_point(aes(fill = run1), color = "black", shape = 21, size = 0.1, stroke = 0.03, position = position_jitterdodge()) +
   geom_boxplot(aes(fill = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
@@ -225,16 +224,16 @@ ggplot(res_ratio_lc %>% filter(blood_state == "blood") %>% filter(Protease != "A
   scale_y_continuous(breaks = -3:4, labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
   facet_grid(factor(match_ig_type, levels = LC_names) ~ factor(Protease, levels = c("Tryp", "Ct", "Ct+Tryp")) + run1) +
   theme_bw() +
-  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust = 0.45), 
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust = 0.45), axis.text.y = element_text(size = 7),
         strip.text.x = element_blank(), strip.text.y = element_blank(),
         panel.spacing = unit(0.1, "lines")
         ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 
-#ggsave("./figures/sir_blood_lc.png", height = 8, width = 12, dpi = 600)
+#ggsave("./figures/sir_blood_lc.png", height = 5, width = 12, dpi = 600)
 ```
 
-```{r fig.height=8, fig.width=12}
+```{r fig.height=5, fig.width=12}
 ggplot(res_ratio_hc %>% filter(blood_state == "no blood") %>% filter(Protease != "AspN"), aes(x = log_conc_ratio, y = log_intensity_ratio, color = factor(log_conc_ratio))) +
   geom_point(aes(fill = run1), color = "black", shape = 21, size = 0.1, stroke = 0.03, position = position_jitterdodge()) +
   geom_boxplot(aes(fill = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
@@ -250,16 +249,16 @@ ggplot(res_ratio_hc %>% filter(blood_state == "no blood") %>% filter(Protease !=
   scale_y_continuous(breaks = -3:4, labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
   facet_grid(factor(match_ig_type, levels = HC_names) ~ factor(Protease, levels = c("Tryp", "Ct", "Ct+Tryp")) + run1) +
   theme_bw() +
-  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust = 0.45), 
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust = 0.45), axis.text.y = element_text(size = 7),
         strip.text.x = element_blank(), strip.text.y = element_blank(),
         panel.spacing = unit(0.1, "lines")
         ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 
-#ggsave("./figures/sir_noblood.png", height = 8, width = 12, dpi = 600)
+#ggsave("./figures/sir_noblood.png", height = 5, width = 12, dpi = 600)
 ```
 
-```{r fig.height=8, fig.width=12}
+```{r fig.height=5, fig.width=12}
 ggplot(res_ratio_lc %>% filter(blood_state == "no blood") %>% filter(Protease != "AspN"), aes(x = log_conc_ratio, y = log_intensity_ratio, color = factor(log_conc_ratio))) +
   geom_point(aes(fill = run1), color = "black", shape = 21, size = 0.1, stroke = 0.03, position = position_jitterdodge()) +
   geom_boxplot(aes(fill = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
@@ -275,11 +274,11 @@ ggplot(res_ratio_lc %>% filter(blood_state == "no blood") %>% filter(Protease !=
   scale_y_continuous(breaks = -3:4, labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
   facet_grid(factor(match_ig_type, levels = LC_names) ~ factor(Protease, levels = c("Tryp", "Ct", "Ct+Tryp")) + run1) +
   theme_bw() +
-  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust = 0.45), 
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust = 0.45), axis.text.y = element_text(size = 7),
         strip.text.x = element_blank(), strip.text.y = element_blank(),
         panel.spacing = unit(0.1, "lines")
         ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 
-#ggsave("./figures/sir_noblood_lc.png", height = 8, width = 12, dpi = 600)
+#ggsave("./figures/sir_noblood_lc.png", height = 5, width = 12, dpi = 600)
 ```
