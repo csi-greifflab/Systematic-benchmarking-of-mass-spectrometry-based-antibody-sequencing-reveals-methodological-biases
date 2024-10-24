@@ -1,0 +1,240 @@
+---
+title: "MS main figure 6 v2"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+source("../Khang_config.R")
+source("../utils.R")
+```
+
+# Panel A: Casanovo total number of peptides and Ab peptides at thresholds
+```{r}
+# Read the raw Casanovo output
+df <- read_tsv("./casanovo_merged.tsv")
+df <- df[!is.na(df$search_engine_score), ]
+# Remove PTMs, e.g. YLTSM+15.995ASR will be replaced with YLTSMASR
+df$Sequence <- str_replace_all(string = df$Sequence, pattern = "[0-9.+-]", replacement = "")
+
+# Filter peptides shorter than 6 AA
+df <- df[sapply(df$Sequence, nchar) > 6, ]
+
+# Create a new variable that indicates whether the x value is 0.8 or above
+df <- df %>% mutate(fill = ifelse(search_engine_score >= 0.8, "above_0.8", "below_0.8"))  
+```
+
+# Histogram of search engine score distribution
+```{r fig.height=4, fig.width=7}
+ggplot(data = df, aes(x = search_engine_score)) +
+  geom_vline(xintercept = 0.8, linetype = 2, color = "grey50") +
+  geom_histogram(aes(fill = fill), color = "black", binwidth = 0.1, boundary = -1.0) +
+  scale_x_continuous(breaks = seq(-1.0, 1.0, by = 0.2)) +
+  scale_fill_manual(values = c("above_0.8" = "#6a3e37", "below_0.8" = "white")) +
+  theme_classic(base_size = 16) +
+  theme(legend.position = "none") +
+  labs(x = "Casanovo prediction score", y = "Peptide count")
+
+#ggsave("./figures/Casanovo_score_dist.pdf", height = 4, width = 7, dpi = 600)
+```
+
+# Filter peptides with engine score of different threshold: 0.5, 0.6, 0.7, 0.8, 0.9
+```{r}
+# Filter peptides which casanovo_engine_score smaller than 0.5
+df_0.5 <- df[df$search_engine_score > 0.5, ]
+df_0.6 <- df[df$search_engine_score > 0.6, ]
+df_0.7 <- df[df$search_engine_score > 0.7, ]
+df_0.8 <- df[df$search_engine_score > 0.8, ]
+df_0.9 <- df[df$search_engine_score > 0.9, ]
+
+# Merge identical peptides within every filename (EHxxxx), enzyme, and run. Keep the highest search_engine_score for merged peptides
+df_0.5 <- df_0.5 %>%
+    dplyr::group_by(Sequence, sample, run, enzyme) %>% # for each unique peptide in a filename, run, and enzyme
+    dplyr::arrange(-search_engine_score) %>% # sort by highest search_engine score
+    dplyr::slice(1) # take the peptide with the highest search_engine score
+
+colnames(df_0.5) <- c("Sequence", "search_engine_score", "Rawfilenumber", "run", "Protease")
+
+df_0.6 <- df_0.6 %>%
+    dplyr::group_by(Sequence, sample, run, enzyme) %>% # for each unique peptide in a filename, run, and enzyme
+    dplyr::arrange(-search_engine_score) %>% # sort by highest search_engine score
+    dplyr::slice(1) # take the peptide with the highest search_engine score
+
+colnames(df_0.6) <- c("Sequence", "search_engine_score", "Rawfilenumber", "run", "Protease")
+
+df_0.7 <- df_0.7 %>%
+    dplyr::group_by(Sequence, sample, run, enzyme) %>% # for each unique peptide in a filename, run, and enzyme
+    dplyr::arrange(-search_engine_score) %>% # sort by highest search_engine score
+    dplyr::slice(1) # take the peptide with the highest search_engine score
+
+colnames(df_0.7) <- c("Sequence", "search_engine_score", "Rawfilenumber", "run", "Protease")
+
+df_0.8 <- df_0.8 %>%
+    dplyr::group_by(Sequence, sample, run, enzyme) %>% # for each unique peptide in a filename, run, and enzyme
+    dplyr::arrange(-search_engine_score) %>% # sort by highest search_engine score
+    dplyr::slice(1) # take the peptide with the highest search_engine score
+
+colnames(df_0.8) <- c("Sequence", "search_engine_score", "Rawfilenumber", "run", "Protease")
+
+df_0.9 <- df_0.9 %>%
+    dplyr::group_by(Sequence, sample, run, enzyme) %>% # for each unique peptide in a filename, run, and enzyme
+    dplyr::arrange(-search_engine_score) %>% # sort by highest search_engine score
+    dplyr::slice(1) # take the peptide with the highest search_engine score
+
+colnames(df_0.9) <- c("Sequence", "search_engine_score", "Rawfilenumber", "run", "Protease")
+
+threshold_count <- tibble(n_peptides = c(print(nrow(df_0.5)), print(nrow(df_0.6)), print(nrow(df_0.7)),
+                                         print(nrow(df_0.8)), print(nrow(df_0.9))))
+
+df_list <- list(df_0.5, df_0.6, df_0.7, df_0.8, df_0.9)
+
+# peptides that match to the variable region but also overlap with constant
+cdr3 <- data.frame(read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv")))
+
+df_list <- lapply(df_list, function(x) data.frame(x))
+df_list <- lapply(df_list, function(x) align_to_ab_sequences(x, cdr3))
+
+threshold_count$n_ab_peptides <- sapply(df_list, function(x) nrow(x))
+threshold_count$score_threshold <- c("0.5", "0.6", "0.7", "0.8", "0.9")
+
+threshold_count <- pivot_longer(threshold_count, cols = n_peptides:n_ab_peptides, values_to = "count")
+```
+
+# Scatterplot of search engine score vs number of ab peptides per threshold
+```{r fig.height=2.5, fig.width=8}
+ggplot(data = threshold_count, aes(x = score_threshold, y = count, linetype = name)) +
+  geom_vline(xintercept = "0.8", linetype = 1, color = "red") +
+  geom_line(aes(group = name), color = "#6a3e37", linewidth = 1.25) +
+  geom_point(size = 2) +
+  geom_text(aes(label = count), vjust = -0.25, hjust = -0.05, size = 4.5) +
+  scale_y_log10(limits = c(14000, 3000000)) +
+  scale_linetype_manual(values = c(3,1), labels = c("Ab-related", "Casanovo")) +
+  theme_bw(base_size = 14) +
+  theme(legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"),
+        legend.box.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")) +
+  labs(x = "Casanovo prediction score threshold", y = "Number of peptides", linetype = "Type")
+
+#ggsave("./figures/Casanovo_score_cutoff.pdf", height = 2.5, width = 8, dpi = 600)
+```
+
+# Panel B: Sequence coverage table by tool
+```{r}
+get_coverage_by_tool <- function(df, sequence_name, annotation, mode) {
+  V_ref <- unlist(annotation[annotation$sequence_name == sequence_name, "amino_acid_sequence_Vregion"])
+  VC_ref <- unlist(annotation[annotation$sequence_name == sequence_name, "amino_acid_sequence_full"])
+  CDR3_ref <- unlist(annotation[annotation$sequence_name == sequence_name, "amino_acid_sequence_cdr3"])
+  
+  if (mode == "cdr3") {
+    ref <- CDR3_ref
+  } else if (mode == "vdj") {
+    ref <- V_ref
+  # } else if (mode == "both") {
+  #   return (c(vdj = get_coverage_percent(peptides_vector, sequence_name, annotation, "vdj"), 
+  #             cdr3 = get_coverage_percent(peptides_vector, sequence_name, annotation, "cdr3")))
+  } else {
+    stop("Wrong mode parameter value. Should be cdr3 or vdj.")
+  }
+    
+  get_bool_coverage <- function(tool) {
+    alignment_pos <- as.data.frame(do.call(rbind,(str_locate_all(string = VC_ref, 
+                                                             pattern = df$Sequence[df$tool == tool]))))
+    counts <- replicate(nchar(VC_ref), 0)
+    for (i in 1:nrow(alignment_pos)) {
+    counts[1:length(counts) %in% c(alignment_pos[i, ]$start : alignment_pos[i, ]$end)] <- 
+      counts[alignment_pos[i, ]$start : alignment_pos[i, ]$end] + 1
+    }
+    return(counts>0)
+  }
+  
+  cov_casanovo <- get_bool_coverage("Casanovo")
+  cov_msf <- get_bool_coverage("MSFragger")
+  cov_mq <- get_bool_coverage("MaxQuant")
+  
+  not_covered <- !(cov_casanovo | cov_msf | cov_mq)
+  casanovo_only <- cov_casanovo & !(cov_msf | cov_mq)
+  ref_only <- !cov_casanovo & (cov_msf | cov_mq)
+  covered_all <- cov_casanovo & cov_msf & cov_mq
+  
+  ref_location <- str_locate(string = VC_ref, pattern = ref)
+  ref_positions <- c(ref_location[1] : ref_location[2])
+  idx <- 1:length(not_covered) %in% ref_positions
+  
+  return(list(not_covered = sum(not_covered[idx]),
+              covered_all = sum(covered_all[idx]),
+              casanovo_only = sum(casanovo_only[idx]), 
+              ref_only = sum(ref_only[idx])))
+}
+```
+
+```{r message=FALSE}
+cdr3 <- read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv"))
+sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
+df <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
+df <- df[df$is_not_contamination, ]
+
+df_cdr3 <- cbind(df, 
+                 str_locate(df$amino_acid_sequence_Vregion, as.character(df$Sequence)))
+cdr3 <- cbind(cdr3, str_locate(cdr3$amino_acid_sequence_Vregion, as.character(cdr3$amino_acid_sequence_cdr3)))
+
+df1 <- data.frame(t(sapply(HC_and_LC_names, get_coverage_by_tool, df = df, annotation = cdr3, mode="cdr3")))
+df1$mode <- "cdr3"
+df1$match_ig_type <- rownames(df1)
+df2 <- data.frame(t(sapply(HC_and_LC_names, get_coverage_by_tool, df = df, annotation = cdr3, mode="vdj")))
+df2$mode <- "vdj"
+df2$match_ig_type <- rownames(df2)
+
+res <- rbind(df1, df2)
+
+library(tidyr)
+res <- gather(res, pos_type, n_pos, -mode, -match_ig_type)
+res$n_pos <- unlist(res$n_pos) 
+```
+
+```{r}
+res_HC <- res[str_detect(res$match_ig_type, "HC"), ]
+res_HC$match_ig_type <- factor(res_HC$match_ig_type, levels = HC_names)
+
+# Convert number of positions to percentage
+cdr3$vdj_length <- nchar(cdr3$amino_acid_sequence_Vregion)
+cdr3$cdr3_length <- nchar(cdr3$amino_acid_sequence_cdr3)
+
+res_HC <- left_join(res_HC, cdr3[,c(1,9,10)], join_by(match_ig_type == sequence_name)) %>% arrange(mode)
+
+res_HC_cdr3 <- res_HC %>% filter(mode == "cdr3")
+res_HC_cdr3$coverage_cdr3 <- (res_HC_cdr3$n_pos/res_HC_cdr3$cdr3_length)*100
+
+res_HC_vdj <- res_HC %>% filter(mode == "vdj")
+res_HC_vdj$coverage_vdj <- (res_HC_vdj$n_pos/res_HC_cdr3$vdj_length)*100
+```
+
+# Suppfigure: Number of positions covered by tool
+```{r fig.height=3, fig.width=9}
+ggplot(res_HC[res_HC$n_pos > 0, ], aes(y = factor(match_ig_type, levels = rev(HC_names)), x = n_pos, fill = factor(pos_type, levels = c("not_covered", "covered_all", "casanovo_only", "ref_only")), label = n_pos, color = pos_type)) +
+  facet_grid(.~factor(mode, levels = c("vdj","cdr3")), scales='free_x') +
+  geom_col(size = 0.75) +
+  theme_minimal() +
+  geom_text(position = position_stack(vjust = 0.5), size = 3, color = "#ffffff") +
+  scale_fill_manual(values=c("casanovo_only" = "#6a3e37", "covered_all" = "#909090", "ref_only" = "#e46e00", "not_covered" = "black")) +
+  scale_color_manual(values = c("black","black","black","#04858a")) +
+  theme(strip.text.x = element_blank(), strip.text.y = element_blank(), axis.title = element_blank(), axis.text = element_blank(), legend.position = "none")
+
+#ggsave("./figures/HC_pos_distribution.png",  height = 3, width = 9, dpi = 600)
+```
+
+```{r}
+res_LC <- res[str_detect(res$match_ig_type, "LC"), ]
+res_LC$match_ig_type <- factor(res_LC$match_ig_type, levels = LC_names)
+```
+
+```{r fig.height=3, fig.width=9}
+ggplot(res_LC[res_LC$n_pos > 0, ], aes(y = factor(match_ig_type, levels = rev(LC_names)), x = n_pos, fill = factor(pos_type, levels = c("not_covered", "covered_all", "casanovo_only", "ref_only")), label = n_pos, color = pos_type)) +
+  facet_grid(.~factor(mode, levels = c("vdj","cdr3")), scales='free_x') +
+  geom_col(size = 0.75) +
+  theme_minimal() +
+  geom_text(position = position_stack(vjust = 0.5), size = 3, color = "#ffffff") +
+  scale_fill_manual(values=c("casanovo_only" = "#6a3e37", "covered_all" = "#909090", "ref_only" = "#e46e00", "not_covered" = "black")) +
+  scale_color_manual(values = c("black","#04858a")) +
+  theme(strip.text.x = element_blank(), strip.text.y = element_blank(), axis.title = element_blank(), axis.text = element_blank(), legend.position = "none")
+
+#ggsave("./figures/LC_pos_distribution.png",  height = 3, width = 9, dpi = 600)
+```
