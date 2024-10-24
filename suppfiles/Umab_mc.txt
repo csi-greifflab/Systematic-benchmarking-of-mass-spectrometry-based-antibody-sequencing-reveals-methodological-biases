@@ -1,0 +1,1282 @@
+-Run Info---------------
+Version         : 1.5
+
+- Here the input can be defined, this will be used in the TemplateMatching and Recombine steps
+Input ->
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3598.mztab
+        Name       : EH3598
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3599.mztab
+        Name       : EH3599
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3600.mztab
+        Name       : EH3600
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3601.mztab
+        Name       : EH3601
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3602.mztab
+        Name       : EH3602
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3603.mztab
+        Name       : EH3603
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3605.mztab
+        Name       : EH3605
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3606.mztab
+        Name       : EH3606
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3608.mztab
+        Name       : EH3608
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3931.mztab
+        Name       : EH3931
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3932.mztab
+        Name       : EH3932
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3933.mztab
+        Name       : EH3933
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3934.mztab
+        Name       : EH3934
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3935.mztab
+        Name       : EH3935
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3936.mztab
+        Name       : EH3936
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3937.mztab
+        Name       : EH3937
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3938.mztab
+        Name       : EH3938
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3939.mztab
+        Name       : EH3939
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3940.mztab
+        Name       : EH3940
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3941.mztab
+        Name       : EH3941
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH3942.mztab
+        Name       : EH3942
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4275.mztab
+        Name       : EH4275
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4276.mztab
+        Name       : EH4276
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4277.mztab
+        Name       : EH4277
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4278.mztab
+        Name       : EH4278
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4279.mztab
+        Name       : EH4279
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4280.mztab
+        Name       : EH4280
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4281.mztab
+        Name       : EH4281
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4282.mztab
+        Name       : EH4282
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4283.mztab
+        Name       : EH4283
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4284.mztab
+        Name       : EH4284
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4285.mztab
+        Name       : EH4285
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4286.mztab
+        Name       : EH4286
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4624.mztab
+        Name       : EH4624
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4625.mztab
+        Name       : EH4625
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4626.mztab
+        Name       : EH4626
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4628.mztab
+        Name       : EH4628
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4629.mztab
+        Name       : EH4629
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4631.mztab
+        Name       : EH4631
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4632.mztab
+        Name       : EH4632
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4633.mztab
+        Name       : EH4633
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4634.mztab
+        Name       : EH4634
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH4635.mztab
+        Name       : EH4635
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5040.mztab
+        Name       : EH5040
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5041.mztab
+        Name       : EH5041
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5042.mztab
+        Name       : EH5042
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5043.mztab
+        Name       : EH5043
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5044.mztab
+        Name       : EH5044
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5045.mztab
+        Name       : EH5045
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5046.mztab
+        Name       : EH5046
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5047.mztab
+        Name       : EH5047
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5048.mztab
+        Name       : EH5048
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5049.mztab
+        Name       : EH5049
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5050.mztab
+        Name       : EH5050
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5051.mztab
+        Name       : EH5051
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5378.mztab
+        Name       : EH5378
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5379.mztab
+        Name       : EH5379
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5380.mztab
+        Name       : EH5380
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5381.mztab
+        Name       : EH5381
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5382.mztab
+        Name       : EH5382
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5383.mztab
+        Name       : EH5383
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5384.mztab
+        Name       : EH5384
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5385.mztab
+        Name       : EH5385
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5386.mztab
+        Name       : EH5386
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5387.mztab
+        Name       : EH5387
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5388.mztab
+        Name       : EH5388
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5389.mztab
+        Name       : EH5389
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5739.mztab
+        Name       : EH5739
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5740.mztab
+        Name       : EH5740
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5741.mztab
+        Name       : EH5741
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5742.mztab
+        Name       : EH5742
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5743.mztab
+        Name       : EH5743
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5744.mztab
+        Name       : EH5744
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5745.mztab
+        Name       : EH5745
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5746.mztab
+        Name       : EH5746
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5747.mztab
+        Name       : EH5747
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5748.mztab
+        Name       : EH5748
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5749.mztab
+        Name       : EH5749
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH5750.mztab
+        Name       : EH5750
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6097.mztab
+        Name       : EH6097
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6098.mztab
+        Name       : EH6098
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6099.mztab
+        Name       : EH6099
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6100.mztab
+        Name       : EH6100
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6101.mztab
+        Name       : EH6101
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6102.mztab
+        Name       : EH6102
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6103.mztab
+        Name       : EH6103
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6104.mztab
+        Name       : EH6104
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6105.mztab
+        Name       : EH6105
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6106.mztab
+        Name       : EH6106
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6107.mztab
+        Name       : EH6107
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6108.mztab
+        Name       : EH6108
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6628.mztab
+        Name       : EH6628
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6629.mztab
+        Name       : EH6629
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6630.mztab
+        Name       : EH6630
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6631.mztab
+        Name       : EH6631
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6632.mztab
+        Name       : EH6632
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6633.mztab
+        Name       : EH6633
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6634.mztab
+        Name       : EH6634
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6635.mztab
+        Name       : EH6635
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6636.mztab
+        Name       : EH6636
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6637.mztab
+        Name       : EH6637
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6638.mztab
+        Name       : EH6638
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH6639.mztab
+        Name       : EH6639
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8118.mztab
+        Name       : EH8118
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8119.mztab
+        Name       : EH8119
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8120.mztab
+        Name       : EH8120
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8121.mztab
+        Name       : EH8121
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8122.mztab
+        Name       : EH8122
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8123.mztab
+        Name       : EH8123
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8124.mztab
+        Name       : EH8124
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8125.mztab
+        Name       : EH8125
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8126.mztab
+        Name       : EH8126
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8127.mztab
+        Name       : EH8127
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8128.mztab
+        Name       : EH8128
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8129.mztab
+        Name       : EH8129
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7348.mztab
+        Name       : EH7348
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7349.mztab
+        Name       : EH7349
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7350.mztab
+        Name       : EH7350
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7351.mztab
+        Name       : EH7351
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7352.mztab
+        Name       : EH7352
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7353.mztab
+        Name       : EH7353
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7354.mztab
+        Name       : EH7354
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7355.mztab
+        Name       : EH7355
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7356.mztab
+        Name       : EH7356
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7357.mztab
+        Name       : EH7357
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7358.mztab
+        Name       : EH7358
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7359.mztab
+        Name       : EH7359
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7693.mztab
+        Name       : EH7693
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7694.mztab
+        Name       : EH7694
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7695.mztab
+        Name       : EH7695
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7696.mztab
+        Name       : EH7696
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7697.mztab
+        Name       : EH7697
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7698.mztab
+        Name       : EH7698
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7699.mztab
+        Name       : EH7699
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7700.mztab
+        Name       : EH7700
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7701.mztab
+        Name       : EH7701
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7702.mztab
+        Name       : EH7702
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7703.mztab
+        Name       : EH7703
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH7704.mztab
+        Name       : EH7704
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8461.mztab
+        Name       : EH8461
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8462.mztab
+        Name       : EH8462
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8463.mztab
+        Name       : EH8463
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8464.mztab
+        Name       : EH8464
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8465.mztab
+        Name       : EH8465
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8466.mztab
+        Name       : EH8466
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8467.mztab
+        Name       : EH8467
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8468.mztab
+        Name       : EH8468
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8469.mztab
+        Name       : EH8469
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8470.mztab
+        Name       : EH8470
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8471.mztab
+        Name       : EH8471
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH8472.mztab
+        Name       : EH8472
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9298.mztab
+        Name       : EH9298
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9299.mztab
+        Name       : EH9299
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9300.mztab
+        Name       : EH9300
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9301.mztab
+        Name       : EH9301
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9302.mztab
+        Name       : EH9302
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9303.mztab
+        Name       : EH9303
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9304.mztab
+        Name       : EH9304
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9305.mztab
+        Name       : EH9305
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9306.mztab
+        Name       : EH9306
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9307.mztab
+        Name       : EH9307
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9308.mztab
+        Name       : EH9308
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9309.mztab
+        Name       : EH9309
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9676.mztab
+        Name       : EH9676
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9677.mztab
+        Name       : EH9677
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9678.mztab
+        Name       : EH9678
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9679.mztab
+        Name       : EH9679
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9680.mztab
+        Name       : EH9680
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9681.mztab
+        Name       : EH9681
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9682.mztab
+        Name       : EH9682
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9683.mztab
+        Name       : EH9683
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9684.mztab
+        Name       : EH9684
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9685.mztab
+        Name       : EH9685
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9686.mztab
+        Name       : EH9686
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+
+Casanovo ->
+        Path       : /storage/khangl/MS_benchmarking/Casanovo_output/EH9687.mztab
+        Name       : EH9687
+        CutoffScore: 0.8
+        -FilterPPM  : 100
+    <-
+<-
+
+- Template matching matches the reads defined in 'Input' to the given Templates defined in the different groups in the 'Segments'
+TemplateMatching ->
+    EnforceUnique      : 0.9
+    CutoffScore        : 15
+    AmbiguityThreshold : 0.9
+
+    include!(/storage/khangl/MS_benchmarking/stitch-v1.5.0-linux/alphabets/mass_alphabet.txt)
+
+    Segments->
+        include!(/storage/khangl/MS_benchmarking/stitch-v1.5.0-linux/templates/Homo_sapiens_Heavy_Chain.txt)
+        include!(/storage/khangl/MS_benchmarking/stitch-v1.5.0-linux/templates/Homo_sapiens_Light_Chain.txt)
+        include!(/storage/khangl/MS_benchmarking/stitch-v1.5.0-linux/templates/common_contaminants.txt)
+    <-
+<-
+
+Recombine->
+    -Pick the <n> highest scoring templates from each segment
+    N          : 1
+    Decoy      : True
+    CutoffScore        : 10
+
+    -Separated by whitespace means directly attached
+    -Separated by * means with a gap attached
+    Order->
+        Homo sapiens Heavy Chain: IGHV * IGHJ IGHC
+        Homo sapiens Light Chain: IGLV IGLJ IGLC
+    <-
+<-
+
+Report ->
+    Folder: /storage/khangl/MS_benchmarking/stitch-v1.5.0-linux/results/{datetime} {name}/
+    HTML ->
+        Path: report-monoclonal_Umab.html
+    <-
+    FASTA ->
+        Path: report-monoclonal-tm_Umab.fasta
+        OutputType: TemplateMatching
+    <-
+    CSV ->
+        Path: report-monoclonal-tm_Umab.csv
+        OutputType: TemplateMatching
+    <-
+    FASTA ->
+        Path: report-monoclonal-rec_Umab.fasta
+        OutputType: Recombine
+    <-
+    CSV ->
+        Path: report-monoclonal-rec_Umab.csv
+        OutputType: Recombine
+    <-
+<-
