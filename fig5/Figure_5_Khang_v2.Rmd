@@ -185,7 +185,7 @@ coefs_noblood_lc_gt$slope <- 1
 ```
 
 # SIR of all samples by presence of blood in each sample pair: non-blood or blood
-```{r fig.height=5, fig.width=12}
+```{r fig.height=4, fig.width=12}
 ggplot(res_ratio_hc %>% filter(blood_state == "blood") %>% filter(Protease != "AspN"), aes(x = log_conc_ratio, y = log_intensity_ratio, color = factor(log_conc_ratio))) +
   geom_point(aes(fill = run1), color = "black", shape = 21, size = 0.1, stroke = 0.03, position = position_jitterdodge()) +
   geom_boxplot(aes(fill = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
@@ -193,7 +193,7 @@ ggplot(res_ratio_hc %>% filter(blood_state == "blood") %>% filter(Protease != "A
   geom_abline(data = coefs_blood_gt, aes(intercept = intercept, slope = slope), color = "black", linewidth = 0.25) + # ground truth
   scale_color_manual(values = c("black", "black", "black", "black")) +
   scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff")) +
-  geom_text(data = res_ratio_hc_med_blood, aes(x = log_conc_ratio, y = 4.2, label = round(med2,1)), color = "black", size = 1.75) +
+  geom_text(data = res_ratio_hc_med_blood, aes(x = log_conc_ratio, y = 4.2, label = round(med2,1)), color = "black", size = 2) +
   geom_text(data = coefs_blood, aes(-0.75, -4, label = eq), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
   geom_text(data = coefs_blood, aes(-0.75, -4.5, label = r2), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
   scale_x_continuous(breaks = 0:3, labels = c(1, 10, 100, 1000)) +
@@ -206,10 +206,10 @@ ggplot(res_ratio_hc %>% filter(blood_state == "blood") %>% filter(Protease != "A
         ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 
-#ggsave("./figures/sir_blood.png", height = 5, width = 12, dpi = 600)
+ggsave("./figures/sir_blood.png", height = 4, width = 12, dpi = 600)
 ```
 
-```{r fig.height=5, fig.width=12}
+```{r fig.height=4, fig.width=12}
 ggplot(res_ratio_lc %>% filter(blood_state == "blood") %>% filter(Protease != "AspN"), aes(x = log_conc_ratio, y = log_intensity_ratio, color = factor(log_conc_ratio))) +
   geom_point(aes(fill = run1), color = "black", shape = 21, size = 0.1, stroke = 0.03, position = position_jitterdodge()) +
   geom_boxplot(aes(fill = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
@@ -217,7 +217,7 @@ ggplot(res_ratio_lc %>% filter(blood_state == "blood") %>% filter(Protease != "A
   geom_abline(data = coefs_blood_lc_gt, aes(intercept = intercept, slope = slope), color = "black", linewidth = 0.25) + # ground truth
   scale_color_manual(values = c("black", "black", "black", "black")) +
   scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff")) +
-  geom_text(data = res_ratio_lc_med_blood, aes(x = log_conc_ratio, y = 4.2, label = round(med2,1)), color = "black", size = 1.75) +
+  geom_text(data = res_ratio_lc_med_blood, aes(x = log_conc_ratio, y = 4.2, label = round(med2,1)), color = "black", size = 2) +
   geom_text(data = coefs_blood_lc, aes(-0.75, -4, label = eq), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
   geom_text(data = coefs_blood_lc, aes(-0.75, -4.5, label = r2), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
   scale_x_continuous(breaks = 0:3, labels = c(1, 10, 100, 1000)) +
@@ -230,10 +230,10 @@ ggplot(res_ratio_lc %>% filter(blood_state == "blood") %>% filter(Protease != "A
         ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 
-#ggsave("./figures/sir_blood_lc.png", height = 5, width = 12, dpi = 600)
+#ggsave("./figures/sir_blood_lc.png", height = 4, width = 12, dpi = 600)
 ```
 
-```{r fig.height=5, fig.width=12}
+```{r fig.height=4, fig.width=12}
 ggplot(res_ratio_hc %>% filter(blood_state == "no blood") %>% filter(Protease != "AspN"), aes(x = log_conc_ratio, y = log_intensity_ratio, color = factor(log_conc_ratio))) +
   geom_point(aes(fill = run1), color = "black", shape = 21, size = 0.1, stroke = 0.03, position = position_jitterdodge()) +
   geom_boxplot(aes(fill = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
@@ -242,7 +242,7 @@ ggplot(res_ratio_hc %>% filter(blood_state == "no blood") %>% filter(Protease !=
   #scale_color_manual(values = c("#48cae4", "#0096c7", "#0077B6", "#03045E")) +
   scale_color_manual(values = c("black", "black", "black", "black")) +
   scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff")) +
-  geom_text(data = res_ratio_hc_med_noblood, aes(x = log_conc_ratio, y = 4.2, label = round(med2,1)), color = "black", size = 1.75) +
+  geom_text(data = res_ratio_hc_med_noblood, aes(x = log_conc_ratio, y = 4.2, label = round(med2,1)), color = "black", size = 2) +
   geom_text(data = coefs_noblood, aes(-0.75, -4, label = eq), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
   geom_text(data = coefs_noblood, aes(-0.75, -4.5, label = r2), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
   scale_x_continuous(breaks = 0:3, labels = c(1, 10, 100, 1000)) +
@@ -255,7 +255,7 @@ ggplot(res_ratio_hc %>% filter(blood_state == "no blood") %>% filter(Protease !=
         ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 
-#ggsave("./figures/sir_noblood.png", height = 5, width = 12, dpi = 600)
+#ggsave("./figures/sir_noblood.png", height = 4, width = 12, dpi = 600)
 ```
 
 ```{r fig.height=5, fig.width=12}
@@ -267,7 +267,7 @@ ggplot(res_ratio_lc %>% filter(blood_state == "no blood") %>% filter(Protease !=
   #scale_color_manual(values = c("#48cae4", "#0096c7", "#0077B6", "#03045E")) +
   scale_color_manual(values = c("black", "black", "black", "black")) +
   scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff")) +
-  geom_text(data = res_ratio_lc_med_noblood, aes(x = log_conc_ratio, y = 4.2, label = round(med2,1)), color = "black", size = 1.75) +
+  geom_text(data = res_ratio_lc_med_noblood, aes(x = log_conc_ratio, y = 4.2, label = round(med2,1)), color = "black", size = 2) +
   geom_text(data = coefs_noblood_lc, aes(-0.75, -4, label = eq), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
   geom_text(data = coefs_noblood_lc, aes(-0.75, -4.5, label = r2), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
   scale_x_continuous(breaks = 0:3, labels = c(1, 10, 100, 1000)) +
@@ -280,5 +280,5 @@ ggplot(res_ratio_lc %>% filter(blood_state == "no blood") %>% filter(Protease !=
         ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 
-#ggsave("./figures/sir_noblood_lc.png", height = 5, width = 12, dpi = 600)
+#ggsave("./figures/sir_noblood_lc.png", height = 4, width = 12, dpi = 600)
 ```
