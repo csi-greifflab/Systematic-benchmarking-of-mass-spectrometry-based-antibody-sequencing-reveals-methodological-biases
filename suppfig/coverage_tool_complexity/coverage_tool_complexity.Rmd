@@ -1,0 +1,180 @@
+---
+title: "Coverage denovo complexity"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning=F, message=F)
+library(readxl)
+library(seqinr)
+library(tidyverse)
+library(reshape2)
+library(forcats)
+library(RColorBrewer)
+library(kableExtra)
+library(gridExtra)
+source("../../utils.R")
+source("../../Khang_config.R")
+```
+
+# Read in the filtered peptide list from the main dataset and the reference sequences
+```{r include=FALSE}
+cdr3 <- data.frame(read_tsv("./antibodies_cdr3_variable_full.tsv"))
+cdr3$cdr3_start <- str_locate(cdr3$amino_acid_sequence_Vregion, cdr3$amino_acid_sequence_cdr3)[,1]
+cdr3$cdr3_end <- str_locate(cdr3$amino_acid_sequence_Vregion, cdr3$amino_acid_sequence_cdr3)[,2]
+
+Tools <- c("MaxQuant", "MSFragger", "Casanovo")
+Tool_cols <- c("MaxQuant" = "#00858a", "MSFragger" = "#e46e00", "Casanovo" = "#6a3e37")
+Concentrations <- c (1, 10, 100, 1000)
+Concentrations_HC_names <-  (colnames(All_peptides)[c(16,19,23,27,31,35)])
+Concentrations_LC_names <-  (colnames(All_peptides)[c(19,23,27,31,35)])
+Blood <- c(TRUE, FALSE)
+# exclude peptides labelled contamination
+All_peptides <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
+All_peptides <- All_peptides %>% filter(is_contamination == FALSE)
+```
+
+# Before calculating coverage, from all peptides create subsets by selecting samples having mAbs at different concentrations
+
+```{r}
+HC_coverage <- tibble()
+for (x in 1:length(HC_names)) {
+  for (y in 1:length(Concentrations)){
+    for (z in 1:length(Tools)){
+    df <- tibble(coverage = get_coverage_percent(All_peptides[All_peptides[Concentrations_HC_names[x]] == Concentrations[y] & All_peptides$tool == Tools[z],]$Sequence, 
+                                                 HC_names[x], 
+                                                 annotation = cdr3, 
+                                                 mode = "both"),
+                 type = str_to_upper(names(coverage)),
+                 mab_name = HC_names[x],
+                 mab_input = Concentrations[y],
+                 tool = Tools[z])
+    HC_coverage <- bind_rows(HC_coverage, df)
+    }
+  } 
+}
+
+LC_coverage <- tibble()
+for (x in 1:length(LC_names)) {
+  for (y in 1:length(Concentrations)){
+    for (z in 1:length(Tools)){
+    df <- tibble(coverage = get_coverage_percent(All_peptides[All_peptides[Concentrations_LC_names[x]] == Concentrations[y] & All_peptides$tool == Tools[z],]$Sequence, 
+                                                 LC_names[x], 
+                                                 annotation = cdr3, 
+                                                 mode = "both"),
+                 type = str_to_upper(names(coverage)),
+                 mab_name = LC_names[x],
+                 mab_input = Concentrations[y],
+                 tool = Tools[z])
+    LC_coverage <- bind_rows(LC_coverage, df)
+    }
+  } 
+}
+
+HC_coverage$type <- str_replace_all(HC_coverage$type, "CDR3", "CDRH3")
+LC_coverage$type <- str_replace_all(LC_coverage$type, "VDJ", "VJ")
+LC_coverage$type <- str_replace_all(LC_coverage$type, "CDR3", "CDRL3")
+
+#tibble(coverage = get_coverage_percent(All_peptides[All_peptides[Concentrations_HC_names[1]] == Concentrations[1] & All_peptides$tool == Tools[1],]$Sequence, HC_names[1], annotation = cdr3, mode = "both"),
+#       type = str_to_upper(names(coverage)),
+#       mab_name = HC_names[1],
+#       mab_input = Concentrations[1],
+#       tool = Tools[1])
+```
+
+```{r fig.height=4, fig.width=4}
+ggplot(data = HC_coverage, aes(x = factor(mab_input), y = coverage, fill = tool)) +
+  geom_col(position = position_dodge()) +
+  facet_grid(factor(mab_name, levels = HC_names)~factor(type, levels = c("VDJ", "CDRH3"))) +
+  scale_y_continuous(limits = c(0,120), breaks = c(0,25,50,75,100)) +
+  geom_text(aes(label = round(coverage,2), vjust = -0.2), size = 1, position = position_dodge(width = 0.9)) +
+  scale_fill_manual(values = Tool_cols) +
+  theme_classic() +
+  theme(text = element_text(size = 8), strip.text.y = element_blank(), legend.position = "none") +
+  labs(x = "mAb input (ng)", y = "Sequence coverage (%)", fill = "Proteomics tool")
+
+#ggsave("./figures/coverage_tools_HC_input.pdf", height = 4, width = 4, dpi = 600)
+```
+
+```{r fig.height=4, fig.width=4}
+ggplot(data = LC_coverage, aes(x = factor(mab_input), y = coverage, fill = tool)) +
+  geom_col(position = position_dodge()) +
+  facet_grid(factor(mab_name, levels = LC_names)~factor(type, levels = c("VJ", "CDRL3"))) +
+  scale_y_continuous(limits = c(0,120), breaks = c(0,25,50,75,100)) +
+  geom_text(aes(label = round(coverage,2), vjust = -0.2), size = 1, position = position_dodge(width = 0.9)) +
+  scale_fill_manual(values = Tool_cols) +
+  theme_classic() +
+  theme(text = element_text(size = 8), strip.text.y = element_blank(), legend.position = "none") +
+  labs(x = "mAb input (ng)", y = "Sequence coverage (%)", fill = "Proteomics tool")
+
+#ggsave("./figures/coverage_tools_LC_input.pdf", height = 4, width = 4, dpi = 600)
+```
+
+# Casanovo coverage in blood vs no blood samples
+```{r}
+HC_coverage <- tibble()
+for (x in 1:length(HC_names)) {
+  for (y in 1:length(Blood)){
+    for (z in 1:length(Tools)){
+    df <- tibble(coverage = get_coverage_percent(All_peptides[All_peptides$has_blood == Blood[y] & All_peptides$tool == Tools[z],]$Sequence, 
+                                                 HC_names[x], 
+                                                 annotation = cdr3, 
+                                                 mode = "both"),
+                 type = str_to_upper(names(coverage)),
+                 mab_name = HC_names[x],
+                 blood = Blood[y],
+                 tool = Tools[z])
+    HC_coverage <- bind_rows(HC_coverage, df)
+    }
+  } 
+}
+
+LC_coverage <- tibble()
+for (x in 1:length(LC_names)) {
+  for (y in 1:length(Blood)){
+    for (z in 1:length(Tools)){
+    df <- tibble(coverage = get_coverage_percent(All_peptides[All_peptides$has_blood == Blood[y] & All_peptides$tool == Tools[z],]$Sequence, 
+                                                 LC_names[x], 
+                                                 annotation = cdr3, 
+                                                 mode = "both"),
+                 type = str_to_upper(names(coverage)),
+                 mab_name = LC_names[x],
+                 blood = Blood[y],
+                 tool = Tools[z])
+    LC_coverage <- bind_rows(LC_coverage, df)
+    }
+  } 
+}
+
+HC_coverage$type <- str_replace_all(HC_coverage$type, "CDR3", "CDRH3")
+LC_coverage$type <- str_replace_all(LC_coverage$type, "VDJ", "VJ")
+LC_coverage$type <- str_replace_all(LC_coverage$type, "CDR3", "CDRL3")
+```
+
+```{r fig.height=4, fig.width=4}
+ggplot(data = HC_coverage, aes(x = factor(blood, levels = c(TRUE,FALSE)), y = coverage, fill = tool)) +
+  geom_col(position = position_dodge()) +
+  facet_grid(factor(mab_name, levels = HC_names)~factor(type, levels = c("VDJ", "CDRH3"))) +
+  scale_y_continuous(limits = c(0,120), breaks = c(0,25,50,75,100)) +
+  geom_text(aes(label = round(coverage,2), vjust = -0.2), size = 2, position = position_dodge(width = 0.9)) +
+  scale_fill_manual(values = Tool_cols) +
+  theme_classic() +
+  theme(text = element_text(size = 8), strip.text.y = element_blank(), legend.position = "none") +
+  labs(x = "Presence of blood IgG", y = "Sequence coverage (%)", fill = "Proteomics tool")
+
+#ggsave("./figures/coverage_tools_HC_blood.pdf", height = 4, width = 4, dpi = 600)
+```
+
+```{r fig.height=4, fig.width=4}
+ggplot(data = LC_coverage, aes(x = factor(blood, levels = c(TRUE,FALSE)), y = coverage, fill = tool)) +
+  geom_col(position = position_dodge()) +
+  facet_grid(factor(mab_name, levels = LC_names)~factor(type, levels = c("VJ", "CDRL3"))) +
+  scale_y_continuous(limits = c(0,120), breaks = c(0,25,50,75,100)) +
+  geom_text(aes(label = round(coverage,2), vjust = -0.2), size = 2, position = position_dodge(width = 0.9)) +
+  scale_fill_manual(values = Tool_cols) +
+  theme_classic() +
+  theme(text = element_text(size = 8), strip.text.y = element_blank(), legend.position = "none") +
+  labs(x = "Presence of blood IgG", y = "Sequence coverage (%)", fill = "Proteomics tool")
+
+#ggsave("./figures/coverage_tools_LC_blood.pdf", height = 4, width = 4, dpi = 600)
+```
