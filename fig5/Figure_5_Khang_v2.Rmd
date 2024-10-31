@@ -118,16 +118,24 @@ coefs_blood_lc <- res_ratio_lc_med_blood %>%
             slope = coef(regr)[2], 
             r2 = summary(regr)$r.squared)
 
-coefs_blood$eq <- paste0("italic(log(y)) == ", format(coefs_blood$intercept, digits = 2, scientific = TRUE), 
-                   " + ", format(coefs_blood$slope, digits = 2, scientific = TRUE), " %.% italic(log(x))")
-coefs_blood_lc$eq <- paste0("italic(log(y)) == ", format(coefs_blood_lc$intercept, digits = 2, scientific = TRUE), 
-                   " + ", format(coefs_blood_lc$slope, digits = 2, scientific = TRUE), " %.% italic(log(x))")
+#coefs_blood$eq <- paste0("italic(log(y)) == ", format(coefs_blood$intercept, digits = 2, scientific = TRUE), 
+#                   " + ", format(coefs_blood$slope, digits = 2, scientific = TRUE), " %.% italic(log(x))")
+#coefs_blood_lc$eq <- paste0("italic(log(y)) == ", format(coefs_blood_lc$intercept, digits = 2, scientific = TRUE), 
+#                   " + ", format(coefs_blood_lc$slope, digits = 2, scientific = TRUE), " %.% italic(log(x))")
 
-coefs_blood$eq <- str_replace_all(coefs_blood$eq, "\\+ -", "\\- ")
-coefs_blood_lc$eq <- str_replace_all(coefs_blood_lc$eq, "\\+ -", "\\- ")
+#coefs_blood$eq <- str_replace_all(coefs_blood$eq, "\\+ -", "\\- ")
+#coefs_blood_lc$eq <- str_replace_all(coefs_blood_lc$eq, "\\+ -", "\\- ")
 
-coefs_blood$r2 <- paste0("italic(R)^2 == ", format(coefs_blood$r2, digits = 2))
-coefs_blood_lc$r2 <- paste0("italic(R)^2 == ", format(coefs_blood_lc$r2, digits = 2))
+#coefs_blood$r2 <- paste0("italic(R)^2 == ", format(coefs_blood$r2, digits = 2))
+#coefs_blood_lc$r2 <- paste0("italic(R)^2 == ", format(coefs_blood_lc$r2, digits = 2))
+
+coefs_blood$intercept_eq <-  paste0("Intercept: ", format(round(coefs_blood$intercept,2), digits = 2))
+coefs_blood$slope_eq <- paste0("Slope: ", format(round(coefs_blood$slope,2), digits = 2))
+coefs_blood$r2_eq <- paste0("R^2 ==", format(round(coefs_blood$r2,2), digits = 2))
+
+coefs_blood_lc$intercept_eq <-  paste0("Intercept: ", format(round(coefs_blood_lc$intercept,2), digits = 2))
+coefs_blood_lc$slope_eq <- paste0("Slope: ", format(round(coefs_blood_lc$slope,2), digits = 2))
+coefs_blood_lc$r2_eq <- paste0("R^2 ==", format(round(coefs_blood_lc$r2,2), digits = 2))
 
 
 coefs_noblood <- res_ratio_hc_med_noblood %>%
@@ -150,16 +158,24 @@ coefs_noblood_lc <- res_ratio_lc_med_noblood %>%
             slope = coef(regr)[2], 
             r2 = summary(regr)$r.squared)
 
-coefs_noblood$eq <- paste0("italic(log(y)) == ", format(coefs_noblood$intercept, digits = 2, scientific = TRUE), 
-                   " + ", format(coefs_noblood$slope, digits = 2, scientific = TRUE), " %.% italic(log(x))")
-coefs_noblood_lc$eq <- paste0("italic(log(y)) == ", format(coefs_noblood_lc$intercept, digits = 2, scientific = TRUE), 
-                   " + ", format(coefs_noblood_lc$slope, digits = 2, scientific = TRUE), " %.% italic(log(x))")
+#coefs_noblood$eq <- paste0("italic(log(y)) == ", format(coefs_noblood$intercept, digits = 2, scientific = TRUE), 
+#                   " + ", format(coefs_noblood$slope, digits = 2, scientific = TRUE), " %.% italic(log(x))")
+#coefs_noblood_lc$eq <- paste0("italic(log(y)) == ", format(coefs_noblood_lc$intercept, digits = 2, scientific = TRUE), 
+#                   " + ", format(coefs_noblood_lc$slope, digits = 2, scientific = TRUE), " %.% italic(log(x))")
 
-coefs_noblood$eq <- str_replace_all(coefs_noblood$eq, "\\+ -", "\\- ")
-coefs_noblood_lc$eq <- str_replace_all(coefs_noblood_lc$eq, "\\+ -", "\\- ")
+#coefs_noblood$eq <- str_replace_all(coefs_noblood$eq, "\\+ -", "\\- ")
+#coefs_noblood_lc$eq <- str_replace_all(coefs_noblood_lc$eq, "\\+ -", "\\- ")
 
-coefs_noblood$r2 <- paste0("italic(R)^2 == ", format(coefs_noblood$r2, digits = 2))
-coefs_noblood_lc$r2 <- paste0("italic(R)^2 == ", format(coefs_noblood_lc$r2, digits = 2))
+#coefs_noblood$r2 <- paste0("italic(R)^2 == ", format(coefs_noblood$r2, digits = 2))
+#coefs_noblood_lc$r2 <- paste0("italic(R)^2 == ", format(coefs_noblood_lc$r2, digits = 2))
+
+coefs_noblood$intercept_eq <-  paste0("Intercept: ", format(round(coefs_noblood$intercept,2), digits = 2))
+coefs_noblood$slope_eq <- paste0("Slope: ", format(round(coefs_noblood$slope,2), digits = 2))
+coefs_noblood$r2_eq <- paste0("R^2 ==", format(round(coefs_noblood$r2,2), digits = 2))
+
+coefs_noblood_lc$intercept_eq <-  paste0("Intercept: ", format(round(coefs_noblood_lc$intercept,2), digits = 2))
+coefs_noblood_lc$slope_eq <- paste0("Slope: ", format(round(coefs_noblood_lc$slope,2), digits = 2))
+coefs_noblood_lc$r2_eq <- paste0("R^2 ==", format(round(coefs_noblood_lc$r2,2), digits = 2))
 
 # Manual remove regression with only one group
 coefs_blood <- coefs_blood[-c(14,15),]
@@ -185,17 +201,18 @@ coefs_noblood_lc_gt$slope <- 1
 ```
 
 # SIR of all samples by presence of blood in each sample pair: non-blood or blood
-```{r fig.height=4, fig.width=12}
+```{r fig.height=5.5, fig.width=12}
 ggplot(res_ratio_hc %>% filter(blood_state == "blood") %>% filter(Protease != "AspN"), aes(x = log_conc_ratio, y = log_intensity_ratio, color = factor(log_conc_ratio))) +
   geom_point(aes(fill = run1), color = "black", shape = 21, size = 0.1, stroke = 0.03, position = position_jitterdodge()) +
   geom_boxplot(aes(fill = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
-  geom_abline(data = coefs_blood, aes(intercept = intercept, slope = slope), color = "#FF00F2", linewidth = 0.75, linetype = "dashed") +
+  geom_abline(data = coefs_blood, aes(intercept = intercept, slope = slope), color = "#DE583E", linewidth = 0.75, linetype = "dashed") +
   geom_abline(data = coefs_blood_gt, aes(intercept = intercept, slope = slope), color = "black", linewidth = 0.25) + # ground truth
   scale_color_manual(values = c("black", "black", "black", "black")) +
   scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff")) +
   geom_text(data = res_ratio_hc_med_blood, aes(x = log_conc_ratio, y = 4.2, label = round(med2,1)), color = "black", size = 2) +
-  geom_text(data = coefs_blood, aes(-0.75, -4, label = eq), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
-  geom_text(data = coefs_blood, aes(-0.75, -4.5, label = r2), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
+  geom_text(data = coefs_blood, aes(-0.75, -3.25, label = intercept_eq), size = 2.25, color = "black", hjust = 0) +
+  geom_text(data = coefs_blood, aes(-0.75, -4, label = slope_eq), size = 2.25, color = "black", hjust = 0) +
+  geom_text(data = coefs_blood, aes(-0.75, -4.75, label = r2_eq), parse = TRUE, size = 2.25, color = "black", hjust = 0) +
   scale_x_continuous(breaks = 0:3, labels = c(1, 10, 100, 1000)) +
   scale_y_continuous(breaks = -3:4, labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
   facet_grid(factor(match_ig_type, levels = HC_names) ~ factor(Protease, levels = c("Tryp", "Ct", "Ct+Tryp")) + run1) +
@@ -206,20 +223,21 @@ ggplot(res_ratio_hc %>% filter(blood_state == "blood") %>% filter(Protease != "A
         ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 
-ggsave("./figures/sir_blood.png", height = 4, width = 12, dpi = 600)
+ggsave("./figures/sir_blood.png", height = 5.5, width = 12, dpi = 600)
 ```
 
-```{r fig.height=4, fig.width=12}
+```{r fig.height=5.5, fig.width=12}
 ggplot(res_ratio_lc %>% filter(blood_state == "blood") %>% filter(Protease != "AspN"), aes(x = log_conc_ratio, y = log_intensity_ratio, color = factor(log_conc_ratio))) +
   geom_point(aes(fill = run1), color = "black", shape = 21, size = 0.1, stroke = 0.03, position = position_jitterdodge()) +
   geom_boxplot(aes(fill = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
-  geom_abline(data = coefs_blood_lc, aes(intercept = intercept, slope = slope), color = "#FF00F2", linewidth = 0.75, linetype = "dashed") +
+  geom_abline(data = coefs_blood_lc, aes(intercept = intercept, slope = slope), color = "#DE583E", linewidth = 0.75, linetype = "dashed") +
   geom_abline(data = coefs_blood_lc_gt, aes(intercept = intercept, slope = slope), color = "black", linewidth = 0.25) + # ground truth
   scale_color_manual(values = c("black", "black", "black", "black")) +
   scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff")) +
   geom_text(data = res_ratio_lc_med_blood, aes(x = log_conc_ratio, y = 4.2, label = round(med2,1)), color = "black", size = 2) +
-  geom_text(data = coefs_blood_lc, aes(-0.75, -4, label = eq), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
-  geom_text(data = coefs_blood_lc, aes(-0.75, -4.5, label = r2), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
+  geom_text(data = coefs_blood_lc, aes(-0.75, -3.25, label = intercept_eq), size = 2.25, color = "black", hjust = 0) +
+  geom_text(data = coefs_blood_lc, aes(-0.75, -4, label = slope_eq), size = 2.25, color = "black", hjust = 0) +
+  geom_text(data = coefs_blood_lc, aes(-0.75, -4.75, label = r2_eq), parse = TRUE, size = 2.25, color = "black", hjust = 0) +
   scale_x_continuous(breaks = 0:3, labels = c(1, 10, 100, 1000)) +
   scale_y_continuous(breaks = -3:4, labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
   facet_grid(factor(match_ig_type, levels = LC_names) ~ factor(Protease, levels = c("Tryp", "Ct", "Ct+Tryp")) + run1) +
@@ -230,21 +248,22 @@ ggplot(res_ratio_lc %>% filter(blood_state == "blood") %>% filter(Protease != "A
         ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 
-#ggsave("./figures/sir_blood_lc.png", height = 4, width = 12, dpi = 600)
+ggsave("./figures/sir_blood_lc.png", height = 5.5, width = 12, dpi = 600)
 ```
 
-```{r fig.height=4, fig.width=12}
+```{r fig.height=5.5, fig.width=12}
 ggplot(res_ratio_hc %>% filter(blood_state == "no blood") %>% filter(Protease != "AspN"), aes(x = log_conc_ratio, y = log_intensity_ratio, color = factor(log_conc_ratio))) +
   geom_point(aes(fill = run1), color = "black", shape = 21, size = 0.1, stroke = 0.03, position = position_jitterdodge()) +
   geom_boxplot(aes(fill = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
-  geom_abline(data = coefs_noblood, aes(intercept = intercept, slope = slope), color = "#FF00F2", linewidth = 0.75, linetype = "dashed") +
+  geom_abline(data = coefs_noblood, aes(intercept = intercept, slope = slope), color = "#DE583E", linewidth = 0.75, linetype = "dashed") +
   geom_abline(data = coefs_noblood_gt, aes(intercept = intercept, slope = slope), color = "black", linewidth = 0.25) + # ground truth
   #scale_color_manual(values = c("#48cae4", "#0096c7", "#0077B6", "#03045E")) +
   scale_color_manual(values = c("black", "black", "black", "black")) +
   scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff")) +
   geom_text(data = res_ratio_hc_med_noblood, aes(x = log_conc_ratio, y = 4.2, label = round(med2,1)), color = "black", size = 2) +
-  geom_text(data = coefs_noblood, aes(-0.75, -4, label = eq), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
-  geom_text(data = coefs_noblood, aes(-0.75, -4.5, label = r2), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
+  geom_text(data = coefs_noblood, aes(-0.75, -3.25, label = intercept_eq), size = 2.25, color = "black", hjust = 0) +
+  geom_text(data = coefs_noblood, aes(-0.75, -4, label = slope_eq), size = 2.25, color = "black", hjust = 0) +
+  geom_text(data = coefs_noblood, aes(-0.75, -4.75, label = r2_eq), parse = TRUE, size = 2.25, color = "black", hjust = 0) +
   scale_x_continuous(breaks = 0:3, labels = c(1, 10, 100, 1000)) +
   scale_y_continuous(breaks = -3:4, labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
   facet_grid(factor(match_ig_type, levels = HC_names) ~ factor(Protease, levels = c("Tryp", "Ct", "Ct+Tryp")) + run1) +
@@ -255,21 +274,22 @@ ggplot(res_ratio_hc %>% filter(blood_state == "no blood") %>% filter(Protease !=
         ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 
-#ggsave("./figures/sir_noblood.png", height = 4, width = 12, dpi = 600)
+ggsave("./figures/sir_noblood.png", height = 5.5, width = 12, dpi = 600)
 ```
 
-```{r fig.height=5, fig.width=12}
+```{r fig.height=5.5, fig.width=12}
 ggplot(res_ratio_lc %>% filter(blood_state == "no blood") %>% filter(Protease != "AspN"), aes(x = log_conc_ratio, y = log_intensity_ratio, color = factor(log_conc_ratio))) +
   geom_point(aes(fill = run1), color = "black", shape = 21, size = 0.1, stroke = 0.03, position = position_jitterdodge()) +
   geom_boxplot(aes(fill = run1), width = 0.5, lwd = 0.3, outlier.shape = NA) +
-  geom_abline(data = coefs_noblood_lc, aes(intercept = intercept, slope = slope), color = "#FF00F2", linewidth = 0.75, linetype = "dashed") +
+  geom_abline(data = coefs_noblood_lc, aes(intercept = intercept, slope = slope), color = "#DE583E", linewidth = 0.75, linetype = "dashed") +
   geom_abline(data = coefs_noblood_lc_gt, aes(intercept = intercept, slope = slope), color = "black", linewidth = 0.25) + # ground truth
   #scale_color_manual(values = c("#48cae4", "#0096c7", "#0077B6", "#03045E")) +
   scale_color_manual(values = c("black", "black", "black", "black")) +
   scale_fill_manual(values = c("#969696", "#bdbdbd", "#d9d9d9", "#ffffff")) +
   geom_text(data = res_ratio_lc_med_noblood, aes(x = log_conc_ratio, y = 4.2, label = round(med2,1)), color = "black", size = 2) +
-  geom_text(data = coefs_noblood_lc, aes(-0.75, -4, label = eq), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
-  geom_text(data = coefs_noblood_lc, aes(-0.75, -4.5, label = r2), parse = TRUE, size = 1.5, color = "black", hjust = 0) +
+  geom_text(data = coefs_noblood_lc, aes(-0.75, -3.25, label = intercept_eq), size = 2.25, color = "black", hjust = 0) +
+  geom_text(data = coefs_noblood_lc, aes(-0.75, -4, label = slope_eq), size = 2.25, color = "black", hjust = 0) +
+  geom_text(data = coefs_noblood_lc, aes(-0.75, -4.75, label = r2_eq), parse = TRUE, size = 2.25, color = "black", hjust = 0) +
   scale_x_continuous(breaks = 0:3, labels = c(1, 10, 100, 1000)) +
   scale_y_continuous(breaks = -3:4, labels = c(0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000)) +
   facet_grid(factor(match_ig_type, levels = LC_names) ~ factor(Protease, levels = c("Tryp", "Ct", "Ct+Tryp")) + run1) +
@@ -280,5 +300,5 @@ ggplot(res_ratio_lc %>% filter(blood_state == "no blood") %>% filter(Protease !=
         ) +
   labs(x = "mAb input ratio", y = "MS signal intensity ratio")
 
-#ggsave("./figures/sir_noblood_lc.png", height = 4, width = 12, dpi = 600)
+ggsave("./figures/sir_noblood_lc.png", height = 5.5, width = 12, dpi = 600)
 ```
