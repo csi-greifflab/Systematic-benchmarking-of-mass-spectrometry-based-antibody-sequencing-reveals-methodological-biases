@@ -296,7 +296,7 @@ res$sequence_name <- factor(res$sequence_name, levels = LC_names)
 res_blood_med <- res %>% group_by(sequence_name, value, blood) %>% summarise(med_vdj = median(vdj), med_cdr3 = median(cdr3))
 ```
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 ## OBSOLETE, USE MOOD'S MEDIAN TEST INSTEAD
 
 # In the groups with difference, pairwise comparison with multiple testing correction (blood vs non-blood)
@@ -405,7 +405,7 @@ res_noblood_pwc_vdj <- res_noblood_pwc_vdj %>% add_xy_position(fun = "max", scal
 
 ```{r fig.height=4.5, fig.width=5}
 ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multiple")), y = vdj, color = complexity_lvl)) +
-  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  #geom_boxplot(width = 0.5, outlier.shape = NA) +
   geom_line(aes(group = subset), color = "grey50") +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(pch = 1, size = 1, cex = 3) +
@@ -422,7 +422,7 @@ ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multipl
 
 ```{r fig.height=4.5, fig.width=5}
 ggplot(res_noblood, aes(x = factor(complexity_lvl, levels = c("single", "multiple")), y = cdr3, color = complexity_lvl)) +
-  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  #geom_boxplot(width = 0.5, outlier.shape = NA) +
   geom_line(aes(group = subset), color = "grey50") +
   facet_grid(sequence_name ~ value, labeller = labeller(value = label_value)) +
   geom_beeswarm(pch = 1, size = 1, cex = 3) +
