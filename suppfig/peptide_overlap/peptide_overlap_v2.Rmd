@@ -1,0 +1,107 @@
+---
+title: "Peptide overlap"
+author: "Khang"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning=F, message=F)
+library(UpSetR)
+source("../../Khang_config.R")
+```
+
+# Read in the filtered peptide list from the main dataset
+```{r}
+df <- read_tsv(file.path(data_path, "all_peptides_preprocessed.tsv"))
+df <- df[df$is_not_contamination, ]
+
+cdr3 <- read_tsv(file.path(metadata_path, "antibodies_cdr3_variable_full.tsv"))
+sample_info <- read_tsv(file.path(metadata_path, "detailed_sample_description.tsv"))
+
+df <- df %>% group_by(match_ig_type, Protease, tool) %>% summarise(Unique_seq = unique(Sequence))
+
+# Import the list of theoretical peptides
+theo <- read_tsv("../theoretical_cuttings/theoretical_cuttings.tsv")
+theo <- theo[,1:3]
+colnames(theo) <-  c("match_ig_type", "Unique_seq", "Protease")
+theo$tool <- "Theoretical"
+
+df <- bind_rows(df, theo)
+
+# Split the df into a list based on mAb name and Protease
+df_list <-  df %>% group_by(match_ig_type, Protease) %>% group_split()
+names(df_list) <- df %>% group_keys(match_ig_type, Protease) %>% mutate(name = paste(match_ig_type, Protease, sep = "-")) %>% pull(name)
+
+# From each df in the list, make into 3 named vector for MQ, MSF, and Casanovo sequence
+test <- df_list[[1]] %>% group_by(tool) %>% select(Unique_seq) %>% group_split()
+test <- map(test, function(x) x %>% pull(Unique_seq))
+names(test) <- c("Casanovo", "MSFragger", "MaxQuant", "Theoretical")
+
+df_list_2 <- list()
+for (i in 1:length(df_list)) {
+  names <- unique(df_list[[i]]$tool) # Get all the tool names 
+  df_list_2[[i]] <- df_list[[i]] %>% group_by(tool) %>% select(Unique_seq) %>% group_split() #Split the df by tool
+  df_list_2[[i]] <- map(df_list_2[[i]], function(x) x %>% pull(Unique_seq)) # Extract the peptide seq
+  names(df_list_2[[i]]) <- names # Name each peptide sequence vector
+}
+names(df_list_2) <- names(df_list)
+```
+
+# Calculate the overlap between each tool and theoretical
+
+```{r fig.height=5, fig.width=7}
+p <- upset(data = fromList(df_list_2[[11]]), nintersects = NA, 
+      order.by = "degree",
+      empty.intersections = "on",
+      mb.ratio = c(0.7, 0.3),
+      set_size.show = TRUE, text.scale = 1.5,
+      sets.bar.color = c("grey", "#6a3e37", "#00858a", "#e46e00"),
+      set_size.scale_max = 65
+      )
+```
+
+
+```{r fig.height=5, fig.width=7}
+pdf("test.pdf", height = 5, width = 7)
+print(p)
+dev.off()
+```
+
+```{r}
+# Make the list of plots (exclude the ones with only 3 tools)
+p <- list()
+for (i in ((1:length(df_list_2))[-c(13,17,25,29)])){
+  p[[i]] <- upset(data = fromList(df_list_2[[i]]), nintersects = NA, 
+                  order.by = "degree",
+                  empty.intersections = "on",
+                  mb.ratio = c(0.7, 0.3),
+                  set_size.show = TRUE, 
+                  text.scale = 1.5,
+                  sets.bar.color = c(Theoretical = "grey", Casanovo = "#6a3e37", MaxQuant = "#00858a", MSFragger = "#e46e00"),
+                  set_size.scale_max = 65
+                 )
+}
+
+# Now run the same loop for only those with 3 tools
+for (i in ((1:length(df_list_2))[c(13,17,25,29)])){
+  p[[i]] <- upset(data = fromList(df_list_2[[i]]), nintersects = NA, 
+                  order.by = "degree",
+                  empty.intersections = "on",
+                  mb.ratio = c(0.7, 0.3),
+                  set_size.show = TRUE, 
+                  text.scale = 1.5,
+                  sets.bar.color = c(Theoretical = "grey", MaxQuant = "#00858a", MSFragger = "#e46e00"),
+                  set_size.scale_max = 65
+                 )
+}
+names(p) <- names(df_list_2)
+
+# Write out pdf files
+for (i in (1:length(p))){
+  pdf(file = paste0("./figures/", names(p[i]), ".pdf"), height = 5, width = 7)
+  print(p[[i]])
+  dev.off()
+}
+```
+
