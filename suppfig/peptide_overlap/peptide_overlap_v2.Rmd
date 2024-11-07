@@ -51,11 +51,12 @@ names(df_list_2) <- names(df_list)
 # Calculate the overlap between each tool and theoretical
 
 ```{r fig.height=5, fig.width=7}
-p <- upset(data = fromList(df_list_2[[11]]), nintersects = NA, 
-      order.by = "degree",
+p <- upset(data = fromList(df_list_2[[12]]), nintersects = NA, 
+      order.by = "degree", keep.order = T,
       empty.intersections = "on",
       mb.ratio = c(0.7, 0.3),
-      set_size.show = TRUE, text.scale = 1.5,
+      mainbar.y.max = 45,
+      set_size.show = TRUE, text.scale = 2,
       sets.bar.color = c("grey", "#6a3e37", "#00858a", "#e46e00"),
       set_size.scale_max = 65
       )
@@ -63,9 +64,9 @@ p <- upset(data = fromList(df_list_2[[11]]), nintersects = NA,
 
 
 ```{r fig.height=5, fig.width=7}
-pdf("test.pdf", height = 5, width = 7)
+#pdf("test.pdf", height = 5, width = 7)
 print(p)
-dev.off()
+#dev.off()
 ```
 
 ```{r}
@@ -76,8 +77,9 @@ for (i in ((1:length(df_list_2))[-c(13,17,25,29)])){
                   order.by = "degree",
                   empty.intersections = "on",
                   mb.ratio = c(0.7, 0.3),
+                  mainbar.y.max = 45,
                   set_size.show = TRUE, 
-                  text.scale = 1.5,
+                  text.scale = 2,
                   sets.bar.color = c(Theoretical = "grey", Casanovo = "#6a3e37", MaxQuant = "#00858a", MSFragger = "#e46e00"),
                   set_size.scale_max = 65
                  )
@@ -89,8 +91,9 @@ for (i in ((1:length(df_list_2))[c(13,17,25,29)])){
                   order.by = "degree",
                   empty.intersections = "on",
                   mb.ratio = c(0.7, 0.3),
+                  mainbar.y.max = 45,
                   set_size.show = TRUE, 
-                  text.scale = 1.5,
+                  text.scale = 2,
                   sets.bar.color = c(Theoretical = "grey", MaxQuant = "#00858a", MSFragger = "#e46e00"),
                   set_size.scale_max = 65
                  )
