@@ -62,6 +62,4 @@ data/my_config.R
 /PRIDE_submission_main
 *.tsv
 /fig6/Stitch_assembly/results
-*.png
 *.ai
-*.pdf
