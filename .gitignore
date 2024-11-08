@@ -57,19 +57,11 @@ data/MSF_raw/
 # dotfiles
 .*
 !.gitignore
-fig6/casanovo_score_cutoff/casanovo_merged.tsv
 data.zip
 data/my_config.R
 /PRIDE_submission_main
-suppfig/casanovo_score_cutoff/casanovo_merged.tsv
 *.tsv
 /fig6/Stitch_assembly/results
 *.png
 *.ai
-*.png
-*.pdf
-/fig6/obsolete
-/fig6/figures
-/fig5/figures
-*.png
 *.pdf
