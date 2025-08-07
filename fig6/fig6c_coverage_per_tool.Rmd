@@ -1,0 +1,34 @@
+---
+title: "Fig 6c: sequence coverage per tool"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, message=F}
+source(here::here("setup.R"))
+source(here::here("src", "get_coverage.R"))
+source(here::here("src", "plotting", "plot_sequence_coverage_per_tool.R"))
+```
+
+```{r}
+df <- read_tsv(here::here("data", "processed", "peptides_preprocessed_TP.tsv"), show_col_types = FALSE)
+mabs_seq <- read_tsv(here::here("metadata", "mabs_cdr3_variable_full.tsv"), show_col_types = FALSE)
+
+HC_names <- c("h9C12-Q97A_HC", "h9C12-WT_HC", "Brimab_HC", "Umab_HC", "PGT121_HC", "PGDM1400_HC")
+LC_names <- c("h9C12_LC", "Brimab_LC", "Umab_LC", "PGT121_LC", "PGDM1400_LC")
+```
+
+```{r}
+stats <- get_sequence_coverage_per_tool(df, mabs_seq)
+```
+
+```{r}
+plot_sequence_coverage_per_tool(stats[stats$match_ig_type %in% HC_names, ], mabs_seq)
+```
+# Supplementary 
+
+```{r}
+plot_sequence_coverage_per_tool(stats[stats$match_ig_type %in% LC_names, ], mabs_seq)
+```
+
+
+

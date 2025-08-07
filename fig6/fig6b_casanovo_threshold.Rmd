@@ -1,0 +1,23 @@
+---
+title: "Fig 6b: Casanovo threshold"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, message=F}
+source(here::here("setup.R"))
+source(here::here("src", "get_n_peptides.R"))
+source(here::here("src", "plotting", "plot_casanovo_threshold.R"))
+```
+
+```{r}
+mabs_seq <- read_tsv(here::here("metadata", "mabs_cdr3_variable_full.tsv"), show_col_types = FALSE)
+```
+
+```{r}
+stats <- get_n_peptides_per_casanovo_threshold(here("data", "raw", "casanovo"), (5:9)/10, mabs_seq)
+```
+
+```{r, fig.height=2}
+plot_casanovo_threshold(stats)
+```
+

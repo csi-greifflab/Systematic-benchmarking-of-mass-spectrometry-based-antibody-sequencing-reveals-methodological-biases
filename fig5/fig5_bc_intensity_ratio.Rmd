@@ -1,0 +1,30 @@
+---
+title: "Fig 5b,c: intensity ratio"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, message=F}
+source(here::here("setup.R"))
+source(here::here("src", "get_intensity_ratio.R"))
+source(here::here("src", "plotting", "plot_intensity_ratio.R"))
+```
+
+```{r}
+df <- read_tsv(here::here("data", "processed", "peptides_preprocessed_TP.tsv"), show_col_types = FALSE)
+```
+
+```{r}
+stats <- get_intensity_ratio(df) 
+```
+
+
+```{r, fig.width=12, fig.height=14}
+plot_intensity_ratio(stats[stats$match_ig_type %in% HC_names, ])
+```
+
+
+# Supplementary
+
+```{r, fig.width=12, fig.height=14}
+plot_intensity_ratio(stats[stats$match_ig_type %in% LC_names, ])
+```

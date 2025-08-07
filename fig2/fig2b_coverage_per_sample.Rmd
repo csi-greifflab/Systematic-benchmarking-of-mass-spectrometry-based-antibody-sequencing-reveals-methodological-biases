@@ -1,0 +1,85 @@
+---
+title: "Fig 2b: coverage per sample"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, message=F}
+source(here::here("setup.R"))
+source(here::here("src", "get_coverage.R"))
+source(here::here("src", "plotting", "plot_heatmap_per_mab_per_sample.R"))
+```
+
+```{r}
+df <- read_tsv(here::here("data", "processed", "peptides_preprocessed_TP_FP.tsv"), col_types = cols(Sample = col_integer()))
+
+sample_info <- read_tsv(here::here("metadata", "detailed_sample_description.tsv"))
+concentratoins <- read_tsv(here::here("metadata", "concentration_matrix.tsv"))
+mabs_seq <- readr::read_tsv(here("metadata", "mabs_cdr3_variable_full.tsv"))
+```
+
+# Main
+
+```{r}
+stats <- df %>%
+  filter(is_cdr3_related) %>%
+  get_coverage_per_ab_per_sample(mabs_seq = mabs_seq)
+```
+
+```{r, fig.height=7.5, fig.width=6}
+plot_heatmap_per_mab_per_sample(stats[stats$peptide_type == "cdr3", ], 
+                                 name = "cdr3_coverage", 
+                                 sample_info = sample_info, 
+                                 concentrations = concentratoins)
+```
+
+
+# Supplementary
+
+## Total vdj coverage 
+```{r, fig.height=7.5, fig.width=6}
+stats <- get_coverage_per_ab_per_sample(df, mabs_seq = mabs_seq)
+
+plot_heatmap_per_mab_per_sample(stats[stats$peptide_type == "vdj", ], 
+                                 name = "vdj_coverage", 
+                                 sample_info = sample_info, 
+                                 concentrations = concentratoins)
+```
+
+## Vdj coverage per tool
+```{r, fig.height=7.5, fig.width=6}
+
+for (tool_name in c("MaxQuant", "MSFragger", "Casanovo")) {
+  df %>%
+    filter(tool == tool_name) %>%
+    get_coverage_per_ab_per_sample(mabs_seq = mabs_seq) %>%
+    filter(peptide_type == "vdj") %>%
+    plot_heatmap_per_mab_per_sample(
+        sample_info = sample_info,
+        concentrations = concentrations,
+        name = tool_name
+      ) %>%
+    print()
+}
+
+```
+
+## Vdj coverage per experimental replicate
+```{r, fig.height=7.5, fig.width=6}
+
+for (run_id in c("run1", "run2", "run3", "run4")) {
+  df %>%
+    filter(run == run_id) %>%
+    get_coverage_per_ab_per_sample(mabs_seq = mabs_seq) %>%
+    filter(peptide_type == "vdj") %>%
+    plot_heatmap_per_mab_per_sample(
+        sample_info = sample_info,
+        concentrations = concentrations,
+        name = run_id
+      ) %>%
+    print()
+}
+
+```
+
+
+

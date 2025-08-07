@@ -48,12 +48,15 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-# Large data files
-data/*.tsv
-data/casanovo_raw/
-data/MQ_raw/
-data/MSF_raw/
-
 # dotfiles
 .*
 !.gitignore
+
+
+# Ignore renv library 
+renv/library/
+
+# But keep lockfile and infrastructure
+!renv.lock
+!renv/settings.dcf
+

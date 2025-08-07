@@ -1,0 +1,37 @@
+---
+title: "Fig 2d: total coverage per mAb per protease"
+output: pdf_document
+---
+
+```{r, include=FALSE, message=F}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+source(here::here("setup.R"))
+source(here::here("src", "get_coverage.R"))
+source(here::here("src", "plotting", "plot_total_coverage_per_mab.R"))
+
+```
+
+```{r}
+df <- read_tsv(here("data", "processed", "peptides_preprocessed_TP_FP.tsv"), show_col_types = FALSE) 
+
+mabs_seq <- readr::read_tsv(here("metadata", "mabs_cdr3_variable_full.tsv"))
+```
+
+# Main
+
+```{r}
+stats <- get_coverage_per_ab_per_protease(df, mabs_seq = mabs_seq) 
+```
+
+```{r, fig.height=4, fig.width=6}
+plot_total_coverage_per_mab(stats[, c("Protease", "peptide_type", HC_names)])
+```
+
+
+# Supplementary
+
+```{r, fig.height=4, fig.width=6}
+plot_total_coverage_per_mab(stats[, c("Protease", "peptide_type", LC_names)])
+```
+

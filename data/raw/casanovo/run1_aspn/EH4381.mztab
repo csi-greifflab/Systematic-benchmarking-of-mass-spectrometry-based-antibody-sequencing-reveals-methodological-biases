@@ -1,0 +1,123 @@
+MTD	mzTab-version	1.0.0
+MTD	mzTab-mode	Summary
+MTD	mzTab-type	Identification
+MTD	description	Casanovo identification file EH4381
+MTD	software[1]	[MS, MS:1003281, Casanovo, 3.2.0]
+MTD	psm_search_engine_score[1]	[MS, MS:1001143, search engine specific score for PSMs, ]
+MTD	ms_run[1]-location	file:///net/noble/vol1/home/rowanon/proj/2022_rowanon_casanovo-ne/results/rowanon/2023-01-04_greiff-predictions/run1_aspn/EH4381.mzML
+MTD	fixed_mod[1]	[UNIMOD, UNIMOD:4, Carbamidomethyl, ]
+MTD	fixed_mod[1]-site	C
+MTD	variable_mod[1]	[UNIMOD, UNIMOD:7, Deamidated, ]
+MTD	variable_mod[1]-site	N
+MTD	variable_mod[2]	[UNIMOD, UNIMOD:7, Deamidated, ]
+MTD	variable_mod[2]-site	Q
+MTD	variable_mod[3]	[UNIMOD, UNIMOD:35, Oxidation, ]
+MTD	variable_mod[3]-site	M
+MTD	variable_mod[4]	[UNIMOD, UNIMOD:5, Carbamyl, ]
+MTD	variable_mod[4]-site	N-term
+MTD	variable_mod[5]	[UNIMOD, UNIMOD:1, Acetyl, ]
+MTD	variable_mod[5]-site	N-term
+MTD	variable_mod[6]	[UNIMOD, UNIMOD:385, Ammonia-loss, ]
+MTD	variable_mod[6]-site	N-term
+MTD	software[1]-setting[1]	model = /net/noble/vol1/home/rowanon/proj/casanovo-tensorboard/epoch=9-step=200000-v2.ckpt
+MTD	software[1]-setting[2]	config_filename = ../config_sml.yaml
+MTD	software[1]-setting[3]	random_seed = 454
+MTD	software[1]-setting[4]	n_peaks = 150
+MTD	software[1]-setting[5]	min_mz = 50.0
+MTD	software[1]-setting[6]	max_mz = 2500.0
+MTD	software[1]-setting[7]	min_intensity = 0.01
+MTD	software[1]-setting[8]	remove_precursor_tol = 2.0
+MTD	software[1]-setting[9]	max_charge = 10
+MTD	software[1]-setting[10]	precursor_mass_tol = 50.0
+MTD	software[1]-setting[11]	isotope_error_range = (0, 1)
+MTD	software[1]-setting[12]	dim_model = 512
+MTD	software[1]-setting[13]	n_head = 8
+MTD	software[1]-setting[14]	dim_feedforward = 1024
+MTD	software[1]-setting[15]	n_layers = 9
+MTD	software[1]-setting[16]	dropout = 0.0
+MTD	software[1]-setting[17]	dim_intensity = None
+MTD	software[1]-setting[18]	custom_encoder = None
+MTD	software[1]-setting[19]	max_length = 100
+MTD	software[1]-setting[21]	n_log = 1
+MTD	software[1]-setting[22]	tb_summarywriter = None
+MTD	software[1]-setting[23]	warmup_iters = 100000
+MTD	software[1]-setting[24]	max_iters = 600000
+MTD	software[1]-setting[25]	learning_rate = 0.0005
+MTD	software[1]-setting[26]	weight_decay = 1e-05
+MTD	software[1]-setting[27]	train_batch_size = 32
+MTD	software[1]-setting[28]	predict_batch_size = 500
+MTD	software[1]-setting[29]	n_beams = 5
+MTD	software[1]-setting[30]	logger = None
+MTD	software[1]-setting[31]	max_epochs = 30
+MTD	software[1]-setting[32]	num_sanity_val_steps = 0
+MTD	software[1]-setting[33]	train_from_scratch = True
+MTD	software[1]-setting[34]	save_model = True
+MTD	software[1]-setting[35]	model_save_folder_path = 
+MTD	software[1]-setting[36]	save_weights_only = True
+MTD	software[1]-setting[37]	every_n_train_steps = 50000
+MTD	software[1]-setting[38]	n_workers = 2
+PSH	sequence	PSM_ID	accession	unique	database	database_version	search_engine	search_engine_score[1]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	pre	post	start	end	opt_ms_run[1]_aa_scores
+PSM	DELLRQL	0	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5789704322814941	null	null	2	440.2191467285156	443.75326731688006	ms_run[1]:index=0	null	null	null	null	0.93875,0.20851,0.19721,0.23721,0.91079,0.11028,0.34446
+PSM	DLRKLLA	1	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.663294140781675	null	null	2	420.1067199707031	414.76872031688004	ms_run[1]:index=1	null	null	null	null	0.62439,0.26842,0.49103,0.31788,0.12827,0.18213,0.34482
+PSM	YHEHSGS	2	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6085271803396088	null	null	2	408.6915588378906	408.66719181688	ms_run[1]:index=2	null	null	null	null	0.14463,0.34093,0.26916,0.11427,0.99041,0.74711,0.13379
+PSM	KGLLLSHTM+15.995	3	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.60527082133654	null	null	2	443.7161865234375	508.28387331688	ms_run[1]:index=3	null	null	null	null	0.00001,0.99954,0.14014,0.12160,0.47604,0.78780,0.21000,0.68117,0.13628
+PSM	YEDLRRC+57.021	4	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5882867468254906	null	null	2	508.1779479980469	506.23745881688006	ms_run[1]:index=4	null	null	null	null	0.39175,0.25505,0.59944,0.94789,0.34678,0.26641,0.07467
+PSM	HQPNLLQLLA	5	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6875003971159458	null	null	2	576.1351928710938	573.83512331688	ms_run[1]:index=5	null	null	null	null	0.72145,0.07727,0.65711,0.13871,0.14438,0.20248,0.08888,0.18524,0.24624,0.66325
+PSM	NRLDGLRLM+15.995	6	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5957842758960195	null	null	2	557.1607666015625	552.3031328168801	ms_run[1]:index=6	null	null	null	null	0.97158,0.20577,0.18250,0.44208,0.94757,0.35550,0.28548,0.17246,0.07501
+PSM	NHSKRTL	7	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.7059684970549175	null	null	2	412.18817138671875	428.24339631688	ms_run[1]:index=7	null	null	null	null	0.44073,0.21892,0.39016,0.30195,0.20016,0.10840,0.39790
+PSM	AVERELRRC+57.021	8	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5255990086330308	null	null	2	596.24755859375	594.81693881688	ms_run[1]:index=8	null	null	null	null	0.96757,0.77432,0.34134,0.14566,0.50537,0.81477,0.32323,0.27405,0.12331
+PSM	GLEELEKL	9	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6718049496412277	null	null	2	464.19134521484375	465.76075781688	ms_run[1]:index=9	null	null	null	null	0.99905,0.20498,0.16056,0.09421,0.18652,0.16824,0.55358,0.25842
+PSM	EPRPEPPLRRV	10	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6727074181491679	null	null	2	674.1015014648438	673.38858531688	ms_run[1]:index=10	null	null	null	null	0.65364,0.32097,0.19543,0.08558,0.19567,0.93710,0.54495,0.20933,0.25300,0.10821,0.09634
+PSM	DPLPPRRP	11	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6928223287686706	null	null	2	469.0893859863281	474.27470131688	ms_run[1]:index=11	null	null	null	null	0.56666,0.31231,0.11107,0.17594,0.15829,0.38679,0.25546,0.49091
+PSM	LYLRVLPLA	12	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6486770825253593	null	null	2	528.2899169921875	529.34205281688	ms_run[1]:index=12	null	null	null	null	0.83536,0.37822,0.17296,0.30478,0.10479,0.47252,0.35199,0.20109,0.34019
+PSM	DEEEELQRLQ	13	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.7727131940424442	null	null	2	645.2322387695312	644.8044138168799	ms_run[1]:index=13	null	null	null	null	0.64819,0.27394,0.14457,0.19126,0.16201,0.22845,0.10963,0.18310,0.21496,0.11677
+PSM	HLLPLED	14	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.7544857167771885	null	null	2	424.206787109375	418.72926081688	ms_run[1]:index=14	null	null	null	null	0.45201,0.15271,0.20639,0.11518,0.17770,0.53133,0.08327
+PSM	DEKSLSGS	15	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5614534970372915	null	null	2	408.1941223144531	411.69561431688004	ms_run[1]:index=15	null	null	null	null	0.70558,0.22733,0.17676,0.10228,0.34653,0.99881,0.89461,0.05647
+PSM	SLLLSC+57.021S	16	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.4582347933735166	null	null	2	392.1806945800781	390.20202131688	ms_run[1]:index=16	null	null	null	null	0.79502,0.13443,0.21892,0.28960,0.58285,0.99977,0.77175
+PSM	KSWLSGS	17	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5066545648234231	null	null	2	376.16754150390625	382.70050281688003	ms_run[1]:index=17	null	null	null	null	0.66332,0.19921,0.48854,0.50833,0.99298,0.37978,0.22126
+PSM	TEPRPHS	18	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.579798797411578	null	null	2	411.69061279296875	412.20647981687995	ms_run[1]:index=18	null	null	null	null	0.93493,0.32971,0.21995,0.12089,0.98286,0.28538,0.06769
+PSM	TRHLNL	19	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6443167117734749	null	null	2	379.6640625	377.22193281688	ms_run[1]:index=19	null	null	null	null	0.88909,0.22156,0.11471,0.44901,0.18532,0.27441
+PSM	+43.006-17.027DSHSLHW	20	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6710394792780932	null	null	2	440.219482421875	454.18879131688	ms_run[1]:index=20	null	null	null	null	0.00000,0.88982,0.22931,0.23646,0.10305,0.19789,0.89273,0.08243
+PSM	KGLEFRLLA	21	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.7634358838481098	null	null	2	460.1998291015625	523.82148431688	ms_run[1]:index=21	null	null	null	null	0.00002,0.99911,0.18823,0.13441,0.19380,0.13904,0.15464,0.20719,0.11264
+PSM	GLVLGSRLF	22	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5367085039615631	null	null	2	480.1783752441406	481.29510231688	ms_run[1]:index=22	null	null	null	null	0.99954,0.20551,0.34599,0.31930,0.99027,0.71089,0.21192,0.31763,0.06857
+PSM	YRKPVPSS	23	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6020896201953292	null	null	2	464.1689758300781	467.26125931688	ms_run[1]:index=23	null	null	null	null	0.86879,0.27756,0.24991,0.23278,0.10751,0.85918,0.44527,0.14228
+PSM	VPVVSSKAAAA	24	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6502013369040056	null	null	2	500.1575622558594	500.29529931687995	ms_run[1]:index=24	null	null	null	null	0.97917,0.70984,0.23611,0.19614,0.65735,0.16769,0.13344,0.16903,0.12697,0.10111,0.37093
+PSM	HLLRHL	25	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5529251222809155	null	null	2	395.60443115234375	394.74812231687997	ms_run[1]:index=25	null	null	null	null	0.89262,0.28420,0.27150,0.32270,0.08892,0.82250
+PSM	APRPLEM+15.995	26	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5100888428943497	null	null	2	412.08795166015625	415.21546381688	ms_run[1]:index=26	null	null	null	null	0.99804,0.84234,0.50645,0.36193,0.23808,0.40013,0.08241
+PSM	GLALRFV	27	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5870364468012537	null	null	2	392.1078796386719	388.24488131687997	ms_run[1]:index=27	null	null	null	null	0.97192,0.34261,0.66199,0.33671,0.12363,0.13029,0.32360
+PSM	+43.006-17.027EEDERLSS	28	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.7431099980179978	null	null	2	484.14453125	495.70466781688003	ms_run[1]:index=28	null	null	null	null	0.00000,0.64349,0.18110,0.49338,0.18790,0.19188,0.27992,0.07165,0.26268
+PSM	KLLQYLRV	29	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.723987533710897	null	null	2	520.1376953125	516.8318523168799	ms_run[1]:index=29	null	null	null	null	0.62478,0.34389,0.30937,0.36239,0.09655,0.16715,0.08226,0.22172
+PSM	RYLC+57.021D	30	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6472665417706593	null	null	2	379.5909729003906	363.66560681688003	ms_run[1]:index=30	null	null	null	null	0.19989,0.11959,0.44737,0.99617,0.00065
+PSM	DENPRLA	31	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5908704272338322	null	null	2	408.1016845703125	407.7063168168801	ms_run[1]:index=31	null	null	null	null	0.41225,0.46364,0.33538,0.85529,0.13284,0.30817,0.35634
+PSM	EPKEKSV	32	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6919469109603337	null	null	2	404.09783935546875	408.72671781688	ms_run[1]:index=32	null	null	null	null	0.62090,0.37014,0.32848,0.08019,0.24728,0.10127,0.40812
+PSM	TRPQYLPSRVM+15.995	33	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6300025819377466	null	null	2	686.063232421875	682.36117531688	ms_run[1]:index=33	null	null	null	null	0.46559,0.27021,0.80115,0.17063,0.11423,0.30303,0.96550,0.45093,0.28436,0.13074,0.11361
+PSM	TRLQRLL	34	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.754788838326931	null	null	2	448.1521301269531	450.29288981688006	ms_run[1]:index=34	null	null	null	null	0.81723,0.12079,0.22605,0.08653,0.20448,0.10780,0.15359
+PSM	GLEPSRLM+15.995	35	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5619357037357986	null	null	2	451.64849853515625	459.73930281688	ms_run[1]:index=35	null	null	null	null	0.99704,0.16851,0.26543,0.98579,0.48534,0.19292,0.34724,0.06224
+PSM	-17.027VLGPEPRPQ	36	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.7323396172723733	null	null	2	500.1574401855469	488.2665423168801	ms_run[1]:index=36	null	null	null	null	0.00185,0.45392,0.26720,0.60693,0.30121,0.11831,0.38574,0.12800,0.24452,0.16892
+PSM	LARLPGM	37	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.7556817755103111	null	null	2	379.591552734375	379.22309181688	ms_run[1]:index=37	null	null	null	null	0.44561,0.10964,0.09221,0.23167,0.41758,0.26088,0.15264
+PSM	DHLPLPQLLLLLKSSHS	38	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6983783898108146	null	null	4	480.0225830078125	478.53200964188	ms_run[1]:index=38	null	null	null	null	0.92209,0.15172,0.10953,0.19969,0.22261,0.66320,0.09912,0.25915,0.31029,0.14676,0.23437,0.55592,0.66650,0.21649,0.14607,0.09909,0.12497
+PSM	KGRYLGMDYDYTM	39	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	0.4341889906388063	null	null	2	806.8672485351562	806.8603483168799	ms_run[1]:index=39	null	null	null	null	0.93678,0.64215,0.27962,0.14062,0.18609,0.23072,0.25874,0.32014,0.19467,0.42481,0.13287,0.90010,0.99714
+PSM	YLRPEFEDTREEA	40	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.710500113092936	null	null	3	550.89404296875	552.2617620335467	ms_run[1]:index=40	null	null	null	null	0.34985,0.20220,0.36346,0.15838,0.13662,0.21931,0.29674,0.43839,0.41665,0.08745,0.20176,0.16636,0.72633
+PSM	SGFRPGLLHPLPSQQ	41	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6706881269812583	null	null	2	817.8558959960938	817.44408931688	ms_run[1]:index=41	null	null	null	null	0.99987,0.45301,0.11475,0.17530,0.39027,0.09949,0.17625,0.20749,0.12424,0.10321,0.27099,0.99590,0.54020,0.12268,0.16604
+PSM	-17.027KYTDYDQKLES	42	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6898603992322023	null	null	2	693.3212890625	686.81698581688	ms_run[1]:index=42	null	null	null	null	0.00001,0.87495,0.24515,0.35392,0.23981,0.08622,0.24413,0.52198,0.11952,0.72231,0.13362,0.18006
+PSM	LVKKLVA	43	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.41863952789987835	null	null	2	384.2353210449219	385.77855681688	ms_run[1]:index=43	null	null	null	null	0.94545,0.97178,0.28175,0.94046,0.39508,0.15186,0.38314
+PSM	N+43.006MGYRLL	44	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.7633037151920234	null	null	2	392.74835205078125	455.23418781688	ms_run[1]:index=44	null	null	null	null	0.00000,0.43357,0.36500,0.29520,0.11041,0.10696,0.14851,0.43393
+PSM	AVPRDLL	45	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5171304887958935	null	null	2	395.2268981933594	392.23979581688	ms_run[1]:index=45	null	null	null	null	0.98444,0.05692,0.80816,0.71951,0.10768,0.13752,0.56585
+PSM	QDLARLM+15.995	46	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6405139586755207	null	null	2	428.26153564453125	431.72619581688	ms_run[1]:index=46	null	null	null	null	0.57811,0.81896,0.46401,0.14245,0.10987,0.27547,0.12754
+PSM	FLLHSSD	47	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	0.519047241125788	null	null	2	410.1878967285156	409.70578531687994	ms_run[1]:index=47	null	null	null	null	0.87051,0.15282,0.97385,0.57838,0.38375,0.54890,0.12512
+PSM	DFLFSF	48	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5026214569807053	null	null	2	381.6778564453125	388.18669731688	ms_run[1]:index=48	null	null	null	null	0.91501,0.16891,0.39606,0.52460,0.85182,0.12788
+PSM	GRNDLGGSHS	49	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.47551322430372234	null	null	2	502.2620849609375	500.23376131688	ms_run[1]:index=49	null	null	null	null	0.98654,0.32135,0.39307,0.07885,0.99991,0.99955,0.67349,0.34448,0.28481,0.16282
+PSM	GFGQHM+15.995VGG	50	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.47654250429736245	null	null	2	457.1809387207031	453.20034581688003	ms_run[1]:index=50	null	null	null	null	0.98917,0.21235,0.91948,0.33302,0.48805,0.44523,0.89086,0.17505,0.25791
+PSM	GRQDMDMV	51	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5641405880451202	null	null	2	476.154296875	476.20477031688	ms_run[1]:index=51	null	null	null	null	0.98686,0.33352,0.28043,0.37054,0.15369,0.53198,0.55634,0.27350
+PSM	QEWESSGRRG	52	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.5617555677890778	null	null	2	594.2500610351562	596.27870031688	ms_run[1]:index=52	null	null	null	null	0.55406,0.25751,0.64803,0.29491,0.96796,0.29449,0.24913,0.29352,0.63770,0.18513
+PSM	M+15.995RLLQK	53	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6452705164750416	null	null	2	397.1000061035156	402.74164881688006	ms_run[1]:index=53	null	null	null	null	0.18693,0.07925,0.20944,0.40431,0.89644,0.35199
+PSM	WGEGPGWG	54	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.3323749080300331	null	null	2	428.67010498046875	423.18247831688006	ms_run[1]:index=54	null	null	null	null	0.98566,0.88248,0.91381,0.99428,0.66793,0.31757,0.16526,0.41400
+PSM	LTQLRPGQRL	55	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.604294802248478	null	null	2	588.2094116210938	591.3592928168799	ms_run[1]:index=55	null	null	null	null	0.82683,0.34213,0.15060,0.27109,0.34208,0.97676,0.36607,0.23566,0.14372,0.30211
+PSM	QVLEPVRRL	56	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6847028608123462	null	null	2	551.2283935546875	555.3431153168799	ms_run[1]:index=56	null	null	null	null	0.76164,0.15954,0.33501,0.11646,0.70392,0.10162,0.34815,0.14568,0.16565
+PSM	SPNPPVPLPLS	57	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.47218854589895765	null	null	2	555.7459106445312	559.31623131688	ms_run[1]:index=57	null	null	null	null	0.99401,0.97168,0.12414,0.21544,0.91311,0.11148,0.92696,0.40635,0.19287,0.80198,0.14792
+PSM	C+57.021LLRPGS	58	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6068008648497718	null	null	2	399.6031494140625	401.71563081688004	ms_run[1]:index=58	null	null	null	null	0.37291,0.15469,0.33556,0.14751,0.96943,0.63710,0.13519
+PSM	AELLETL	59	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6641377423490797	null	null	2	400.1602478027344	394.72363981688005	ms_run[1]:index=59	null	null	null	null	0.72365,0.12195,0.21768,0.28564,0.09701,0.64436,0.26074
+PSM	GSNSLSSKSS	60	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.46992153152823446	null	null	2	476.2880859375	477.23035181688	ms_run[1]:index=60	null	null	null	null	0.99369,0.54755,0.26789,0.29601,0.38403,0.67844,0.75647,0.08743,0.94941,0.33986
+PSM	WTHLVTSV	61	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.562245337292552	null	null	2	468.2896423339844	471.75580131687997	ms_run[1]:index=61	null	null	null	null	0.91991,0.27641,0.35494,0.13951,0.21022,0.22434,0.88417,0.49254
+PSM	+43.006LTHLVTSV	62	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.506369862291548	null	null	2	460.2916564941406	456.76108381688	ms_run[1]:index=62	null	null	null	null	0.95431,0.21249,0.35458,0.68670,0.28413,0.39778,0.22901,0.86918,0.45449
+PSM	KNNPLVNL	63	null	null	null	null	[MS, MS:1003281, Casanovo, 3.2.0]	-0.6596229048445821	null	null	2	452.8058166503906	456.26908381688	ms_run[1]:index=63	null	null	null	null	0.93146,0.11580,0.38525,0.15061,0.17752,0.52678,0.09710,0.33849

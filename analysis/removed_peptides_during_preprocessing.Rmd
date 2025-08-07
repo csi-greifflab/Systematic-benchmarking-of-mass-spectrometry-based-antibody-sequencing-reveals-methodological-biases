@@ -1,0 +1,113 @@
+---
+title: "Analysis of the peptides removed during preprocessing"
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE, message=F}
+source(here::here("setup.R"))
+source(here::here("src", "get_n_peptides.R"))
+source(here::here("src", "plotting", "plot_heatmap_per_mab_per_sample.R"))
+```
+
+```{r}
+df <- read_tsv(here::here("data", "processed", "peptides_all_TP_FP_with_blanks.tsv"), show_col_types = FALSE) %>%
+  filter(Sample!="blank") %>%
+  mutate(Sample=as.integer(Sample))
+
+sample_info <- read_tsv(here::here("metadata", "detailed_sample_description.tsv"))
+concentratoins <- read_tsv(here::here("metadata", "concentration_matrix.tsv"))
+```
+
+```{r, fig.height=7.5, fig.width=6}
+
+df %>%
+  filter(is_contamination) %>%
+  get_n_peptides_per_ab_per_sample() %>%
+  filter(peptide_type == "vdj") %>%
+  plot_heatmap_per_mab_per_sample(name = "All FP peptides", 
+                                 sample_info = sample_info, 
+                                 concentrations = concentratoins) %>%
+  print()
+```
+
+```{r, fig.height=7.5, fig.width=6}
+
+df %>%
+  filter(is_imgt_peptide | is_shared_peptide | is_carryover_peptide) %>%
+  get_n_peptides_per_ab_per_sample() %>%
+  filter(peptide_type == "vdj") %>%
+  plot_heatmap_per_mab_per_sample(name = "All filtered FP peptides", 
+                                 sample_info = sample_info, 
+                                 concentrations = concentratoins) %>%
+  print()
+```
+
+
+```{r, fig.height=7.5, fig.width=6}
+
+df %>%
+  filter(is_imgt_peptide) %>%
+  get_n_peptides_per_ab_per_sample() %>%
+  filter(peptide_type == "vdj") %>%
+  plot_heatmap_per_mab_per_sample(name = "Removed imgt peptides", 
+                                 sample_info = sample_info, 
+                                 concentrations = concentratoins)
+```
+
+```{r, fig.height=7.5, fig.width=6}
+
+df %>%
+  filter(is_shared_peptide) %>%
+  get_n_peptides_per_ab_per_sample() %>%
+  filter(peptide_type == "vdj") %>%
+  plot_heatmap_per_mab_per_sample(name = "Removed shared peptides", 
+                                 sample_info = sample_info, 
+                                 concentrations = concentratoins)
+```
+
+```{r, fig.height=7.5, fig.width=6}
+
+df %>%
+  filter(is_carryover_peptide) %>%
+  get_n_peptides_per_ab_per_sample() %>%
+  filter(peptide_type == "vdj") %>%
+  plot_heatmap_per_mab_per_sample(name = "Removed carryover peptides", 
+                                 sample_info = sample_info, 
+                                 concentrations = concentratoins)
+```
+
+
+# Peptides after filtering
+
+```{r, fig.height=7.5, fig.width=6}
+
+df %>%
+  filter(!(is_imgt_peptide | is_shared_peptide | is_carryover_peptide)) %>%
+  get_n_peptides_per_ab_per_sample() %>%
+  filter(peptide_type == "vdj") %>%
+  plot_heatmap_per_mab_per_sample(name = "Peptides after filtering", 
+                                 sample_info = sample_info, 
+                                 concentrations = concentratoins) %>%
+  print()
+
+```
+
+
+# TP Peptides after filtering
+
+```{r, fig.height=7.5, fig.width=6}
+
+df %>%
+  filter(!(is_imgt_peptide | is_shared_peptide | is_carryover_peptide) & !is_contamination) %>%
+  get_n_peptides_per_ab_per_sample() %>%
+  filter(peptide_type == "vdj") %>%
+  plot_heatmap_per_mab_per_sample(name = "TP peptides after filtering", 
+                                 sample_info = sample_info, 
+                                 concentrations = concentratoins) %>%
+  print()
+
+```
+
+
+

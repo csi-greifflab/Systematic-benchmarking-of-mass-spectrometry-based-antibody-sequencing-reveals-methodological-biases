@@ -1,0 +1,33 @@
+---
+title: "Fig 2c: total number of unique peptides per mAb"
+output: pdf_document
+---
+
+```{r, include=FALSE, message=F}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+source(here::here("setup.R"))
+source(here::here("src", "get_n_peptides.R"))
+source(here::here("src", "plotting", "plot_total_number_of_peptides_per_mab.R"))
+```
+
+```{r}
+df <- read_tsv(here("data", "processed", "peptides_preprocessed_TP_FP.tsv"), show_col_types = FALSE)
+```
+
+# Main
+
+```{r}
+stats <- get_n_unique_peptides_per_mab(df)
+```
+
+```{r, fig.height=4, fig.width=4}
+plot_total_number_of_peptides_per_mab(stats[stats$match_ig_type %in% HC_names, ])
+```
+
+# Supplementary
+
+```{r, fig.height=4, fig.width=4}
+plot_total_number_of_peptides_per_mab(stats[stats$match_ig_type %in% LC_names, ])
+```
+

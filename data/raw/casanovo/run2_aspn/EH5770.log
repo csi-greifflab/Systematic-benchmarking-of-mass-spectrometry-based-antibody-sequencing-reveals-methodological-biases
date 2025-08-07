@@ -1,0 +1,52 @@
+2023-01-21 21:38:01,139 INFO [casanovo/MainProcess] casanovo.main : Casanovo version 3.2.0
+2023-01-21 21:38:01,139 DEBUG [casanovo/MainProcess] casanovo.main : mode = denovo
+2023-01-21 21:38:01,139 DEBUG [casanovo/MainProcess] casanovo.main : model = /net/noble/vol1/home/rowanon/proj/casanovo-tensorboard/epoch=9-step=200000-v2.ckpt
+2023-01-21 21:38:01,139 DEBUG [casanovo/MainProcess] casanovo.main : peak_path = ./EH5770.mzML
+2023-01-21 21:38:01,140 DEBUG [casanovo/MainProcess] casanovo.main : peak_path_val = None
+2023-01-21 21:38:01,140 DEBUG [casanovo/MainProcess] casanovo.main : config = ../config.yaml
+2023-01-21 21:38:01,140 DEBUG [casanovo/MainProcess] casanovo.main : output = /net/noble/vol1/home/rowanon/proj/2022_rowanon_casanovo-ne/results/rowanon/2023-01-04_greiff-predictions/run2_aspn/EH5770
+2023-01-21 21:38:01,140 DEBUG [casanovo/MainProcess] casanovo.main : random_seed = 454
+2023-01-21 21:38:01,140 DEBUG [casanovo/MainProcess] casanovo.main : n_peaks = 150
+2023-01-21 21:38:01,140 DEBUG [casanovo/MainProcess] casanovo.main : min_mz = 50.0
+2023-01-21 21:38:01,140 DEBUG [casanovo/MainProcess] casanovo.main : max_mz = 2500.0
+2023-01-21 21:38:01,140 DEBUG [casanovo/MainProcess] casanovo.main : min_intensity = 0.01
+2023-01-21 21:38:01,140 DEBUG [casanovo/MainProcess] casanovo.main : remove_precursor_tol = 2.0
+2023-01-21 21:38:01,140 DEBUG [casanovo/MainProcess] casanovo.main : max_charge = 10
+2023-01-21 21:38:01,140 DEBUG [casanovo/MainProcess] casanovo.main : precursor_mass_tol = 50.0
+2023-01-21 21:38:01,140 DEBUG [casanovo/MainProcess] casanovo.main : isotope_error_range = (0, 1)
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : dim_model = 512
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : n_head = 8
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : dim_feedforward = 1024
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : n_layers = 9
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : dropout = 0.0
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : dim_intensity = None
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : custom_encoder = None
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : max_length = 100
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : residues = {'G': 57.021464, 'A': 71.037114, 'S': 87.032028, 'P': 97.052764, 'V': 99.068414, 'T': 101.04767, 'C+57.021': 160.030649, 'L': 113.084064, 'I': 113.084064, 'N': 114.042927, 'D': 115.026943, 'Q': 128.058578, 'K': 128.094963, 'E': 129.042593, 'M': 131.040485, 'H': 137.058912, 'F': 147.068414, 'R': 156.101111, 'Y': 163.063329, 'W': 186.079313, 'M+15.995': 147.0354, 'N+0.984': 115.026943, 'Q+0.984': 129.042594, '+42.011': 42.010565, '+43.006': 43.005814, '-17.027': -17.026549, '+43.006-17.027': 25.980265}
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : n_log = 1
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : tb_summarywriter = None
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : warmup_iters = 100000
+2023-01-21 21:38:01,141 DEBUG [casanovo/MainProcess] casanovo.main : max_iters = 600000
+2023-01-21 21:38:01,142 DEBUG [casanovo/MainProcess] casanovo.main : learning_rate = 0.0005
+2023-01-21 21:38:01,142 DEBUG [casanovo/MainProcess] casanovo.main : weight_decay = 1e-05
+2023-01-21 21:38:01,142 DEBUG [casanovo/MainProcess] casanovo.main : train_batch_size = 32
+2023-01-21 21:38:01,142 DEBUG [casanovo/MainProcess] casanovo.main : predict_batch_size = 500
+2023-01-21 21:38:01,142 DEBUG [casanovo/MainProcess] casanovo.main : n_beams = 5
+2023-01-21 21:38:01,142 DEBUG [casanovo/MainProcess] casanovo.main : logger = None
+2023-01-21 21:38:01,142 DEBUG [casanovo/MainProcess] casanovo.main : max_epochs = 30
+2023-01-21 21:38:01,142 DEBUG [casanovo/MainProcess] casanovo.main : num_sanity_val_steps = 0
+2023-01-21 21:38:01,142 DEBUG [casanovo/MainProcess] casanovo.main : train_from_scratch = True
+2023-01-21 21:38:01,144 DEBUG [casanovo/MainProcess] casanovo.main : save_model = True
+2023-01-21 21:38:01,144 DEBUG [casanovo/MainProcess] casanovo.main : model_save_folder_path = 
+2023-01-21 21:38:01,144 DEBUG [casanovo/MainProcess] casanovo.main : save_weights_only = True
+2023-01-21 21:38:01,144 DEBUG [casanovo/MainProcess] casanovo.main : every_n_train_steps = 50000
+2023-01-21 21:38:01,144 DEBUG [casanovo/MainProcess] casanovo.main : n_workers = 2
+2023-01-21 21:38:01,144 INFO [casanovo/MainProcess] casanovo.main : Predict peptide sequences with Casanovo.
+2023-01-21 21:38:01,337 DEBUG [fsspec.local/MainProcess] local.__init__ : open file: /net/noble/vol1/home/rowanon/proj/casanovo-tensorboard/epoch=9-step=200000-v2.ckpt
+2023-01-21 21:38:04,629 INFO [depthcharge.data.hdf5/MainProcess] hdf5.__init__ : Reading 1 files...
+2023-01-21 21:38:24,183 WARNING [py.warnings/MainProcess] warnings._showwarnmsg : /net/noble/vol1/home/rowanon/anaconda3/envs/casanovo_predict/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:224: PossibleUserWarning: The dataloader, predict_dataloader 0, does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` (try 24 which is the number of cpus on this machine) in the `DataLoader` init to improve performance.
+  rank_zero_warn(
+
+2023-01-21 21:38:50,514 WARNING [py.warnings/MainProcess] warnings._showwarnmsg : /net/noble/vol1/home/rowanon/anaconda3/envs/casanovo_predict/lib/python3.10/site-packages/torch/nn/modules/transformer.py:276: UserWarning: The PyTorch API of nested tensors is in prototype stage and will change in the near future. (Triggered internally at ../aten/src/ATen/NestedTensorImpl.cpp:175.)
+  output = torch._nested_tensor_from_mask(output, src_key_padding_mask.logical_not(), mask_check=False)
+

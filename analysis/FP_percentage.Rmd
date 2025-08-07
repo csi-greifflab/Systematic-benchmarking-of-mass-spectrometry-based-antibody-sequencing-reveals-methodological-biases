@@ -1,0 +1,83 @@
+---
+title: "Percentage of FP peptides"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+source(here::here("setup.R"))
+```
+
+```{r}
+df <- read_tsv(here::here("data", "processed", "peptides_all_TP_FP_with_blanks.tsv"), show_col_types = FALSE) %>%
+  filter(Sample!="blank") %>%
+  mutate(Sample=as.integer(Sample))
+```
+
+
+# By experimental replicate
+```{r}
+df %>%
+  distinct(run, Sample, match_ig_type, Sequence, is_contamination) %>%
+  group_by(run) %>%                               
+  summarise(
+    contamination_percent = mean(is_contamination) * 100,  
+    n_total_peptides = n(), 
+    n_contaminated_peptides = sum(is_contamination)
+  )
+```
+# By tool
+```{r}
+df %>%
+  distinct(tool, Sample, match_ig_type, Sequence, is_contamination) %>%
+  group_by(tool) %>%                               
+  summarise(
+    contamination_percent = mean(is_contamination) * 100,  
+    n_total_peptides = n(), 
+    n_contaminated_peptides = sum(is_contamination)
+  )
+```
+# By presense of blood 
+```{r}
+df %>%
+  distinct(has_blood, Sample, match_ig_type, Sequence, is_contamination) %>%
+  group_by(has_blood) %>%                               
+  summarise(
+    contamination_percent = mean(is_contamination) * 100,  
+    n_total_peptides = n(), 
+    n_contaminated_peptides = sum(is_contamination)
+  )
+```
+
+
+# CDR3 peptides by presense of blood 
+```{r}
+df %>%
+  filter(is_cdr3_related) %>%
+  distinct(has_blood, Sample, match_ig_type, Sequence, is_contamination) %>%
+  group_by(has_blood) %>%                               
+  summarise(
+    contamination_percent = mean(is_contamination) * 100,  
+    n_total_peptides = n(), 
+    n_contaminated_peptides = sum(is_contamination)
+  )
+```
+
+# Removed contaminated peptides by contamination type (imgt, carryover, shared)
+```{r}
+df %>%
+  distinct(Sample, match_ig_type, Sequence, is_contamination, is_imgt_peptide, is_shared_peptide, is_carryover_peptide) %>%
+  filter(is_contamination) %>%
+  summarise(
+    imgt_percent = mean(is_imgt_peptide) * 100,
+    shared_percent = mean(is_shared_peptide) * 100,
+    carryover_percent = mean(is_carryover_peptide) * 100, 
+    not_filtered = mean(!(is_imgt_peptide | is_shared_peptide | is_carryover_peptide)) * 100
+    )
+  
+```
+
+
+
+
+
+

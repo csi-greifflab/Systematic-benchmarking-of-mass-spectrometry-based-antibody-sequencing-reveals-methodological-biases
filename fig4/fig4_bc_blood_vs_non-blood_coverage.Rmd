@@ -1,0 +1,33 @@
+---
+title: "Fig 4b,c: coverage in blood samples vs coverage in non-blood samples"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, message=F}
+source(here::here("setup.R"))
+source(here::here("src", "get_coverage.R"))
+source(here::here("src", "plotting", "plot_coverage_blood_vs_nonblood.R"))
+```
+
+```{r}
+df <- read_tsv(here::here("data", "processed", "peptides_preprocessed_TP.tsv"), show_col_types = FALSE)
+mabs_seq <- read_tsv(here::here("metadata", "mabs_cdr3_variable_full.tsv"), show_col_types = FALSE)
+sample_info <- read_tsv(here::here("metadata", "detailed_sample_description.tsv"))
+```
+
+```{r}
+stats <- get_coverage_per_concentration_per_run(df, mabs_seq, sample_info) 
+```
+
+```{r, fig.height=8, fig.width=10}
+plot_coverage_blood_vs_nonblood(stats[stats$match_ig_type %in% HC_names, ])
+```
+
+# Supplementary
+
+```{r, fig.height=8, fig.width=10}
+plot_coverage_blood_vs_nonblood(stats[stats$match_ig_type %in% LC_names, ])
+```
+
+
+
