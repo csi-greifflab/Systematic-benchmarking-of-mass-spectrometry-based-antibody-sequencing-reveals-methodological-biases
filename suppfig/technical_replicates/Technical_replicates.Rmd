@@ -48,6 +48,7 @@ ggplot(data = df, aes(x = factor(replicate), y = log10(intensity))) +
 
 #ggsave("./figures/log10SI.png", height = 7, width = 7, dpi = 600)
 ```
+
 # Panel B: Pearson correlation of intensity between replicates (with missing peptides in other replicates as zeroes), separate MQ and MSF
 ```{r}
 # Fill in the missing intensity values for the same peptides across all runs and reps

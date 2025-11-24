@@ -1,7 +1,5 @@
 library(Rcpp)
-library(ggplot2)
-library(readr)
-library(stringr)
+library(tidyverse)
 library(reshape2) 
 library(readxl)
 library(rio)
